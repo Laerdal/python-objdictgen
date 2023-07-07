@@ -63,7 +63,7 @@ for Python 2.7. Download and install both.
 
 To setup the virtual environment run (assuming git bash):
 
-    $ py.exe -2 -mvirtualenv --system-site-packages venv
+    $ py.exe -2 -mvirtualenv --system-site-packages venv-27
     $ venv/Scripts/python -mpip install --upgrade pip wheel setuptools
     $ venv/Scripts/pip install .
 
