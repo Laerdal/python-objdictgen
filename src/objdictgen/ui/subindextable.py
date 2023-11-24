@@ -430,7 +430,7 @@ class EditingPanel(wx.SplitterWindow):
               'Sans'))
         self.SubindexGrid.SetLabelFont(wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL,
               False, 'Sans'))
-        self.SubindexGrid.Bind(wx.grid.EVT_GRID_CELL_CHANGING,
+        self.SubindexGrid.Bind(wx.grid.EVT_GRID_CELL_CHANGED,
               self.OnSubindexGridCellChange)
         self.SubindexGrid.Bind(wx.grid.EVT_GRID_CELL_RIGHT_CLICK,
               self.OnSubindexGridRightClick)
