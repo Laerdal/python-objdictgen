@@ -349,16 +349,16 @@ class EditingPanel(wx.SplitterWindow):
         parent.AddGrowableRow(0)
 
     def _init_coll_SubindexGridMenu_Items(self, parent):
-        parent.Append(help='', id=ID_EDITINGPANELMENU1ITEMS0,
-              kind=wx.ITEM_NORMAL, text='Add subindexes')
-        parent.Append(help='', id=ID_EDITINGPANELMENU1ITEMS1,
-              kind=wx.ITEM_NORMAL, text='Delete subindexes')
+        parent.Append(helpString='', id=ID_EDITINGPANELMENU1ITEMS0,
+              kind=wx.ITEM_NORMAL, item='Add subindexes')
+        parent.Append(helpString='', id=ID_EDITINGPANELMENU1ITEMS1,
+              kind=wx.ITEM_NORMAL, item='Delete subindexes')
         parent.AppendSeparator()
-        parent.Append(help='', id=ID_EDITINGPANELMENU1ITEMS3,
-              kind=wx.ITEM_NORMAL, text='Default value')
+        parent.Append(helpString='', id=ID_EDITINGPANELMENU1ITEMS3,
+              kind=wx.ITEM_NORMAL, item='Default value')
         if not self.Editable:
-            parent.Append(help='', id=ID_EDITINGPANELMENU1ITEMS4,
-                  kind=wx.ITEM_NORMAL, text='Add to DCF')
+            parent.Append(helpString='', id=ID_EDITINGPANELMENU1ITEMS4,
+                  kind=wx.ITEM_NORMAL, item='Add to DCF')
         self.Bind(wx.EVT_MENU, self.OnAddSubindexMenu,
               id=ID_EDITINGPANELMENU1ITEMS0)
         self.Bind(wx.EVT_MENU, self.OnDeleteSubindexMenu,
@@ -370,12 +370,12 @@ class EditingPanel(wx.SplitterWindow):
                   id=ID_EDITINGPANELMENU1ITEMS4)
 
     def _init_coll_IndexListMenu_Items(self, parent):
-        parent.Append(help='', id=ID_EDITINGPANELINDEXLISTMENUITEMS0,
-              kind=wx.ITEM_NORMAL, text='Rename')
-        parent.Append(help='', id=ID_EDITINGPANELINDEXLISTMENUITEMS2,
-              kind=wx.ITEM_NORMAL, text='Modify')
-        parent.Append(help='', id=ID_EDITINGPANELINDEXLISTMENUITEMS1,
-              kind=wx.ITEM_NORMAL, text='Delete')
+        parent.Append(helpString='', id=ID_EDITINGPANELINDEXLISTMENUITEMS0,
+              kind=wx.ITEM_NORMAL, item='Rename')
+        parent.Append(helpString='', id=ID_EDITINGPANELINDEXLISTMENUITEMS2,
+              kind=wx.ITEM_NORMAL, item='Modify')
+        parent.Append(helpString='', id=ID_EDITINGPANELINDEXLISTMENUITEMS1,
+              kind=wx.ITEM_NORMAL, item='Delete')
         self.Bind(wx.EVT_MENU, self.OnRenameIndexMenu,
               id=ID_EDITINGPANELINDEXLISTMENUITEMS0)
         self.Bind(wx.EVT_MENU, self.OnDeleteIndexMenu,
@@ -407,7 +407,7 @@ class EditingPanel(wx.SplitterWindow):
 
     def _init_ctrls(self, prnt):
         wx.SplitterWindow.__init__(self, id=ID_EDITINGPANEL,
-              name='MainSplitter', parent=prnt, point=wx.Point(0, 0),
+              name='MainSplitter', parent=prnt, pos=wx.Point(0, 0),
               size=wx.Size(-1, -1), style=wx.SP_3D)
         self._init_utils()
 
@@ -418,7 +418,7 @@ class EditingPanel(wx.SplitterWindow):
               id=ID_EDITINGPANELPARTLIST)
 
         self.SecondSplitter = wx.SplitterWindow(id=ID_EDITINGPANELSECONDSPLITTER,
-              name='SecondSplitter', parent=self, point=wx.Point(0, 0),
+              name='SecondSplitter', parent=self, pos=wx.Point(0, 0),
               size=wx.Size(-1, -1), style=wx.SP_3D)
         self.SplitHorizontally(self.PartList, self.SecondSplitter, 110)
         self.SetMinimumPaneSize(1)
@@ -436,11 +436,11 @@ class EditingPanel(wx.SplitterWindow):
         self.SubindexGrid = wx.grid.Grid(id=ID_EDITINGPANELSUBINDEXGRID,
               name='SubindexGrid', parent=self.SubindexGridPanel, pos=wx.Point(0,
               0), size=wx.Size(-1, -1), style=0)
-        self.SubindexGrid.SetFont(wx.Font(12, 77, wx.NORMAL, wx.NORMAL, False,
+        self.SubindexGrid.SetFont(wx.Font(12, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, False,
               'Sans'))
-        self.SubindexGrid.SetLabelFont(wx.Font(10, 77, wx.NORMAL, wx.NORMAL,
+        self.SubindexGrid.SetLabelFont(wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL,
               False, 'Sans'))
-        self.SubindexGrid.Bind(wx.grid.EVT_GRID_CELL_CHANGE,
+        self.SubindexGrid.Bind(wx.grid.EVT_GRID_CELL_CHANGING,
               self.OnSubindexGridCellChange)
         self.SubindexGrid.Bind(wx.grid.EVT_GRID_CELL_RIGHT_CLICK,
               self.OnSubindexGridRightClick)

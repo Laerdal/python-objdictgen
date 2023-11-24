@@ -1099,7 +1099,7 @@ class CreateNodeDialog(wx.Dialog):
 
     def OnProfileChoice(self, event):
         if self.Profile.GetStringSelection() == "Other":
-            dialog = wx.FileDialog(self, "Choose a file", self.Directory, "", "OD Profile files (*.prf)|*.prf|All files|*.*", wx.OPEN | wx.CHANGE_DIR)
+            dialog = wx.FileDialog(self, "Choose a file", self.Directory, "", "OD Profile files (*.prf)|*.prf|All files|*.*")
             dialog.ShowModal()
             filepath = dialog.GetPath()
             dialog.Destroy()
@@ -1262,8 +1262,7 @@ class AddSlaveDialog(wx.Dialog):
                                "Choose an EDS file",
                                os.path.expanduser("~"),
                                "",
-                               "EDS files (*.eds)|*.eds|All files|*.*",
-                               wx.OPEN)
+                               "EDS files (*.eds)|*.eds|All files|*.*")
         if dialog.ShowModal() == wx.ID_OK:
             filepath = dialog.GetPath()
         else:
@@ -1482,18 +1481,18 @@ class DCFEntryValuesDialog(wx.Dialog):
         self.ValuesGrid = wx.grid.Grid(id=ID_DCFENTRYVALUESDIALOGVALUESGRID,
               name='ValuesGrid', parent=self, pos=wx.Point(0, 0),
               size=wx.Size(0, 150), style=wx.VSCROLL)
-        self.ValuesGrid.SetFont(wx.Font(12, 77, wx.NORMAL, wx.NORMAL, False,
+        self.ValuesGrid.SetFont(wx.Font(12, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.NORMAL, False,
               'Sans'))
-        self.ValuesGrid.SetLabelFont(wx.Font(10, 77, wx.NORMAL, wx.NORMAL,
+        self.ValuesGrid.SetLabelFont(wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.NORMAL,
               False, 'Sans'))
         self.ValuesGrid.SetRowLabelSize(0)
         self.ValuesGrid.SetSelectionBackground(wx.WHITE)
         self.ValuesGrid.SetSelectionForeground(wx.BLACK)
         if wx.VERSION >= (2, 6, 0):
-            self.ValuesGrid.Bind(wx.grid.EVT_GRID_CELL_CHANGE, self.OnValuesGridCellChange)
+            self.ValuesGrid.Bind(wx.grid.EVT_GRID_CELL_CHANGING, self.OnValuesGridCellChange)
             self.ValuesGrid.Bind(wx.grid.EVT_GRID_SELECT_CELL, self.OnValuesGridSelectCell)
         else:
-            wx.grid.EVT_GRID_CELL_CHANGE(self.ValuesGrid, self.OnValuesGridCellChange)
+            wx.grid.EVT_GRID_CELL_CHANGING(self.ValuesGrid, self.OnValuesGridCellChange)
             wx.grid.EVT_GRID_SELECT_CELL(self.ValuesGrid, self.OnValuesGridSelectCell)
 
         self.AddButton = wx.Button(id=ID_DCFENTRYVALUESDIALOGADDBUTTON, label='Add',

@@ -125,15 +125,15 @@ class NodeEditorTemplate(object):
                     additem = self.Frame.AddMenu.FindItemByPosition(6)
                     self.Frame.AddMenu.Delete(additem.GetId())
                 if profile not in ("None", "DS-301"):
-                    edititem.SetText("%s Profile" % profile)
+                    edititem.SetItemLabel("%s Profile" % profile)
                     edititem.Enable(True)
                     self.Frame.AddMenu.AppendSeparator()
                     for text, _ in self.Manager.GetCurrentSpecificMenu():
                         new_id = wx.NewId()
-                        self.Frame.AddMenu.Append(help='', id=new_id, kind=wx.ITEM_NORMAL, text=text)
+                        self.Frame.AddMenu.Append(helpString='', id=new_id, kind=wx.ITEM_NORMAL, item=text)
                         self.Frame.Bind(wx.EVT_MENU, self.GetProfileCallBack(text), id=new_id)
                 else:
-                    edititem.SetText("Other Profile")
+                    edititem.SetItemLabel("Other Profile")
                     edititem.Enable(False)
 
 # ------------------------------------------------------------------------------

@@ -82,27 +82,27 @@ class ObjdictEdit(wx.Frame, net.NodeEditorTemplate):
         parent.Append(menu=self.AddMenu, title='Add')
 
     def _init_coll_FileMenu_Items(self, parent):
-        parent.Append(help='', id=wx.ID_NEW,
-              kind=wx.ITEM_NORMAL, text='New\tCTRL+N')
-        parent.Append(help='', id=wx.ID_OPEN,
-              kind=wx.ITEM_NORMAL, text='Open\tCTRL+O')
-        parent.Append(help='', id=wx.ID_CLOSE,
-              kind=wx.ITEM_NORMAL, text='Close\tCTRL+W')
+        parent.Append(helpString='', id=wx.ID_NEW,
+              kind=wx.ITEM_NORMAL, item='New\tCTRL+N')
+        parent.Append(helpString='', id=wx.ID_OPEN,
+              kind=wx.ITEM_NORMAL, item='Open\tCTRL+O')
+        parent.Append(helpString='', id=wx.ID_CLOSE,
+              kind=wx.ITEM_NORMAL, item='Close\tCTRL+W')
         parent.AppendSeparator()
-        parent.Append(help='', id=wx.ID_SAVE,
-              kind=wx.ITEM_NORMAL, text='Save\tCTRL+S')
-        parent.Append(help='', id=wx.ID_SAVEAS,
-              kind=wx.ITEM_NORMAL, text='Save As...\tALT+S')
+        parent.Append(helpString='', id=wx.ID_SAVE,
+              kind=wx.ITEM_NORMAL, item='Save\tCTRL+S')
+        parent.Append(helpString='', id=wx.ID_SAVEAS,
+              kind=wx.ITEM_NORMAL, item='Save As...\tALT+S')
         parent.AppendSeparator()
-        parent.Append(help='', id=ID_OBJDICTEDITFILEMENUIMPORTEDS,
-              kind=wx.ITEM_NORMAL, text='Import EDS file')
-        parent.Append(help='', id=ID_OBJDICTEDITFILEMENUEXPORTEDS,
-              kind=wx.ITEM_NORMAL, text='Export to EDS file')
-        parent.Append(help='', id=ID_OBJDICTEDITFILEMENUEXPORTC,
-              kind=wx.ITEM_NORMAL, text='Build Dictionary\tCTRL+B')
+        parent.Append(helpString='', id=ID_OBJDICTEDITFILEMENUIMPORTEDS,
+              kind=wx.ITEM_NORMAL, item='Import EDS file')
+        parent.Append(helpString='', id=ID_OBJDICTEDITFILEMENUEXPORTEDS,
+              kind=wx.ITEM_NORMAL, item='Export to EDS file')
+        parent.Append(helpString='', id=ID_OBJDICTEDITFILEMENUEXPORTC,
+              kind=wx.ITEM_NORMAL, item='Build Dictionary\tCTRL+B')
         parent.AppendSeparator()
-        parent.Append(help='', id=wx.ID_EXIT,
-              kind=wx.ITEM_NORMAL, text='Exit')
+        parent.Append(helpString='', id=wx.ID_EXIT,
+              kind=wx.ITEM_NORMAL, item='Exit')
         self.Bind(wx.EVT_MENU, self.OnNewMenu, id=wx.ID_NEW)
         self.Bind(wx.EVT_MENU, self.OnOpenMenu, id=wx.ID_OPEN)
         self.Bind(wx.EVT_MENU, self.OnCloseMenu, id=wx.ID_CLOSE)
@@ -117,22 +117,22 @@ class ObjdictEdit(wx.Frame, net.NodeEditorTemplate):
         self.Bind(wx.EVT_MENU, self.OnQuitMenu, id=wx.ID_EXIT)
 
     def _init_coll_EditMenu_Items(self, parent):
-        parent.Append(help='', id=wx.ID_REFRESH,
-              kind=wx.ITEM_NORMAL, text='Refresh\tCTRL+R')
+        parent.Append(helpString='', id=wx.ID_REFRESH,
+              kind=wx.ITEM_NORMAL, item='Refresh\tCTRL+R')
         parent.AppendSeparator()
-        parent.Append(help='', id=wx.ID_UNDO,
-              kind=wx.ITEM_NORMAL, text='Undo\tCTRL+Z')
-        parent.Append(help='', id=wx.ID_REDO,
-              kind=wx.ITEM_NORMAL, text='Redo\tCTRL+Y')
+        parent.Append(helpString='', id=wx.ID_UNDO,
+              kind=wx.ITEM_NORMAL, item='Undo\tCTRL+Z')
+        parent.Append(helpString='', id=wx.ID_REDO,
+              kind=wx.ITEM_NORMAL, item='Redo\tCTRL+Y')
         parent.AppendSeparator()
-        parent.Append(help='', id=ID_OBJDICTEDITEDITMENUNODEINFOS,
-              kind=wx.ITEM_NORMAL, text='Node infos')
-        parent.Append(help='', id=ID_OBJDICTEDITEDITMENUDS301PROFILE,
-              kind=wx.ITEM_NORMAL, text='DS-301 Profile')
-        parent.Append(help='', id=ID_OBJDICTEDITEDITMENUDS302PROFILE,
-              kind=wx.ITEM_NORMAL, text='DS-302 Profile')
-        parent.Append(help='', id=ID_OBJDICTEDITEDITMENUOTHERPROFILE,
-              kind=wx.ITEM_NORMAL, text='Other Profile')
+        parent.Append(helpString='', id=ID_OBJDICTEDITEDITMENUNODEINFOS,
+              kind=wx.ITEM_NORMAL, item='Node infos')
+        parent.Append(helpString='', id=ID_OBJDICTEDITEDITMENUDS301PROFILE,
+              kind=wx.ITEM_NORMAL, item='DS-301 Profile')
+        parent.Append(helpString='', id=ID_OBJDICTEDITEDITMENUDS302PROFILE,
+              kind=wx.ITEM_NORMAL, item='DS-302 Profile')
+        parent.Append(helpString='', id=ID_OBJDICTEDITEDITMENUOTHERPROFILE,
+              kind=wx.ITEM_NORMAL, item='Other Profile')
         self.Bind(wx.EVT_MENU, self.OnRefreshMenu, id=wx.ID_REFRESH)
         self.Bind(wx.EVT_MENU, self.OnUndoMenu, id=wx.ID_UNDO)
         self.Bind(wx.EVT_MENU, self.OnRedoMenu, id=wx.ID_REDO)
@@ -146,18 +146,18 @@ class ObjdictEdit(wx.Frame, net.NodeEditorTemplate):
               id=ID_OBJDICTEDITEDITMENUOTHERPROFILE)
 
     def _init_coll_AddMenu_Items(self, parent):
-        parent.Append(help='', id=ID_OBJDICTEDITADDMENUSDOSERVER,
-              kind=wx.ITEM_NORMAL, text='SDO Server')
-        parent.Append(help='', id=ID_OBJDICTEDITADDMENUSDOCLIENT,
-              kind=wx.ITEM_NORMAL, text='SDO Client')
-        parent.Append(help='', id=ID_OBJDICTEDITADDMENUPDOTRANSMIT,
-              kind=wx.ITEM_NORMAL, text='PDO Transmit')
-        parent.Append(help='', id=ID_OBJDICTEDITADDMENUPDORECEIVE,
-              kind=wx.ITEM_NORMAL, text='PDO Receive')
-        parent.Append(help='', id=ID_OBJDICTEDITADDMENUMAPVARIABLE,
-              kind=wx.ITEM_NORMAL, text='Map Variable')
-        parent.Append(help='', id=ID_OBJDICTEDITADDMENUUSERTYPE,
-              kind=wx.ITEM_NORMAL, text='User Type')
+        parent.Append(helpString='', id=ID_OBJDICTEDITADDMENUSDOSERVER,
+              kind=wx.ITEM_NORMAL, item='SDO Server')
+        parent.Append(helpString='', id=ID_OBJDICTEDITADDMENUSDOCLIENT,
+              kind=wx.ITEM_NORMAL, item='SDO Client')
+        parent.Append(helpString='', id=ID_OBJDICTEDITADDMENUPDOTRANSMIT,
+              kind=wx.ITEM_NORMAL, item='PDO Transmit')
+        parent.Append(helpString='', id=ID_OBJDICTEDITADDMENUPDORECEIVE,
+              kind=wx.ITEM_NORMAL, item='PDO Receive')
+        parent.Append(helpString='', id=ID_OBJDICTEDITADDMENUMAPVARIABLE,
+              kind=wx.ITEM_NORMAL, item='Map Variable')
+        parent.Append(helpString='', id=ID_OBJDICTEDITADDMENUUSERTYPE,
+              kind=wx.ITEM_NORMAL, item='User Type')
         self.Bind(wx.EVT_MENU, self.OnAddSDOServerMenu,
               id=ID_OBJDICTEDITADDMENUSDOSERVER)
         self.Bind(wx.EVT_MENU, self.OnAddSDOClientMenu,
@@ -174,9 +174,9 @@ class ObjdictEdit(wx.Frame, net.NodeEditorTemplate):
     def _init_coll_HelpBar_Fields(self, parent):
         parent.SetFieldsCount(3)
 
-        parent.SetStatusText(number=0, text='')
-        parent.SetStatusText(number=1, text='')
-        parent.SetStatusText(number=2, text='')
+        parent.SetStatusText(i=0, text='')
+        parent.SetStatusText(i=1, text='')
+        parent.SetStatusText(i=2, text='')
 
         parent.SetStatusWidths([100, 110, -1])
 
@@ -215,7 +215,7 @@ class ObjdictEdit(wx.Frame, net.NodeEditorTemplate):
               self.OnFileSelectedChanged, id=ID_OBJDICTEDITFILEOPENED)
 
         self.HelpBar = wx.StatusBar(id=ID_OBJDICTEDITHELPBAR, name='HelpBar',
-              parent=self, style=wx.ST_SIZEGRIP)
+              parent=self, style=wx.STB_SIZEGRIP)
         self._init_coll_HelpBar_Fields(self.HelpBar)
         self.SetStatusBar(self.HelpBar)
 
@@ -407,7 +407,7 @@ class ObjdictEdit(wx.Frame, net.NodeEditorTemplate):
             directory = os.path.dirname(filepath)
         else:
             directory = os.getcwd()
-        dialog = wx.FileDialog(self, "Choose a file", directory, "", "OD files (*.json;*.od;*.eds)|*.json;*.od;*.eds|All files|*.*", wx.OPEN | wx.CHANGE_DIR)
+        dialog = wx.FileDialog(self, "Choose a file", directory, "", "OD files (*.json;*.od;*.eds)|*.json;*.od;*.eds|All files|*.*")
         if dialog.ShowModal() == wx.ID_OK:
             filepath = dialog.GetPath()
             if os.path.isfile(filepath):
@@ -502,7 +502,7 @@ class ObjdictEdit(wx.Frame, net.NodeEditorTemplate):
     # --------------------------------------------------------------------------
 
     def OnImportEDSMenu(self, event):  # pylint: disable=unused-argument
-        dialog = wx.FileDialog(self, "Choose a file", os.getcwd(), "", "EDS files (*.eds)|*.eds|All files|*.*", wx.OPEN | wx.CHANGE_DIR)
+        dialog = wx.FileDialog(self, "Choose a file", os.getcwd(), "", "EDS files (*.eds)|*.eds|All files|*.*")
         if dialog.ShowModal() == wx.ID_OK:
             filepath = dialog.GetPath()
             if os.path.isfile(filepath):
@@ -577,7 +577,7 @@ class ObjdictEdit(wx.Frame, net.NodeEditorTemplate):
 
 
 def uimain(args):
-    app = wx.PySimpleApp()
+    app = wx.App()
 
     wx.InitAllImageHandlers()
 
