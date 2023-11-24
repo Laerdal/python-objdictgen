@@ -984,7 +984,7 @@ class Node(object):
         list_ = Find.TypeList(MAPPING_DICTIONARY)
         for mapping in self.GetMappings():
             list_.extend(Find.TypeList(mapping))
-        return ",".join(sorted(list_))
+        return list_
 
     def GenerateMapName(self, name, index, subindex):  # pylint: disable=unused-argument
         return "%s (0x%4.4X)" % (name, index)
@@ -1036,7 +1036,7 @@ class Node(object):
         Return the list of variables that can be mapped for the current node
         """
         list_ = ["None"] + [self.GenerateMapName(name, index, subindex) for index, subindex, size, name in self.GetMapVariableList()]
-        return ",".join(list_)
+        return list_
 
     def GetAllParameters(self, sort=False):
         """ Get a list of all the parameters """

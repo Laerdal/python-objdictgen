@@ -39,16 +39,12 @@ COL_ALIGNMENTS = [wx.ALIGN_CENTER, wx.ALIGN_LEFT, wx.ALIGN_CENTER, wx.ALIGN_RIGH
 
 RW = ["Read Only", "Write Only", "Read/Write"]
 RO = ["Read Only", "Read/Write"]
-RW_ACCESS_LIST = ",".join(RW)
-RO_ACCESS_LIST = ",".join(RO)
 ACCESS_LIST_DICT = {access: access for access in RW}
 
 BOOL_LIST = ["True", "False"]
-BOOL_STR = ",".join(BOOL_LIST)
 BOOL_DICT = {b: b for b in BOOL_LIST}
 
 OPTION_LIST = ["Yes", "No"]
-OPTION_STR = ",".join(OPTION_LIST)
 OPTION_DICT = {option: option for option in OPTION_LIST}
 
 (USER_TYPE, SDO_SERVER, SDO_CLIENT,
@@ -104,14 +100,14 @@ IEC_TYPE_CONVERSION = {
 SIZE_CONVERSION = {1: "X", 8: "B", 16: "W", 24: "D", 32: "D", 40: "L", 48: "L", 56: "L", 64: "L"}
 
 
-class SubindexTable(wx.grid.PyGridTableBase):
+class SubindexTable(wx.grid.GridTableBase):
 
     """
     A custom wxGrid Table using user supplied data
     """
     def __init__(self, parent, data, editors, colnames):
         # The base class must be initialized *first*
-        wx.grid.PyGridTableBase.__init__(self)
+        wx.grid.GridTableBase.__init__(self)
         self.data = data
         self.editors = editors
         self.CurrentIndex = 0
@@ -252,27 +248,21 @@ class SubindexTable(wx.grid.PyGridTableBase):
                         editor = wx.grid.GridCellTextEditor()
                         renderer = wx.grid.GridCellStringRenderer()
                     elif editortype == "bool":
-                        editor = wx.grid.GridCellChoiceEditor()
-                        editor.SetParameters(BOOL_STR)
+                        editor = wx.grid.GridCellChoiceEditor(BOOL_LIST)
                     elif editortype == "access":
-                        editor = wx.grid.GridCellChoiceEditor()
-                        editor.SetParameters(RW_ACCESS_LIST)
+                        editor = wx.grid.GridCellChoiceEditor(RW)
                     elif editortype == "raccess":
-                        editor = wx.grid.GridCellChoiceEditor()
-                        editor.SetParameters(RO_ACCESS_LIST)
+                        editor = wx.grid.GridCellChoiceEditor(RO)
                     elif editortype == "option":
-                        editor = wx.grid.GridCellChoiceEditor()
-                        editor.SetParameters(OPTION_STR)
+                        editor = wx.grid.GridCellChoiceEditor(OPTION_LIST)
                     elif editortype == "type":
-                        editor = wx.grid.GridCellChoiceEditor()
                         if typelist is None:
                             typelist = self.Parent.Manager.GetCurrentTypeList()
-                        editor.SetParameters(typelist)
+                        editor = wx.grid.GridCellChoiceEditor(typelist)
                     elif editortype == "map":
-                        editor = wx.grid.GridCellChoiceEditor()
                         if maplist is None:
                             maplist = self.Parent.Manager.GetCurrentMapList()
-                        editor.SetParameters(maplist)
+                        editor = wx.grid.GridCellChoiceEditor(maplist)
                     elif editortype == "time":
                         editor = wx.grid.GridCellTextEditor()
                         renderer = wx.grid.GridCellStringRenderer()

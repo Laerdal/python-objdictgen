@@ -346,7 +346,7 @@ class MapVariableDialog(wx.Dialog):
               size=wx.Size(0, 0), style=wx.TAB_TRAVERSAL)
 
         self.ButtonSizer = self.CreateButtonSizer(wx.OK | wx.CANCEL)
-        self.Bind(wx.EVT_BUTTON, self.OnOK, id=self.ButtonSizer.GetAffirmativeButton().GetId())
+        self.Bind(wx.EVT_BUTTON, self.OnOK, id=wx.OK)
 
         self._init_sizers()
 
@@ -537,7 +537,7 @@ class UserTypeDialog(wx.Dialog):
               style=wx.TE_RIGHT, value='0')
 
         self.ButtonSizer = self.CreateButtonSizer(wx.OK | wx.CANCEL)
-        self.Bind(wx.EVT_BUTTON, self.OnOK, id=self.ButtonSizer.GetAffirmativeButton().GetId())
+        self.Bind(wx.EVT_BUTTON, self.OnOK, id=wx.OK)
 
         self._init_sizers()
 
@@ -750,7 +750,7 @@ class NodeInfosDialog(wx.Dialog):
               size=wx.Size(0, 24), style=0, value='')
 
         self.ButtonSizer = self.CreateButtonSizer(wx.OK | wx.CANCEL)
-        self.Bind(wx.EVT_BUTTON, self.OnOK, id=self.ButtonSizer.GetAffirmativeButton().GetId())
+        self.Bind(wx.EVT_BUTTON, self.OnOK, id=wx.OK)
 
         self._init_sizers()
 
@@ -1204,7 +1204,7 @@ class AddSlaveDialog(wx.Dialog):
               id=ID_ADDSLAVEDIALOGIMPORTEDS)
 
         self.ButtonSizer = self.CreateButtonSizer(wx.OK | wx.CANCEL | wx.CENTRE)
-        self.Bind(wx.EVT_BUTTON, self.OnOK, id=self.ButtonSizer.GetAffirmativeButton().GetId())
+        self.Bind(wx.EVT_BUTTON, self.OnOK, id=wx.OK)
 
         self._init_sizers()
 
@@ -1314,7 +1314,7 @@ class AddSlaveDialog(wx.Dialog):
 DCF_ENTRY_TABLE_COLNAMES = ["Index", "Subindex", "Size", "Value"]
 
 
-class DCFEntryValuesTable(wx.grid.PyGridTableBase):
+class DCFEntryValuesTable(wx.grid.GridTableBase):
     # pylint: disable=attribute-defined-outside-init
 
     """
@@ -1322,7 +1322,7 @@ class DCFEntryValuesTable(wx.grid.PyGridTableBase):
     """
     def __init__(self, parent, data, colnames):
         # The base class must be initialized *first*
-        wx.grid.PyGridTableBase.__init__(self)
+        wx.grid.GridTableBase.__init__(self)
         self.data = data
         self.colnames = colnames
         self.Parent = parent

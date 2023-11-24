@@ -45,22 +45,17 @@ def Display_Exception_Dialog(e_type, e_value, e_tb):
         trcbck_lst.append(trcbck)
 
     # Allow clicking....
-    cap = wx.Window_GetCapture()
+    cap = wx.Window.GetCapture()
     if cap:
         cap.ReleaseMouse()
 
     dlg = wx.SingleChoiceDialog(None,
         ("""
-An error happens.
-
-Click on OK for saving an error report.
-
-Please be kind enough to send this file to:
-edouard.tisserant@gmail.com
-
-
-Error:
-"""
+            An error has occured.
+            Click on OK for saving an error report.
+            If appropriate please add an issue to the project on GitHub.
+            Error:
+        """
         + str(e_type) + " : " + str(e_value)),
         "Error",
         trcbck_lst)
