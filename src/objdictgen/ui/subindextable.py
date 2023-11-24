@@ -326,16 +326,16 @@ class EditingPanel(wx.SplitterWindow):
     # pylint: disable=attribute-defined-outside-init
 
     def _init_coll_AddToListSizer_Items(self, parent):
-        parent.AddWindow(self.AddButton, 0, border=0, flag=0)
-        parent.AddWindow(self.IndexChoice, 0, border=0, flag=wx.GROW)
+        parent.Add(self.AddButton, 0, border=0, flag=0)
+        parent.Add(self.IndexChoice, 0, border=0, flag=wx.GROW)
 
     def _init_coll_SubindexGridSizer_Items(self, parent):
-        parent.AddWindow(self.CallbackCheck, 0, border=0, flag=0)
-        parent.AddWindow(self.SubindexGrid, 0, border=0, flag=wx.GROW)
+        parent.Add(self.CallbackCheck, 0, border=0, flag=0)
+        parent.Add(self.SubindexGrid, 0, border=0, flag=wx.GROW)
 
     def _init_coll_IndexListSizer_Items(self, parent):
-        parent.AddWindow(self.IndexList, 0, border=0, flag=wx.GROW)
-        parent.AddSizer(self.AddToListSizer, 0, border=0, flag=wx.GROW)
+        parent.Add(self.IndexList, 0, border=0, flag=wx.GROW)
+        parent.Add(self.AddToListSizer, 0, border=0, flag=wx.GROW)
 
     def _init_coll_AddToListSizer_Growables(self, parent):
         parent.AddGrowableCol(1)
