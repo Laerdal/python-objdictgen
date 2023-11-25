@@ -346,7 +346,7 @@ class MapVariableDialog(wx.Dialog):
               size=wx.Size(0, 0), style=wx.TAB_TRAVERSAL)
 
         self.ButtonSizer = self.CreateButtonSizer(wx.OK | wx.CANCEL)
-        self.Bind(wx.EVT_BUTTON, self.OnOK, id=wx.OK)
+        self.Bind(wx.EVT_BUTTON, self.OnOK, id=wx.ID_OK)
 
         self._init_sizers()
 
@@ -359,6 +359,7 @@ class MapVariableDialog(wx.Dialog):
         self.Index.SetValue("0x%04X" % index)
 
     def OnOK(self, event):  # pylint: disable=unused-argument
+        print("Stuff")
         error = []
         try:
             int(self.Index.GetValue(), 16)
@@ -537,7 +538,7 @@ class UserTypeDialog(wx.Dialog):
               style=wx.TE_RIGHT, value='0')
 
         self.ButtonSizer = self.CreateButtonSizer(wx.OK | wx.CANCEL)
-        self.Bind(wx.EVT_BUTTON, self.OnOK, id=wx.OK)
+        self.Bind(wx.EVT_BUTTON, self.OnOK, id=wx.ID_OK)
 
         self._init_sizers()
 
@@ -750,7 +751,7 @@ class NodeInfosDialog(wx.Dialog):
               size=wx.Size(0, 24), style=0, value='')
 
         self.ButtonSizer = self.CreateButtonSizer(wx.OK | wx.CANCEL)
-        self.Bind(wx.EVT_BUTTON, self.OnOK, id=wx.OK)
+        self.Bind(wx.EVT_BUTTON, self.OnOK, id=wx.ID_OK)
 
         self._init_sizers()
 
@@ -1013,7 +1014,7 @@ class CreateNodeDialog(wx.Dialog):
               size=wx.Size(0, 0), style=wx.TAB_TRAVERSAL)
 
         self.ButtonSizer = self.CreateButtonSizer(buttons)
-        self.Bind(wx.EVT_BUTTON, self.OnOK, id=wx.OK)
+        self.Bind(wx.EVT_BUTTON, self.OnOK, id=wx.ID_OK)
 
         self._init_sizers()
 
@@ -1204,7 +1205,7 @@ class AddSlaveDialog(wx.Dialog):
               id=ID_ADDSLAVEDIALOGIMPORTEDS)
 
         self.ButtonSizer = self.CreateButtonSizer(wx.OK | wx.CANCEL | wx.CENTRE)
-        self.Bind(wx.EVT_BUTTON, self.OnOK, id=wx.OK)
+        self.Bind(wx.EVT_BUTTON, self.OnOK, id=wx.ID_OK)
 
         self._init_sizers()
 
