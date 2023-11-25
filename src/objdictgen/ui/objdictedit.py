@@ -458,23 +458,30 @@ class ObjdictEdit(wx.Frame, net.NodeEditorTemplate):
         if filepath:
             directory, filename = os.path.split(filepath)
         else:
-            directory, filename = os.getcwd(), "%s.json" % self.Manager.GetCurrentNodeInfos()[0]
-        dialog = wx.FileDialog(self, "Choose a file", directory, filename, "OD files (*.json;*.od;*.eds)|*.json;*.od;*.eds|All files|*.*", style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT | wx.FD_CHANGE_DIR)
-        if dialog.ShowModal() == wx.ID_OK:
+            directory, filename = os.getcwd(), "%s" % self.Manager.GetCurrentNodeInfos()[0]
+
+        with wx.FileDialog(self, "Choose a file", directory, filename, wildcard="OD JSON file (*.json)|*.json;|OD file (*.od)|*.od;|EDS file (*.eds)|*.eds",
+                           style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT | wx.FD_CHANGE_DIR) as dialog:
+            if dialog.ShowModal() == wx.ID_CANCEL:
+                return
+            
+            log.debug(filepath)
             filepath = dialog.GetPath()
+
             if not os.path.isdir(os.path.dirname(filepath)):
                 message = wx.MessageDialog(self, "%s is not a valid folder!" % os.path.dirname(filepath), "Error", wx.OK | wx.ICON_ERROR)
                 message.ShowModal()
                 message.Destroy()
             else:
                 try:
-                    self.Manager.SaveCurrentInFile(filepath)
+                    #Try and save the file and then update the filepath if successfull
+                    if self.Manager.SaveCurrentInFile(filepath):
+                        self.Manager.SetCurrentFilePath(filepath)
                     self.RefreshBufferState()
                 except Exception as exc:  # pylint: disable=broad-except
                     message = wx.MessageDialog(self, str(exc), "Error", wx.OK | wx.ICON_ERROR)
                     message.ShowModal()
                     message.Destroy()
-        dialog.Destroy()
 
     def OnCloseMenu(self, event):
         answer = wx.ID_YES
