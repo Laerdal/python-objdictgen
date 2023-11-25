@@ -693,7 +693,7 @@ class NodeInfosDialog(wx.Dialog):
 
     def _init_sizers(self):
         self.flexGridSizer1 = wx.FlexGridSizer(cols=1, hgap=0, rows=2, vgap=10)
-        self.MainSizer = wx.FlexGridSizer(cols=1, hgap=0, rows=8, vgap=5)
+        self.MainSizer = wx.FlexGridSizer(cols=1, hgap=0, rows=10, vgap=5)
 
         self._init_coll_flexGridSizer1_Items(self.flexGridSizer1)
         self._init_coll_flexGridSizer1_Growables(self.flexGridSizer1)
@@ -1099,7 +1099,7 @@ class CreateNodeDialog(wx.Dialog):
 
     def OnProfileChoice(self, event):
         if self.Profile.GetStringSelection() == "Other":
-            dialog = wx.FileDialog(self, "Choose a file", self.Directory, "", "OD Profile files (*.prf)|*.prf|All files|*.*")
+            dialog = wx.FileDialog(self, "Choose a file", self.Directory, "", "OD Profile files (*.prf)|*.prf|All files|*.*", style="")
             dialog.ShowModal()
             filepath = dialog.GetPath()
             dialog.Destroy()
