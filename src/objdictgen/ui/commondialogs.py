@@ -335,7 +335,7 @@ class MapVariableDialog(wx.Dialog):
 
         self.Number = wx.TextCtrl(id=ID_MAPVARIABLEDIALOGNUMBER,
               name='Number', parent=self, pos=wx.Point(0, 0),
-              size=wx.Size(0, 24), style=wx.TE_RIGHT, value='0')
+              size=wx.Size(0, 24), style=wx.TE_RIGHT, value='1')
 
         self.Spacer = wx.Panel(id=ID_MAPVARIABLEDIALOGSPACER,
               name='Spacer', parent=self, pos=wx.Point(0, 0),
@@ -359,7 +359,6 @@ class MapVariableDialog(wx.Dialog):
         self.Index.SetValue("0x%04X" % index)
 
     def OnOK(self, event):  # pylint: disable=unused-argument
-        print("Stuff")
         error = []
         try:
             int(self.Index.GetValue(), 16)
@@ -369,6 +368,8 @@ class MapVariableDialog(wx.Dialog):
         if self.radioButton2.GetValue() or self.radioButton3.GetValue():
             try:
                 int(self.Number.GetValue())
+                if int(self.Number.GetValue()) < 1:
+                    raise ValueError("Number out of range, must be >0")
             except ValueError as exc:
                 log.debug("ValueError: '%s': %s" % (self.Index.GetValue(), exc))
                 error.append("Number")
