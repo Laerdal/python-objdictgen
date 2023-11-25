@@ -407,7 +407,7 @@ class ObjdictEdit(wx.Frame, net.NodeEditorTemplate):
             directory = os.path.dirname(filepath)
         else:
             directory = os.getcwd()
-        dialog = wx.FileDialog(self, "Choose a file", directory, "", "OD files (*.json;*.od;*.eds)|*.json;*.od;*.eds|All files|*.*")
+        dialog = wx.FileDialog(self, "Choose a file", directory, "", "OD files (*.json;*.od;*.eds)|*.json;*.od;*.eds|All files|*.*", style=wx.FD_OPEN | wx.FD_CHANGE_DIR)
         if dialog.ShowModal() == wx.ID_OK:
             filepath = dialog.GetPath()
             if os.path.isfile(filepath):
@@ -459,7 +459,7 @@ class ObjdictEdit(wx.Frame, net.NodeEditorTemplate):
             directory, filename = os.path.split(filepath)
         else:
             directory, filename = os.getcwd(), "%s.json" % self.Manager.GetCurrentNodeInfos()[0]
-        dialog = wx.FileDialog(self, "Choose a file", directory, filename, "OD files (*.json;*.od;*.eds)|*.json;*.od;*.eds|All files|*.*", wx.SAVE | wx.OVERWRITE_PROMPT | wx.CHANGE_DIR)
+        dialog = wx.FileDialog(self, "Choose a file", directory, filename, "OD files (*.json;*.od;*.eds)|*.json;*.od;*.eds|All files|*.*", style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT | wx.FD_CHANGE_DIR)
         if dialog.ShowModal() == wx.ID_OK:
             filepath = dialog.GetPath()
             if not os.path.isdir(os.path.dirname(filepath)):
@@ -502,7 +502,7 @@ class ObjdictEdit(wx.Frame, net.NodeEditorTemplate):
     # --------------------------------------------------------------------------
 
     def OnImportEDSMenu(self, event):  # pylint: disable=unused-argument
-        dialog = wx.FileDialog(self, "Choose a file", os.getcwd(), "", "EDS files (*.eds)|*.eds|All files|*.*")
+        dialog = wx.FileDialog(self, "Choose a file", os.getcwd(), "", "EDS files (*.eds)|*.eds|All files|*.*", style=wx.FD_OPEN | wx.FD_CHANGE_DIR)
         if dialog.ShowModal() == wx.ID_OK:
             filepath = dialog.GetPath()
             if os.path.isfile(filepath):
@@ -530,7 +530,7 @@ class ObjdictEdit(wx.Frame, net.NodeEditorTemplate):
         dialog.Destroy()
 
     def OnExportEDSMenu(self, event):  # pylint: disable=unused-argument
-        dialog = wx.FileDialog(self, "Choose a file", os.getcwd(), self.Manager.GetCurrentNodeInfos()[0], "EDS files (*.eds)|*.eds|All files|*.*", wx.SAVE | wx.OVERWRITE_PROMPT | wx.CHANGE_DIR)
+        dialog = wx.FileDialog(self, "Choose a file", os.getcwd(), self.Manager.GetCurrentNodeInfos()[0], "EDS files (*.eds)|*.eds|All files|*.*", style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT | wx.FD_CHANGE_DIR)
         if dialog.ShowModal() == wx.ID_OK:
             filepath = dialog.GetPath()
             if not os.path.isdir(os.path.dirname(filepath)):
@@ -553,7 +553,7 @@ class ObjdictEdit(wx.Frame, net.NodeEditorTemplate):
         dialog.Destroy()
 
     def OnExportCMenu(self, event):  # pylint: disable=unused-argument
-        dialog = wx.FileDialog(self, "Choose a file", os.getcwd(), self.Manager.GetCurrentNodeInfos()[0], "CANFestival C files (*.c)|*.c|All files|*.*", wx.SAVE | wx.OVERWRITE_PROMPT | wx.CHANGE_DIR)
+        dialog = wx.FileDialog(self, "Choose a file", os.getcwd(), self.Manager.GetCurrentNodeInfos()[0], "CANFestival C files (*.c)|*.c|All files|*.*", style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT | wx.FD_CHANGE_DIR)
         if dialog.ShowModal() == wx.ID_OK:
             filepath = dialog.GetPath()
             if not os.path.isdir(os.path.dirname(filepath)):
