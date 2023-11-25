@@ -32,8 +32,7 @@ manner, making it possible support diffing of the `.json` file output. `odg`
 remains 100% compatible with the legacy `.od` format on both input and output.
 
 The original objdictedit and objdictgen tool were written in legacy python2 and
-and this is a port to python3. The package still remains compatible with
-python2, as python2 is required for running the UI tools.
+and this is a port to python3. 
 
 This tool is a fork from upstream canfestival-3-asc repo:
 
@@ -51,24 +50,6 @@ the top in a command-prompt (here assuming Windows and git bash):
 
 After this `venv/Scripts/odg.exe` will exist and can be called
 from anywhere to run it.
-
-
-### Python 2
-
-To run the `objdictedit` GUI, wxPython is required and it is only available
-for Python 2.7. Download and install both.
-
-   * https://www.python.org/downloads/release/python-2716/
-   * https://sourceforge.net/projects/wxpython/files/wxPython/2.8.12.1/
-
-To setup the virtual environment run (assuming git bash):
-
-    $ py.exe -2 -mvirtualenv --system-site-packages venv-27
-    $ venv-27/Scripts/python -mpip install --upgrade pip wheel setuptools
-    $ venv-27/Scripts/pip install .
-
-NOTE: The `py.exe` tool is only shipped with recent Python 3.
-
 
 ## `odg` command-line tool
 
@@ -92,9 +73,7 @@ The most useful commands are:
 ### Legacy commands
 
 The legacy commands `objdictgen` and `objdictedit` are still available. The
-same commands are available under `odg gen` and `odg edit` respectively. Note
-that Python 2 is required to run `objdictedit` due to the dependency on the
-old wxpython library.
+same commands are available under `odg gen` and `odg edit` respectively.
 
 
 ## JSON schema
