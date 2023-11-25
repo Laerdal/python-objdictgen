@@ -1047,6 +1047,9 @@ class NodeManager(object):
                                 except ValueError as exc:
                                     log.debug("ValueError: '%s': %s" % (values[1], exc))
                                     raise  # FIXME: Originial code swallows exception
+                                except TypeError as exc:
+                                    log.debug("ValueError: '%s': %s" % (dic["value"], exc))
+                                    pass # FIXME: dict["value"] can contain $NODEID for PDOs which is not an int i.e. $NODEID+0x200
                                 editor["value"] = "string"
                             if values[0] == "INTEGER":
                                 editor["value"] = "number"
