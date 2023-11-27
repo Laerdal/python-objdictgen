@@ -35,7 +35,6 @@ import traceback
 from past.builtins import execfile
 from future.utils import raise_from
 import colorama
-import ast
 
 import objdictgen
 from objdictgen.nosis import pickle as nosis
@@ -54,7 +53,7 @@ log = logging.getLogger('objdictgen')
 Fore = colorama.Fore
 Style = colorama.Style
 
-RE_NAME = re.compile(r'(.*)\[[(](.*)[)]\]')
+RE_NAME = re.compile(r'(.*)\[(.*)\]')
 
 
 # ------------------------------------------------------------------------------
@@ -80,39 +79,14 @@ def StringFormat(text, idx, sub):  # pylint: disable=unused-argument
     if result:
         fmt = result.groups()
         try:
-            args = fmt[1].split(',')
-            args = [a.replace('idx', str(idx)) for a in args]
-            args = [a.replace('sub', str(sub)) for a in args]
-
-            if len(args) == 1:
-                return fmt[0] % (EvaluateExpression(args[0]))
-            elif len(args) == 2:
-                return fmt[0] % (EvaluateExpression(args[0]), EvaluateExpression(args[1]))
-
-            return fmt[0]
+            log.debug("EVAL StringFormat(): '%s'" % (fmt[1],))
+            return fmt[0] % eval(fmt[1])  # FIXME: Using eval is not safe
         except Exception as exc:
-            log.debug("LITERAL_EVAL FAILED: %s" % (exc, ))
+            log.debug("EVAL FAILED: %s" % (exc, ))
             raise
     else:
         return text
 
-def EvaluateExpression(expression):
-    # Try evaluating the literal, if it fails then we do the other operations
-    try:
-        return ast.literal_eval(expression)
-    except:
-        pass
-
-    tree = ast.parse(expression, mode="eval")
-
-    if isinstance(tree.body, ast.BinOp) and isinstance(tree.body.left, ast.Constant) and isinstance(tree.body.right, ast.Constant):
-        if isinstance(tree.body.op, ast.Add):
-            return tree.body.left.value + tree.body.right.value
-        elif isinstance(tree.body.op, ast.Sub):
-            return tree.body.left.value - tree.body.right.value
-
-    log.debug("EvaluateExpression: Unable to evaluate %s" % (expression))
-    raise SyntaxError("Unable to evaluate %s" % (expression))
 
 def GetIndexRange(index):
     for irange in maps.INDEX_RANGES:
