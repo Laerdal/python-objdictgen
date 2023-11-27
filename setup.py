@@ -148,6 +148,7 @@ setup(
         'jsonschema',
         'colorama',
         'deepdiff',
+        'wxPython',
     ],
 
     # List additional groups of dependencies here (e.g. development
