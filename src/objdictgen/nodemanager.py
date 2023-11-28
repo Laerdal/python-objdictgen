@@ -1043,10 +1043,11 @@ class NodeManager(object):
                                 dic["buffer_size"] = ""
                                 try:
                                     fmt = "0x%0" + str(int(values[1]) // 4) + "X"
-                                    dic["value"] = fmt % dic["value"]
                                 except ValueError as exc:
                                     log.debug("ValueError: '%s': %s" % (values[1], exc))
                                     raise  # FIXME: Originial code swallows exception
+                                try:
+                                    dic["value"] = fmt % dic["value"]
                                 except TypeError as exc:
                                     log.debug("ValueError: '%s': %s" % (dic["value"], exc))
                                     pass # FIXME: dict["value"] can contain $NODEID for PDOs which is not an int i.e. $NODEID+0x200

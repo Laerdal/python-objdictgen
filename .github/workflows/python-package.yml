@@ -22,6 +22,9 @@ jobs:
         python-version: ${{ matrix.python-version }}
         cache: 'pip'
         cache-dependency-path: '**/setup.py'
+    - name: Install gtk3
+      run: |
+        sudo apt install libgtk-3-dev
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip setuptools wheel

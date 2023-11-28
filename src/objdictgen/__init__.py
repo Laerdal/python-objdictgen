@@ -27,7 +27,7 @@ LoadFile = Node.LoadFile
 LoadJson = Node.LoadJson
 
 ODG_PROGRAM = "odg"
-ODG_VERSION = "3.3"
+ODG_VERSION = "3.4"
 
 SCRIPT_DIRECTORY = os.path.split(__file__)[0]
 
