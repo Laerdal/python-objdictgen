@@ -31,8 +31,11 @@ def test_evaluate_expression():
     with pytest.raises(TypeError):
         EvaluateExpression('3-"tests"')
 
-    with pytest.raises(SyntaxError):
-        EvaluateExpression('4*3')
+    with pytest.raises(TypeError):
+        EvaluateExpression('3-"tests"')
+
+    with pytest.raises(TypeError):
+        EvaluateExpression('not 5')
 
     with pytest.raises(TypeError):
         EvaluateExpression('str')

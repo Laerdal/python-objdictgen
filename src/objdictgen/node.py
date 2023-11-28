@@ -114,7 +114,7 @@ def EvaluateExpression(expression: str):
     tree = ast.parse(expression, mode="eval")
     return EvaluateNode(tree.body)
 
-def EvaluateNode(node):
+def EvaluateNode(node: ast.AST):
     '''
     Recursively parses ast.Node objects to evaluate arithmatic expressions
     '''
@@ -130,8 +130,10 @@ def EvaluateNode(node):
             return node.value
         else:
             raise TypeError("Cannot parse str type constant '%s'" % node.value)
-    else:
+    elif isinstance(node, ast.AST):
         raise TypeError("Unhandled ast node class %s" % type(node))
+    else:
+        raise TypeError("Invalid argument type %s" % type(node) )
             
     
 
