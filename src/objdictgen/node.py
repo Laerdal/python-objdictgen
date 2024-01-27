@@ -35,6 +35,7 @@ import traceback
 from past.builtins import execfile
 from future.utils import raise_from
 import colorama
+import ast
 
 import objdictgen
 from objdictgen.nosis import pickle as nosis
@@ -53,7 +54,9 @@ log = logging.getLogger('objdictgen')
 Fore = colorama.Fore
 Style = colorama.Style
 
-RE_NAME = re.compile(r'(.*)\[(.*)\]')
+#Used to match strings such as 'Additional Server SDO %d Parameter[(idx)]'
+#The above example matches to two groups ['Additional Server SDO %d Parameter', 'idx']
+RE_NAME = re.compile(r'(.*)\[[(](.*)[)]\]')
 
 
 # ------------------------------------------------------------------------------
@@ -79,14 +82,60 @@ def StringFormat(text, idx, sub):  # pylint: disable=unused-argument
     if result:
         fmt = result.groups()
         try:
-            log.debug("EVAL StringFormat(): '%s'" % (fmt[1],))
-            return fmt[0] % eval(fmt[1])  # FIXME: Using eval is not safe
+            args = fmt[1].split(',')
+            args = [a.replace('idx', str(idx)) for a in args]
+            args = [a.replace('sub', str(sub)) for a in args]
+
+            # NOTE: Python2 type evaluations are baked into the maps.py
+            #   and json format OD so cannot be removed currently
+            if len(args) == 1:
+                return fmt[0] % (EvaluateExpression(args[0].strip()))
+            elif len(args) == 2:
+                return fmt[0] % (EvaluateExpression(args[0].strip()), EvaluateExpression(args[1].strip()))
+
+            return fmt[0]
         except Exception as exc:
-            log.debug("EVAL FAILED: %s" % (exc, ))
+            log.debug("PARSING FAILED: %s" % (exc, ))
             raise
     else:
         return text
 
+def EvaluateExpression(expression: str):
+    """Parses a string expression and attempts to calculate the result
+    Supports:
+        - Addition (i.e. "3+4")
+        - Subraction (i.e. "7-4")
+        - Constants (i.e. "5")
+    This function will handle chained arithmatic i.e. "1+2+3" although operating order is not neccesarily preserved
+
+    Parameters:
+        expression (str): string to parse
+    """
+    tree = ast.parse(expression, mode="eval")
+    return EvaluateNode(tree.body)
+
+def EvaluateNode(node: ast.AST):
+    '''
+    Recursively parses ast.Node objects to evaluate arithmatic expressions
+    '''
+    if isinstance(node, ast.BinOp):
+        if isinstance(node.op, ast.Add):
+            return EvaluateNode(node.left) + EvaluateNode(node.right) 
+        elif isinstance(node.op, ast.Sub):
+            return EvaluateNode(node.left) - EvaluateNode(node.right) 
+        else:
+           raise SyntaxError("Unhandled arithmatic operation %s" % type(node.op)) 
+    elif isinstance(node, ast.Constant):
+        if isinstance(node.value, int | float | complex):
+            return node.value
+        else:
+            raise TypeError("Cannot parse str type constant '%s'" % node.value)
+    elif isinstance(node, ast.AST):
+        raise TypeError("Unhandled ast node class %s" % type(node))
+    else:
+        raise TypeError("Invalid argument type %s" % type(node) )
+            
+    
 
 def GetIndexRange(index):
     for irange in maps.INDEX_RANGES:
