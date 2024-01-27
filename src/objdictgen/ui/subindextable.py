@@ -165,6 +165,13 @@ class SubindexTable(wx.grid.GridTableBase):
                 value = "None"
             self.data[row][colname] = value
 
+    def setCellTheme(self, row, col, grid):
+        system_appearance = wx.SystemSettings.GetAppearance()
+        background_colour = wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOW)
+        text_colour = wx.WHITE if system_appearance.IsDark() else wx.BLACK
+        grid.SetCellBackgroundColour(row, col, background_colour)
+        grid.SetCellTextColour(row, col, text_colour)
+
     def ResetView(self, grid):
         """
         (wx.grid.Grid) -> Reset the grid view.   Call this to
@@ -274,8 +281,7 @@ class SubindexTable(wx.grid.GridTableBase):
 
                 grid.SetCellEditor(row, col, editor)
                 grid.SetCellRenderer(row, col, renderer)
-
-                grid.SetCellBackgroundColour(row, col, wx.WHITE)
+                self.setCellTheme(row, col, grid)
 
     def SetData(self, data):
         self.data = data
