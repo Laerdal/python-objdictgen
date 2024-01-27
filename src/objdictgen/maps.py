@@ -23,6 +23,7 @@
 #
 # Dictionary of translation between access symbol and their signification
 #
+from enum import IntEnum
 ACCESS_TYPE = {"ro": "Read Only", "wo": "Write Only", "rw": "Read/Write"}
 BOOL_TYPE = {True: "True", False: "False"}
 OPTION_TYPE = {True: "Yes", False: "No"}
@@ -89,6 +90,12 @@ class ODStructTypes:
 
 # Convenience shortcut
 OD = ODStructTypes
+
+
+class CFILE_TYPES(IntEnum):
+    current = 0,
+    legacy = 1
+
 
 #
 # List of the Object Dictionary ranges

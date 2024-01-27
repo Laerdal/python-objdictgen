@@ -159,16 +159,16 @@ def test_jsonexport(wd, odfile):
 
 
 def test_cexport(wd, odfile, fn):
-    ''' Test that the file can be exported to c and that the loaded file
+    """ Test that the file can be exported to c and that the loaded file
         is equal to the stored template (if present).
         L(od) -> S(c), diff(c)
-    '''
+    """
+    cfile_type = {"cfile_type": 0}
     od = odfile.name
 
-    m0 = Node.LoadFile(odfile + '.od')
-    m1 = Node.LoadFile(odfile + '.od')
-
-    m1.DumpFile(od + '.c', filetype='c')
+    m0 = Node.LoadFile(f"{odfile}.od")
+    m1 = Node.LoadFile(f"{odfile}.od")
+    m1.DumpFile(f"{od}.c", filetype="c", **cfile_type)
 
     # Assert that the object is unmodified by the export
     assert m0.__dict__ == m1.__dict__

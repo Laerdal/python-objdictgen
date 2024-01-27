@@ -41,7 +41,8 @@ import objdictgen
 from objdictgen.nosis import pickle as nosis
 from objdictgen import maps
 from objdictgen.maps import OD, MAPPING_DICTIONARY
-from objdictgen import jsonod, eds_utils, gen_cfile
+from objdictgen import jsonod, eds_utils
+from objdictgen.gen_cfile import gen_cfile
 
 if sys.version_info[0] >= 3:
     unicode = str  # pylint: disable=invalid-name
@@ -454,7 +455,7 @@ class Node(object):
 
         if filetype == 'c':
             log.debug("Writing C files '%s'" % filepath)
-            gen_cfile.GenerateFile(filepath, self)
+            gen_cfile.GenerateCFile(filepath, self, cfile_type=kwargs.get("cfile_type"))
             return
 
         raise ValueError("Unknown file suffix, unable to write file")

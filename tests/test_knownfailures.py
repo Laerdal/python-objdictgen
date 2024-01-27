@@ -28,6 +28,7 @@ def test_cexportfail_unicode(wd, oddir, suffix):
 
     m0 = Node.LoadFile(fa + suffix)
 
+    cfile_type = {"cfile_type": 0}
     with pytest.raises(ValueError) as exc:
-        m0.DumpFile(fa + '.c', filetype='c')
+        m0.DumpFile(f"{fa}.c", filetype='c', **cfile_type)
     assert "'UNICODE_STRING' isn't a valid type for CanFestival" in str(exc.value)

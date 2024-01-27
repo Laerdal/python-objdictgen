@@ -31,6 +31,7 @@ import logging
 
 import wx
 
+from objdictgen.maps import CFILE_TYPES
 from objdictgen.ui.exception import AddExceptHook
 from objdictgen.ui import nodeeditortemplate as net
 from objdictgen.ui import subindextable as sit
@@ -560,9 +561,13 @@ class ObjdictEdit(wx.Frame, net.NodeEditorTemplate):
         dialog.Destroy()
 
     def OnExportCMenu(self, event):  # pylint: disable=unused-argument
-        dialog = wx.FileDialog(self, "Choose a file", os.getcwd(), self.Manager.GetCurrentNodeInfos()[0], "CANFestival C files (*.c)|*.c|All files|*.*", style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT | wx.FD_CHANGE_DIR)
+        dialog = wx.FileDialog(self, "Choose a file", os.getcwd(), self.Manager.GetCurrentNodeInfos()[0],
+                               "CANFestival C files (*.c)|*.c|CANFestival legacy C files (*.c)|*.c|All files|*.*",
+                               style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT | wx.FD_CHANGE_DIR)
         if dialog.ShowModal() == wx.ID_OK:
             filepath = dialog.GetPath()
+            dialog_index = dialog.GetFilterIndex()
+            cfile_type = {"cfile_type": CFILE_TYPES["current"] if not dialog_index else CFILE_TYPES["legacy"]}
             if not os.path.isdir(os.path.dirname(filepath)):
                 message = wx.MessageDialog(self, "'%s' is not a valid folder!" % os.path.dirname(filepath), "Error", wx.OK | wx.ICON_ERROR)
                 message.ShowModal()
@@ -572,8 +577,11 @@ class ObjdictEdit(wx.Frame, net.NodeEditorTemplate):
                 if extend in ("", "."):
                     filepath = path + ".c"
                 try:
-                    self.Manager.SaveCurrentInFile(filepath, filetype='c')
-                    message = wx.MessageDialog(self, "Export successful", "Information", wx.OK | wx.ICON_INFORMATION)
+                    self.Manager.SaveCurrentInFile(filepath, filetype='c', **cfile_type)
+                    message_text = "Export successful"
+                    if dialog_index:
+                        message_text = "Legacy export successful"
+                    message = wx.MessageDialog(self, message_text, "Information", wx.OK | wx.ICON_INFORMATION)
                     message.ShowModal()
                     message.Destroy()
                 except Exception as exc:  # pylint: disable=broad-except

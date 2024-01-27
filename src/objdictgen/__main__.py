@@ -19,7 +19,6 @@
 from __future__ import absolute_import
 from pprint import pformat
 import sys
-import getopt
 import argparse
 import functools
 import logging
@@ -28,6 +27,7 @@ from colorama import init, Fore, Style
 
 import objdictgen
 from objdictgen import jsonod
+from objdictgen.maps import CFILE_TYPES
 
 # For colored output
 init()
@@ -391,40 +391,32 @@ def main(debugopts, args=None):
         parser.error("Programming error: Uknown option '%s'" % (opts.command))
 
 
-def main_objdictgen():
+def parse_args(args):
+    """Parse arguments.
+
+    param args: an argument array
+    :return: The argument object.
+    """
+    parser = argparse.ArgumentParser(description=f"Usage of {sys.argv[0]}")
+
+    parser.add_argument("-l", "--legacy",
+                        default=False, action='store_true', help="Generate a legacy c file.")
+
+    parser.add_argument("-i", "--input", required=True, type=str, metavar='', help="XMLFilePath")
+    parser.add_argument("-o", "--output", required=True, type=str, metavar='', help="CFilePath")
+    args = parser.parse_args(args)
+
+    return args
+
+
+def main_objdictgen(args=None):
     """ Legacy objdictgen command """
-
-    def usage():
-        print("\nUsage of objdictgen :")
-        print("\n   %s XMLFilePath CFilePath\n" % sys.argv[0])
-
-    try:
-        opts, args = getopt.getopt(sys.argv[1:], "h", ["help"])
-    except getopt.GetoptError:
-        # print help information and exit:
-        usage()
-        sys.exit(2)
-
-    for opt, _ in opts:
-        if opt in ("-h", "--help"):
-            usage()
-            sys.exit()
-
-    filein = ""
-    fileout = ""
-    if len(args) == 2:
-        filein = args[0]
-        fileout = args[1]
-    else:
-        usage()
-        sys.exit()
-
-    if filein != "" and fileout != "":
-        print("Parsing input file", filein)
-        node = objdictgen.LoadFile(filein)
-        print("Writing output file", fileout)
-        node.DumpFile(fileout, filetype='c')
-        print("All done")
+    args = parse_args(args)
+    cfile_type = {"cfile_type": CFILE_TYPES["current"] if not args.legacy else CFILE_TYPES["legacy"]}
+    print(f"Parsing input file {args.input}")
+    node = objdictgen.LoadFile(args.input)
+    node.DumpFile(args.output, filetype='c', **cfile_type)
+    print("All done")
 
 
 def main_objdictedit():
