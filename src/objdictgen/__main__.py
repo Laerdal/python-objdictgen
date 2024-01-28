@@ -1,30 +1,31 @@
+"""Main entry point for objdictgen"""
 #
-#    Copyright (C) 2022-2023  Svein Seldal, Laerdal Medical AS
+# Copyright (C) 2022-2024  Svein Seldal, Laerdal Medical AS
 #
-#    This library is free software; you can redistribute it and/or
-#    modify it under the terms of the GNU Lesser General Public
-#    License as published by the Free Software Foundation; either
-#    version 2.1 of the License, or (at your option) any later version.
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License, or (at your option) any later version.
 #
-#    This library is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    Lesser General Public License for more details.
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
 #
-#    You should have received a copy of the GNU Lesser General Public
-#    License along with this library; if not, write to the Free Software
-#    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
-#    USA
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
+# USA
 
-from __future__ import absolute_import
-from pprint import pformat
-import sys
-import getopt
 import argparse
 import functools
+import getopt
 import logging
-import attr
-from colorama import init, Fore, Style
+import sys
+from dataclasses import dataclass, field
+from pprint import pformat
+
+from colorama import Fore, Style, init
 
 import objdictgen
 from objdictgen import jsonod
@@ -38,10 +39,10 @@ log.setLevel(logging.INFO)
 log.addHandler(logging.StreamHandler(sys.stdout))
 
 
-@attr.s
-class DebugOpts(object):
+@dataclass
+class DebugOpts:
     ''' Options for main to control the debug_wrapper '''
-    show_debug = attr.ib(default=False)
+    show_debug: bool = field(default=False)
 
     def set_debug(self, dbg):
         self.show_debug = dbg
@@ -129,10 +130,9 @@ def main(debugopts, args=None):
 
     # FIXME: New options: new file, add parameter, delete parameter, copy parameter
 
-    kw = dict(required=True) if sys.version_info[0] >= 3 else {}
     subparser = parser.add_subparsers(title="command", dest="command", metavar="command", help='''
         Commands
-    ''', **kw)
+    ''', required=True)
 
 
     # -- COMMON --
@@ -149,10 +149,9 @@ def main(debugopts, args=None):
     subp.add_argument('-D', '--debug', **opt_debug)
 
     # -- CONVERT --
-    kw = dict(aliases=['gen', 'conv']) if sys.version_info[0] >= 3 else {}
     subp = subparser.add_parser('convert', help='''
         Generate
-    ''', **kw)
+    ''', aliases=['gen', 'conv'])
     subp.add_argument('od', **opt_od)
     subp.add_argument('out', default=None, help="Output file")
     subp.add_argument('-i', '--index', action="append", help="OD Index to include. Filter out the rest.")
@@ -167,10 +166,9 @@ def main(debugopts, args=None):
     subp.add_argument('-D', '--debug', **opt_debug)
 
     # -- DIFF --
-    kw = dict(aliases=['compare']) if sys.version_info[0] >= 3 else {}
     subp = subparser.add_parser('diff', help='''
         Compare OD files
-    ''', **kw)
+    ''', aliases=['compare'])
     subp.add_argument('od1', **opt_od)
     subp.add_argument('od2', **opt_od)
     subp.add_argument('--internal', action="store_true", help="Diff internal object")
@@ -279,9 +277,6 @@ def main(debugopts, args=None):
 
     # -- DIFF command --
     elif opts.command in ("diff", "compare"):
-        if sys.version_info[0] < 3:
-            parser.error("diff does not work with python 2")
-
         od1 = open_od(opts.od1, validate=not opts.novalidate)
         od2 = open_od(opts.od2, validate=not opts.novalidate)
 
