@@ -1,51 +1,191 @@
-from __future__ import print_function
-from __future__ import absolute_import
-from builtins import object
+"""Nosis - XML Pickling."""
+# This a stripped down version of legacy tool "gnosis", which is
+# central to the "OD" format. This is basically a XML pickler for
+# python objects. # The original tool was written for very old
+# python and this is an updated extract of the original to be able
+# to use it with python 3
+#
+# Copyright (C) 2022-2024  Svein Seldal, Laerdal Medical AS
+# Copyright (C): <Unknown Author(s)>
+#
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
+# USA
 
+import logging
+import re
 import sys
 from io import StringIO
-from collections import OrderedDict
 from xml.dom import minidom
-from past.builtins import long
-from future.utils import raise_from
 
-from .xtoy import (
-    aton, ntoa,
-    unsafe_string, unsafe_content,
-    safe_string, safe_content,
-)
-
-if sys.version_info[0] >= 3:
-    unicode = str  # pylint: disable=invalid-name
-    ODict = dict
-else:
-    ODict = OrderedDict
+log = logging.getLogger('objdictgen.nosis')
 
 
-class _EmptyClass(object):
+class _EmptyClass:
     """ Do-nohting empty class """
 
 
 TYPE_IN_BODY = {
     int: 0,
-    long: 0,
     float: 0,
     complex: 0,
-    str: 0,
+    str: 1,
 }
-
-if sys.version_info[0] < 3:
-    # our unicode vs. "regular string" scheme relies on unicode
-    # strings only being in the body, so this is hardcoded.
-    TYPE_IN_BODY[unicode] = 1
-else:
-    # py3 doesn't have unicode, and unicode here is str. This implies that
-    # on py3 all strings will be added as body elements instead of tag value="..."
-    TYPE_IN_BODY[unicode] = 1
-
 
 def getInBody(typename):
     return TYPE_IN_BODY.get(typename) or 0
+
+# pylint: disable=invalid-name
+pat_fl = r'[-+]?(((((\d+)?[.]\d+|\d+[.])|\d+)[eE][+-]?\d+)|((\d+)?[.]\d+|\d+[.]))'
+re_float = re.compile(pat_fl + r'$')
+re_zero = r'[+-]?0$'
+pat_int = r'[-+]?[1-9]\d*'
+re_int = re.compile(pat_int + r'$')
+pat_flint = r'(%s|%s)' % (pat_fl, pat_int)    # float or int
+re_long = re.compile(r'[-+]?\d+[lL]' + r'$')
+re_hex = re.compile(r'([-+]?)(0[xX])([0-9a-fA-F]+)' + r'$')
+re_oct = re.compile(r'([-+]?)(0)([0-7]+)' + r'$')
+pat_complex = r'(%s)?[-+]%s[jJ]' % (pat_flint, pat_flint)
+re_complex = re.compile(pat_complex + r'$')
+pat_complex2 = r'(%s):(%s)' % (pat_flint, pat_flint)
+re_complex2 = re.compile(pat_complex2 + r'$')
+
+
+def aton(s):
+    # -- massage the string slightly
+    s = s.strip()
+    while s[0] == '(' and s[-1] == ')':  # remove optional parens
+        s = s[1:-1]
+
+    # -- test for cases
+    if re.match(re_zero, s):
+        return 0
+
+    if re.match(re_float, s):
+        return float(s)
+
+    if re.match(re_long, s):
+        return int(s.rstrip('lL'))
+
+    if re.match(re_int, s):
+        return int(s)
+
+    m = re.match(re_hex, s)
+    if m:
+        n = int(m.group(3), 16)
+        if n < sys.maxsize:
+            n = int(n)
+        if m.group(1) == '-':
+            n = n * (-1)
+        return n
+
+    m = re.match(re_oct, s)
+    if m:
+        n = int(m.group(3), 8)
+        if n < sys.maxsize:
+            n = int(n)
+        if m.group(1) == '-':
+            n = n * (-1)
+        return n
+
+    if re.match(re_complex, s):
+        return complex(s)
+
+    if re.match(re_complex2, s):
+        r, i = s.split(':')
+        return complex(float(r), float(i))
+
+    raise ValueError("Invalid string '%s' passed to to_number()'d" % s)
+
+
+# we use ntoa() instead of repr() to ensure we have a known output format
+def ntoa(num: int|float|complex) -> str:
+    """Convert a number to a string without calling repr()"""
+    if isinstance(num, int):
+        s = "%d" % num
+    elif isinstance(num, float):
+        s = "%.17g" % num
+        # ensure a '.', adding if needed (unless in scientific notation)
+        if '.' not in s and 'e' not in s:
+            s = s + '.'
+    elif isinstance(num, complex):
+        # these are always used as doubles, so it doesn't
+        # matter if the '.' shows up
+        s = "%.17g+%.17gj" % (num.real, num.imag)
+    else:
+        raise ValueError("Unknown numeric type: %s" % repr(num))
+    return s
+
+
+XML_QUOTES = (
+    ('&', '&amp;'),
+    ('<', '&lt;'),
+    ('>', '&gt;'),
+    ('"', '&quot;'),
+    ("'", '&apos;'),
+)
+
+
+def safe_string(s):
+    # markup XML entities
+    s = s.replace('&', '&amp;')
+    s = s.replace('<', '&lt;')
+    s = s.replace('>', '&gt;')
+    s = s.replace('"', '&quot;')
+    s = s.replace("'", '&apos;')
+    # for others, use Python style escapes
+    s = repr(s)
+    return s[1:-1]  # without the extra single-quotes
+
+
+def unsafe_string(s):
+    # for Python escapes, exec the string
+    # (niggle w/ literalizing apostrophe)
+    _s = s = s.replace("'", "\\x27")
+    # log.debug("EXEC in unsafe_string(): '%s'" % ("s='" + s + "'",))
+    exec("s='" + s + "'")
+    if s != _s:
+        log.debug("EXEC in unsafe_string(): '%s' -> '%s'" % (_s, s))
+    # XML entities (DOM does it for us)
+    return s
+
+
+def safe_content(s):
+    """Markup XML entities and strings so they're XML & unicode-safe"""
+    s = s.replace('&', '&amp;')
+    s = s.replace('<', '&lt;')
+    s = s.replace('>', '&gt;')
+
+    return s  # To be able to be used with py3
+
+    # # wrap "regular" python strings as unicode
+    # if isinstance(s, str):
+    #     s = u"\xbb\xbb%s\xab\xab" % s
+
+    # return s.encode('utf-8')
+
+
+def unsafe_content(s):
+    """Take the string returned by safe_content() and recreate the
+    original string."""
+    # don't have to "unescape" XML entities (parser does it for us)
+
+    # # unwrap python strings from unicode wrapper
+    # if s[:2] == chr(187) * 2 and s[-2:] == chr(171) * 2:
+    #     s = s[2:-2].encode('us-ascii')
+
+    return s
 
 
 # Maintain list of object identities for multiple and cyclical references
@@ -72,7 +212,7 @@ CLASS_STORE = {}
 
 
 def add_class_to_store(classname='', klass=None):
-    "Put the class in the store (as 'classname'), return CLASS_STORE"
+    """Put the class in the store (as 'classname'), return CLASS_STORE"""
     if classname and klass:
         CLASS_STORE[classname] = klass
     return CLASS_STORE
@@ -102,7 +242,7 @@ def obj_from_node(node):
 
 
 def get_node_valuetext(node):
-    "Get text from node, whether in value=, or in element body."
+    """Get text from node, whether in value=, or in element body."""
 
     # we know where the text is, based on whether there is
     # a value= attribute. ie. pickler can place it in either
@@ -129,7 +269,7 @@ def get_node_valuetext(node):
 # (it's not based on UserList so that (a) we don't have to pull in UserList,
 # and (b) it will break if someone accesses StreamWriter in an unexpected way
 # rather than failing silently for some cases)
-class StreamWriter(object):
+class StreamWriter:
     """A multipurpose stream object. Four styles:
 
     - write an uncompressed file
@@ -174,7 +314,7 @@ def StreamReader(stream):
     appropriate for reading the stream."""
 
     # turn strings into stream
-    if isinstance(stream, (str, unicode)):
+    if isinstance(stream, str):
         stream = StringIO(stream)
 
     # determine if we have a gzipped stream by checking magic
@@ -190,14 +330,14 @@ def StreamReader(stream):
 
 
 def xmldump(iohandle=None, obj=None, binary=0, deepcopy=None, omit=None):
-    "Create the XML representation as a string."
+    """Create the XML representation as a string."""
     if deepcopy is None:
         deepcopy = 0
     return _pickle_toplevel_obj(StreamWriter(iohandle, binary), obj, deepcopy, omit)
 
 
 def xmlload(filehandle):
-    "Load pickled object from file fh."
+    """Load pickled object from file fh."""
     return thing_from_dom(StreamReader(filehandle))
 
 
@@ -205,7 +345,7 @@ def xmlload(filehandle):
 
 
 def _pickle_toplevel_obj(xml_list, py_obj, deepcopy, omit=None):
-    "handle the top object -- add XML header, etc."
+    """handle the top object -- add XML header, etc."""
 
     # Store the ref id to the pickling object (if not deepcopying)
     global VISITED  # pylint: disable=global-statement
@@ -453,7 +593,7 @@ def _tag_completer(start_tag, orig_thing, close_tag, level, deepcopy):
             start_tag = start_tag + '%s value="%s" />\n' % (
                 _family_type('uniq', typestr, mtag, mextra), '')
             close_tag = ''
-    elif isinstance(thing, (int, long, float, complex)):
+    elif isinstance(thing, (int, float, complex)):
         # thing_str = repr(thing)
         thing_str = ntoa(thing)
 
@@ -469,38 +609,7 @@ def _tag_completer(start_tag, orig_thing, close_tag, level, deepcopy):
             start_tag = start_tag + '%s value="%s" />\n' % (
                 _family_type('atom', 'numeric', mtag, mextra), thing_str)
             close_tag = ''
-    elif isinstance(thing, (str, unicode)):
-        # XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-        # special check for now - this will be fixed in the next major
-        # gnosis release, so I don't care that the code is inline & gross
-        # for now
-        # XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-        if sys.version_info[0] < 3 and isinstance(thing, unicode):
-            # can't pickle unicode containing the special "escape" sequence
-            # we use for putting strings in the XML body (they'll be unpickled
-            # as strings, not unicode, if we do!)
-            # pylint: disable=redundant-u-string-prefix
-            if thing[0:2] == u'\xbb\xbb' and thing[-2:] == u'\xab\xab':
-                raise ValueError("Unpickleable Unicode value")
-
-            # see if it contains any XML-illegal values
-            # if not is_legal_xml(thing):
-            #     raise ValueError("Unpickleable Unicode value")
-
-        if isinstance(thing, str) and getInBody(str):
-            # technically, this will crash safe_content(), but I prefer to
-            # have the test here for clarity
-            try:
-                # safe_content assumes it can always convert the string
-                # to unicode, which isn't true (eg. pickle a UTF-8 value)
-                _ = unicode(thing)
-            except ValueError as exc:
-                raise_from(ValueError("Unpickleable string value (%s): %s" % (repr(thing), exc)), None)
-
-        # XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-        # End of temporary hack code
-        # XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-
+    elif isinstance(thing, str):
         if in_body:
             start_tag = start_tag + '%s>%s' % (
                 _family_type('atom', 'string', mtag, mextra), safe_content(thing))
@@ -564,7 +673,7 @@ def _tag_completer(start_tag, orig_thing, close_tag, level, deepcopy):
 
 
 def _thing_from_dom(dom_node, container=None):
-    "Converts an [xml_pickle] DOM tree to a 'native' Python object"
+    """Converts an [xml_pickle] DOM tree to a 'native' Python object"""
     for node in dom_node.childNodes:
         if not hasattr(node, '_attrs') or not node.nodeName != '#text':
             continue
@@ -614,7 +723,7 @@ def _thing_from_dom(dom_node, container=None):
             elif node_family == 'map':
                 # map must exist in VISITED{} before we unpickle subitems,
                 # in order to handle self-references
-                mapping = ODict()
+                mapping = {}
                 _save_obj_with_id(node, mapping)
                 node_val = _thing_from_dom(node, mapping)
             elif node_family == 'uniq':

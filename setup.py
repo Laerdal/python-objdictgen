@@ -103,6 +103,7 @@ setup(
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
         'Programming Language :: Python :: 3.11',
+        'Programming Language :: Python :: 3.12',
         #'Programming Language :: Python :: 3 :: Only',
     ],
 
@@ -142,7 +143,6 @@ setup(
     # For an analysis of "install_requires" vs pip's requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=[  # Optional
-        'future',
         'jsonschema',
         'colorama',
         'deepdiff',
@@ -160,7 +160,7 @@ setup(
     extras_require={  # Optional
         'dist': ['build'],
         'lint': ['pylint', 'flake8', 'mypy'],
-        'test': ['pytest', 'coverage', 'pytest-cov', 'pytest-mock', 'attrs'],
+        'test': ['pytest', 'coverage', 'pytest-cov', 'pytest-mock'],
     },
 
     # If there are data files included in your packages that need to be

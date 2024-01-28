@@ -1,43 +1,34 @@
-# -*- coding: utf-8 -*-
 #
-#    This file is based on objdictgen from CanFestival
+# Copyright (C) 2022-2024  Svein Seldal, Laerdal Medical AS
+# Copyright (C): Edouard TISSERANT, Francis DUPIN and Laurent BESSARD
 #
-#    Copyright (C) 2022-2023  Svein Seldal, Laerdal Medical AS
-#    Copyright (C): Edouard TISSERANT, Francis DUPIN and Laurent BESSARD
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License, or (at your option) any later version.
 #
-#    This library is free software; you can redistribute it and/or
-#    modify it under the terms of the GNU Lesser General Public
-#    License as published by the Free Software Foundation; either
-#    version 2.1 of the License, or (at your option) any later version.
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
 #
-#    This library is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    Lesser General Public License for more details.
-#
-#    You should have received a copy of the GNU Lesser General Public
-#    License along with this library; if not, write to the Free Software
-#    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
-#    USA
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
+# USA
 
-from __future__ import print_function
-from __future__ import absolute_import
-from builtins import object
-
+import errno
 import os
 import shutil
-import errno
-from future.utils import raise_from
 
 from objdictgen import eds_utils
-
 
 # ------------------------------------------------------------------------------
 #                          Definition of NodeList Object
 # ------------------------------------------------------------------------------
 
 
-class NodeList(object):
+class NodeList:
     """
     Class recording a node list for a CANOpen network.
     """
@@ -148,7 +139,7 @@ class NodeList(object):
         try:
             self.Manager.SaveCurrentInFile(masterpath)
         except Exception as exc:  # pylint: disable=broad-except
-            raise_from(ValueError("Fail to save master node in '%s'" % (masterpath, )), exc)
+            raise ValueError("Fail to save master node in '%s'" % (masterpath, )) from exc
 
     def LoadSlaveNodes(self, netname=None):
         cpjpath = os.path.join(self.Root, "nodelist.cpj")
@@ -170,7 +161,7 @@ class NodeList(object):
                             self.AddSlaveNode(node["Name"], nodeid, node["DCFName"])
                 self.Changed = False
             except Exception as exc:  # pylint: disable=broad-except
-                raise_from(ValueError("Unable to load CPJ file '%s'" % (cpjpath, )), exc)
+                raise ValueError("Unable to load CPJ file '%s'" % (cpjpath, )) from exc
 
     def SaveNodeList(self, netname=None):
         cpjpath = ''  # For linting
@@ -185,7 +176,7 @@ class NodeList(object):
                 f.write(content)
             self.Changed = False
         except Exception as exc:  # pylint: disable=broad-except
-            raise_from(ValueError("Fail to save node list in '%s'" % (cpjpath)), exc)
+            raise ValueError("Fail to save node list in '%s'" % (cpjpath)) from exc
 
     def GetOrderNumber(self, nodeid):
         nodeindexes = list(sorted(self.SlaveNodes))

@@ -1,38 +1,32 @@
-# -*- coding: utf-8 -*-
 #
-#    This file is based on objdictgen from CanFestival
+# Copyright (C) 2022-2024  Svein Seldal, Laerdal Medical AS
+# Copyright (C): Edouard TISSERANT, Francis DUPIN and Laurent BESSARD
 #
-#    Copyright (C) 2022-2023  Svein Seldal, Laerdal Medical AS
-#    Copyright (C): Edouard TISSERANT, Francis DUPIN and Laurent BESSARD
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License, or (at your option) any later version.
 #
-#    This library is free software; you can redistribute it and/or
-#    modify it under the terms of the GNU Lesser General Public
-#    License as published by the Free Software Foundation; either
-#    version 2.1 of the License, or (at your option) any later version.
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
 #
-#    This library is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    Lesser General Public License for more details.
-#
-#    You should have received a copy of the GNU Lesser General Public
-#    License along with this library; if not, write to the Free Software
-#    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
-#    USA
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
+# USA
 
-from __future__ import absolute_import
-from builtins import object
-from builtins import range
-
-import os
-import re
 import codecs
 import logging
+import os
+import re
+
 import colorama
 
-from objdictgen.node import Node, Find, ImportProfile, BE_to_LE, LE_to_BE
 from objdictgen import maps
-from objdictgen.maps import OD, MAPPING_DICTIONARY
+from objdictgen.maps import MAPPING_DICTIONARY, OD
+from objdictgen.node import BE_to_LE, Find, ImportProfile, LE_to_BE, Node
 
 log = logging.getLogger('objdictgen')
 
@@ -55,7 +49,7 @@ def GetNewId():
     return CURRENTID
 
 
-class UndoBuffer(object):
+class UndoBuffer:
     """
     Class implementing a buffer of changes made on the current editing Object Dictionary
     """
@@ -146,7 +140,7 @@ class UndoBuffer(object):
         return self.LastSave == self.CurrentIndex
 
 
-class NodeManager(object):
+class NodeManager:
     """
     Class which control the operations made on the node and answer to view requests
     """
@@ -1050,7 +1044,7 @@ class NodeManager(object):
                                     dic["value"] = fmt % dic["value"]
                                 except TypeError as exc:
                                     log.debug("ValueError: '%s': %s" % (dic["value"], exc))
-                                    pass # FIXME: dict["value"] can contain $NODEID for PDOs which is not an int i.e. $NODEID+0x200
+                                    # FIXME: dict["value"] can contain $NODEID for PDOs which is not an int i.e. $NODEID+0x200
                                 editor["value"] = "string"
                             if values[0] == "INTEGER":
                                 editor["value"] = "number"

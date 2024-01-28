@@ -1,42 +1,34 @@
 """ OD dict/json serialization and deserialization functions """
 #
-#    Copyright (C) 2022-2023  Svein Seldal, Laerdal Medical AS
+# Copyright (C) 2022-2024  Svein Seldal, Laerdal Medical AS
 #
-#    This library is free software; you can redistribute it and/or
-#    modify it under the terms of the GNU Lesser General Public
-#    License as published by the Free Software Foundation; either
-#    version 2.1 of the License, or (at your option) any later version.
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License, or (at your option) any later version.
 #
-#    This library is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    Lesser General Public License for more details.
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
 #
-#    You should have received a copy of the GNU Lesser General Public
-#    License along with this library; if not, write to the Free Software
-#    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
-#    USA
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
+# USA
 
-from datetime import datetime
-import sys
+import json
+import logging
 import os
 import re
-from collections import OrderedDict
-import logging
-import json
-import jsonschema
+from datetime import datetime
+
 import deepdiff
+import jsonschema
 
 import objdictgen
 from objdictgen import maps
 from objdictgen.maps import OD
-
-if sys.version_info[0] >= 3:
-    unicode = str  # pylint: disable=invalid-name
-    long = int  # pylint: disable=invalid-name
-    ODict = dict
-else:
-    ODict = OrderedDict
 
 log = logging.getLogger('objdictgen')
 
@@ -188,23 +180,9 @@ def exc_amend(exc, text):
     return exc
 
 
-def ordereddict_hook(pairs):
-    """ json convert helper for py2, where OrderedDict is used to preserve
-        dict order
-    """
-    new_pairs = []
-    for key, value in pairs:
-        if isinstance(value, unicode):
-            value = value.encode('utf-8')
-        if isinstance(key, unicode):
-            key = key.encode('utf-8')
-        new_pairs.append((key, value))
-    return OrderedDict(new_pairs)
-
-
 def str_to_number(string):
     """ Convert string to a number, otherwise pass it through """
-    if string is None or isinstance(string, (int, float, long)):
+    if string is None or isinstance(string, (int, float)):
         return string
     s = string.strip()
     if s.startswith('0x') or s.startswith('-0x'):
@@ -216,16 +194,16 @@ def str_to_number(string):
 
 def copy_in_order(d, order):
     """ Remake dict d with keys in order """
-    out = ODict(
-        (k, d[k])
+    out = {
+        k: d[k]
         for k in order
         if k in d
-    )
-    out.update(ODict(
-        (k, v)
+    }
+    out.update({
+        k: v
         for k, v in d.items()
         if k not in out
-    ))
+    })
     return out
 
 
@@ -398,11 +376,8 @@ def GenerateNode(contents):
         # Remove jsonc annotations
         jsontext = remove_jasonc(contents)
 
-        # Load the json, with awareness on ordering in py2
-        if sys.version_info[0] < 3:
-            jd = json.loads(jsontext, object_pairs_hook=ordereddict_hook)
-        else:
-            jd = json.loads(jsontext)
+        # Load the json
+        jd = json.loads(jsontext)
 
         # Remove any __ in the file
         jd = remove_underscore(jd)
@@ -413,7 +388,7 @@ def GenerateNode(contents):
     #        than the json validator. However the type checking of the json
     #        validator is better.
     global SCHEMA  # pylint: disable=global-statement
-    if not SCHEMA and sys.version_info[0] >= 3:
+    if not SCHEMA:
         with open(os.path.join(objdictgen.JSON_SCHEMA), 'r') as f:
             SCHEMA = json.loads(remove_jasonc(f.read()))
 
@@ -924,13 +899,9 @@ def node_fromdict(jd, internal=False):
 
             diff = deepdiff.DeepDiff(baseobj, obj['built-in'], view='tree')
             if diff:
-                if sys.version_info[0] >= 3:
-                    log.debug("Index 0x{0:04x} ({0}) Difference between built-in object and imported:".format(index))
-                    for line in diff.pretty().splitlines():
-                        log.debug('  ' + line)
-                else:
-                    # FIXME: No print
-                    print("WARNING: Py2 cannot print difference of objects")
+                log.debug("Index 0x{0:04x} ({0}) Difference between built-in object and imported:".format(index))
+                for line in diff.pretty().splitlines():
+                    log.debug('  ' + line)
                 raise ValidationError("Built-in parameter index 0x{0:04x} ({0}) does not match against system parameters".format(index))
 
     # There is a weakness to the Node implementation: There is no store

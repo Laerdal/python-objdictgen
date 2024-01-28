@@ -2,20 +2,13 @@ import copy
 import shutil
 import re
 import os
-import sys
-from collections import OrderedDict
 import pytest
 
 from objdictgen import Node
 
-if sys.version_info[0] >= 3:
-    ODict = dict
-else:
-    ODict = OrderedDict
-
 
 def shave_dict(a, b):
-    if isinstance(a, (ODict, dict)) and isinstance(b, (ODict, dict)):
+    if isinstance(a, dict) and isinstance(b, dict):
         for k in set(a.keys()) | set(b.keys()):
             if k in a and k in b:
                 a[k], b[k] = shave_dict(a[k], b[k])
@@ -68,18 +61,18 @@ def shave_equal(a, b, ignore=None):
 #         delattr(obj, 'IndexOrder')
 
 
-@pytest.mark.parametrize("suffix", ['.od', '.json', '.eds'])
+@pytest.mark.parametrize("suffix", ['od', 'json', 'eds'])
 def test_load_compare(odfile, suffix):
     ''' Tests that the file can be loaded twice without different.
         L(od) == L(od)
     '''
 
-    if not os.path.exists(odfile + suffix):
+    if not os.path.exists(odfile + '.' + suffix):
         pytest.skip("File not found")
 
     # Load the OD
-    m1 = Node.LoadFile(odfile + suffix)
-    m2 = Node.LoadFile(odfile + suffix)
+    m1 = Node.LoadFile(odfile + '.' + suffix)
+    m2 = Node.LoadFile(odfile + '.' + suffix)
 
     assert m1.__dict__ == m2.__dict__
 
@@ -119,11 +112,10 @@ def test_odexport(wd, odfile, fn):
     m2 = Node.LoadFile(od + '.od')
 
     # Compare the OD master and the OD2 objects
+    if m1.__dict__ != m2.__dict__:
+        a, b = shave_equal(m1, m2)
+        assert a == b
     assert m1.__dict__ == m2.__dict__
-
-    # Compare the files - The py3 ones are by guarantee different, as the str handling is different
-    if sys.version_info[0] < 3:
-        assert fn.diff(od + '.od.orig', od + '.od', n=0)
 
 
 def test_jsonexport(wd, odfile):

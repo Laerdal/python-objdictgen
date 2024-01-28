@@ -1,53 +1,34 @@
-# -*- coding: utf-8 -*-
 #
-#    This file is based on objdictgen from CanFestival
+# Copyright (C) 2022-2024  Svein Seldal, Laerdal Medical AS
+# Copyright (C): Edouard TISSERANT, Francis DUPIN and Laurent BESSARD
 #
-#    Copyright (C) 2022-2023  Svein Seldal, Laerdal Medical AS
-#    Copyright (C): Edouard TISSERANT, Francis DUPIN and Laurent BESSARD
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License, or (at your option) any later version.
 #
-#    This library is free software; you can redistribute it and/or
-#    modify it under the terms of the GNU Lesser General Public
-#    License as published by the Free Software Foundation; either
-#    version 2.1 of the License, or (at your option) any later version.
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
 #
-#    This library is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    Lesser General Public License for more details.
-#
-#    You should have received a copy of the GNU Lesser General Public
-#    License along with this library; if not, write to the Free Software
-#    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
-#    USA
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
+# USA
 
-from __future__ import print_function
-from builtins import chr
-from builtins import object
-from builtins import range
-
-import os
-import sys
-import re
+import ast
 import copy
 import logging
-from collections import OrderedDict
+import os
+import re
 import traceback
-from past.builtins import execfile
-from future.utils import raise_from
+
 import colorama
-import ast
 
 import objdictgen
-from objdictgen.nosis import pickle as nosis
-from objdictgen import maps
-from objdictgen.maps import OD, MAPPING_DICTIONARY
-from objdictgen import jsonod, eds_utils, gen_cfile
-
-if sys.version_info[0] >= 3:
-    unicode = str  # pylint: disable=invalid-name
-    ODict = dict
-else:
-    ODict = OrderedDict
+from objdictgen import eds_utils, gen_cfile, jsonod, maps, nosis
+from objdictgen.maps import MAPPING_DICTIONARY, OD
 
 log = logging.getLogger('objdictgen')
 
@@ -120,11 +101,11 @@ def EvaluateNode(node: ast.AST):
     '''
     if isinstance(node, ast.BinOp):
         if isinstance(node.op, ast.Add):
-            return EvaluateNode(node.left) + EvaluateNode(node.right) 
+            return EvaluateNode(node.left) + EvaluateNode(node.right)
         elif isinstance(node.op, ast.Sub):
-            return EvaluateNode(node.left) - EvaluateNode(node.right) 
+            return EvaluateNode(node.left) - EvaluateNode(node.right)
         else:
-           raise SyntaxError("Unhandled arithmatic operation %s" % type(node.op)) 
+            raise SyntaxError("Unhandled arithmatic operation %s" % type(node.op))
     elif isinstance(node, ast.Constant):
         if isinstance(node.value, int | float | complex):
             return node.value
@@ -134,8 +115,7 @@ def EvaluateNode(node: ast.AST):
         raise TypeError("Unhandled ast node class %s" % type(node))
     else:
         raise TypeError("Invalid argument type %s" % type(node) )
-            
-    
+
 
 def GetIndexRange(index):
     for irange in maps.INDEX_RANGES:
@@ -152,6 +132,11 @@ def BE_to_LE(value):
     @return: a string containing the value converted
     """
 
+    # FIXME: This function is used in assosciation with DCF files, but have
+    # not been able to figure out how that work. It is very likely that this
+    # function is not working properly after the py2 -> py3 conversion
+    raise NotImplementedError("BE_to_LE() may be broken in py3")
+
     # FIXME: The function title is confusing as the input data type (str) is
     # different than the output (int)
     return int("".join(["%2.2X" % ord(char) for char in reversed(value)]), 16)
@@ -164,6 +149,12 @@ def LE_to_BE(value, size):
     @param size: number of bytes generated
     @return: a string containing the value converted
     """
+
+    # FIXME: This function is used in assosciation with DCF files, but have
+    # not been able to figure out how that work. It is very likely that this
+    # function is not working properly after the py2 -> py3 conversion due to
+    # the change of chr() behavior
+    raise NotImplementedError("LE_to_BE() is broken in py3")
 
     # FIXME: The function title is confusing as the input data type (int) is
     # different than the output (str)
@@ -192,21 +183,22 @@ def ImportProfile(profilename):
                 if os.path.exists(os.path.join(base, fname))
             )
         except StopIteration:
-            raise_from(ValueError("Unable to load profile '%s': '%s': No such file or directory" % (profilename, fname)), None)
+            raise ValueError("Unable to load profile '%s': '%s': No such file or directory" % (profilename, fname)) from None
 
     # Mapping and AddMenuEntries are expected to be defined by the execfile
     # The profiles requires some vars to be set
     # pylint: disable=unused-variable
     try:
-        log.debug("EXECFILE %s" % (profilepath,))
-        execfile(profilepath)  # FIXME: Using execfile is unsafe
-        # pylint: disable=undefined-variable
-        return Mapping, AddMenuEntries  # pyright: ignore  # noqa: F821
+        with open(profilepath, "r") as f:
+            log.debug("EXECFILE %s" % (profilepath,))
+            code = compile(f.read(), profilepath, 'exec')
+            exec(code, globals(), locals())  # FIXME: Using exec is unsafe
+            # pylint: disable=undefined-variable
+            return Mapping, AddMenuEntries  # pyright: ignore  # noqa: F821
     except Exception as exc:  # pylint: disable=broad-except
         log.debug("EXECFILE FAILED: %s" % exc)
         log.debug(traceback.format_exc())
-        raise_from(ValueError("Loading profile '%s' failed: %s" % (profilepath, exc)), exc)
-        return None  # To satisfy linter only
+        raise ValueError("Loading profile '%s' failed: %s" % (profilepath, exc)) from exc
 
 
 # ------------------------------------------------------------------------------
@@ -383,7 +375,7 @@ class Find:
 #                          Definition of Node Object
 # ------------------------------------------------------------------------------
 
-class Node(object):
+class Node:
     """
     Class recording the Object Dictionary entries. It checks at each modification
     that the structure of the Object Dictionary stay coherent
@@ -397,12 +389,12 @@ class Node(object):
         self.ID = id
         self.Description = description
         self.ProfileName = profilename
-        self.Profile = profile or ODict()
+        self.Profile = profile or {}
         self.SpecificMenu = specificmenu or []
-        self.Dictionary = ODict()
-        self.ParamsDictionary = ODict()
-        self.DS302 = ODict()
-        self.UserMapping = ODict()
+        self.Dictionary = {}
+        self.ParamsDictionary = {}
+        self.DS302 = {}
+        self.UserMapping = {}
         self.IndexOrder = []
 
     # --------------------------------------------------------------------------
@@ -821,13 +813,13 @@ class Node(object):
         return list(sorted(self.Dictionary))
 
     def CompileValue(self, value, index, compute=True):
-        if isinstance(value, (str, unicode)) and '$NODEID' in value.upper():
+        if isinstance(value, str) and '$NODEID' in value.upper():
             # NOTE: Don't change base, as the eval() use this
             base = self.GetBaseIndexNumber(index)  # noqa: F841  pylint: disable=unused-variable
             try:
                 log.debug("EVAL CompileValue() #1: '%s'" % (value,))
                 raw = eval(value)  # FIXME: Using eval is not safe
-                if compute and isinstance(raw, (str, unicode)):
+                if compute and isinstance(raw, str):
                     raw = raw.upper().replace("$NODEID", "self.ID")
                     log.debug("EVAL CompileValue() #2: '%s'" % (raw,))
                     return eval(raw)  # FIXME: Using eval is not safe
@@ -838,8 +830,7 @@ class Node(object):
                 return raw
             except Exception as exc:  # pylint: disable=broad-except
                 log.debug("EVAL FAILED: %s" % exc)
-                raise_from(ValueError("CompileValue failed for '%s'" % (value,)), exc)
-                return 0  # FIXME: Why ignore this exception?
+                raise ValueError("CompileValue failed for '%s'" % (value,)) from exc
         else:
             return value
 
@@ -1052,7 +1043,7 @@ class Node(object):
                                 return (index << 16) + (subindex << 8) + size * int(self.ParamsDictionary[index][subindex]["buffer_size"])
                             raise ValueError("String size too big to fit in a PDO")
                         except KeyError:
-                            raise_from(ValueError("No string length found and default string size too big to fit in a PDO"), None)
+                            raise ValueError("No string length found and default string size too big to fit in a PDO") from None
                 else:
                     if self.IsStringType(self.UserMapping[index]["values"][subindex]["type"]):
                         try:
@@ -1060,7 +1051,7 @@ class Node(object):
                                 return (index << 16) + (subindex << 8) + size * int(self.ParamsDictionary[index][subindex]["buffer_size"])
                             raise ValueError("String size too big to fit in a PDO")
                         except KeyError:
-                            raise_from(ValueError("No string length found and default string size too big to fit in a PDO"), None)
+                            raise ValueError("No string length found and default string size too big to fit in a PDO") from None
                 return (index << 16) + (subindex << 8) + size
         return None
 
