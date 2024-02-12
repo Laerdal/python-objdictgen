@@ -87,7 +87,7 @@ ENTRY_TYPES = {
 
 # Function that search into Node Mappings the informations about an index or a subindex
 # and return the default value
-def GetDefaultValue(node, index, subindex=None):
+def get_default_value(node, index, subindex=None):
     infos = node.GetEntryInfos(index)
     if infos["struct"] & OD.MultipleSubindexes:
         # First case entry is a array
@@ -124,7 +124,7 @@ SECTION_KEYNAMES = ["FILEINFO", "DEVICEINFO", "DUMMYUSAGE", "COMMENTS",
 
 
 # Function that extract sections from a file and returns a dictionary of the informations
-def ExtractSections(file):
+def extract_sections(file):
     return [
         (blocktuple[0],                   # EntryName : Assignements dict
          blocktuple[-1].splitlines())     # all the lines
@@ -136,14 +136,14 @@ def ExtractSections(file):
 
 
 # Function that parse an CPJ file and returns a dictionary of the informations
-def ParseCPJFile(filepath):
+def parse_cpj_file(filepath):
     networks = []
 
     # Read file text
     with open(filepath, "r") as f:
         cpj_file = f.read()
 
-    sections = ExtractSections(cpj_file)
+    sections = extract_sections(cpj_file)
     # Parse assignments for each section
     for section_name, assignments in sections:
 
@@ -250,14 +250,14 @@ def ParseCPJFile(filepath):
 
 
 # Function that parse an EDS file and returns a dictionary of the informations
-def ParseEDSFile(filepath):
+def parse_eds_file(filepath):
     eds_dict = {}
 
     # Read file text
     with open(filepath, 'r') as f:
         eds_file = f.read()
 
-    sections = ExtractSections(eds_file)
+    sections = extract_sections(eds_file)
 
     # Parse assignments for each section
     for section_name, assignments in sections:
@@ -397,13 +397,13 @@ def ParseEDSFile(filepath):
                     attributes = "Attribute '%s' is" % unsupported.pop()
                 raise ValueError("Error on section '[%s]': '%s' unsupported for a '%s' entry" % (section_name, attributes, ENTRY_TYPES[values["OBJECTTYPE"]]["name"]))
 
-            VerifyValue(values, section_name, "ParameterValue")
-            VerifyValue(values, section_name, "DefaultValue")
+            verify_value(values, section_name, "ParameterValue")
+            verify_value(values, section_name, "DefaultValue")
 
     return eds_dict
 
 
-def VerifyValue(values, section_name, param):
+def verify_value(values, section_name, param):
     uparam = param.upper()
     if uparam in values:
         try:
@@ -420,7 +420,7 @@ def VerifyValue(values, section_name, param):
 
 
 # Function that generate the EDS file content for the current node in the manager
-def GenerateFileContent(node, filepath):
+def generate_eds_content(node, filepath):
     # Dictionary of each index contents
     indexcontents = {}
 
@@ -626,15 +626,15 @@ def GenerateFileContent(node, filepath):
 
 
 # Function that generates EDS file from current node edited
-def GenerateEDSFile(filepath, node):
-    content = GenerateFileContent(node, filepath)
+def generate_eds_file(filepath, node):
+    content = generate_eds_content(node, filepath)
 
     with open(filepath, "w") as f:
         f.write(content)
 
 
 # Function that generate the CPJ file content for the nodelist
-def GenerateCPJContent(nodelist):
+def generate_cpj_content(nodelist):
     nodes = nodelist.SlaveNodes
 
     filecontent = "[TOPOLOGY]\n"
@@ -651,12 +651,12 @@ def GenerateCPJContent(nodelist):
 
 
 # Function that generates Node from an EDS file
-def GenerateNode(filepath, nodeid=0):
+def generate_node(filepath, nodeid=0):
     # Create a new node
     node = nodelib.Node(id=nodeid)
 
     # Parse file and extract dictionary of EDS entry
-    eds_dict = ParseEDSFile(filepath)
+    eds_dict = parse_eds_file(filepath)
 
     # Ensure we have the ODs we need
     missing = ["0x%04X" % i for i in (
@@ -673,7 +673,7 @@ def GenerateNode(filepath, nodeid=0):
         try:
             # Import profile
             profilename = "DS-%d" % profilenb
-            mapping, menuentries = nodelib.ImportProfile(profilename)
+            mapping, menuentries = nodelib.Node.ImportProfile(profilename)
             node.ProfileName = profilename
             node.Profile = mapping
             node.SpecificMenu = menuentries
@@ -776,7 +776,7 @@ def GenerateNode(filepath, nodeid=0):
                     value = values["DEFAULTVALUE"]
                 # Find default value for value type of the entry
                 else:
-                    value = GetDefaultValue(node, entry)
+                    value = get_default_value(node, entry)
                 node.AddEntry(entry, 0, value)
             # Second case, entry is an ARRAY or a RECORD
             elif values["OBJECTTYPE"] in [8, 9]:
@@ -794,7 +794,7 @@ def GenerateNode(filepath, nodeid=0):
                             value = values["subindexes"][subindex]["DEFAULTVALUE"]
                         # Find default value for value type of the subindex
                         else:
-                            value = GetDefaultValue(node, entry, subindex)
+                            value = get_default_value(node, entry, subindex)
                         node.AddEntry(entry, subindex, value)
                 else:
                     raise ValueError("Array or Record entry 0x%4.4X must have a 'SubNumber' attribute" % entry)

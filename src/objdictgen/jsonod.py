@@ -299,7 +299,7 @@ def get_object_types(node=None, dictionary=None):
 
 def compare_profile(profilename, params, menu=None):
     try:
-        dsmap, menumap = nodelib.ImportProfile(profilename)
+        dsmap, menumap = nodelib.Node.ImportProfile(profilename)
         identical = all(
             k in dsmap and k in params and dsmap[k] == params[k]
             for k in set(dsmap) | set(params)
@@ -316,7 +316,7 @@ def compare_profile(profilename, params, menu=None):
         return False, False
 
 
-def GenerateJson(node, compact=False, sort=False, internal=False, validate=True):
+def generate_json(node, compact=False, sort=False, internal=False, validate=True):
     ''' Export a JSON string representation of the node '''
 
     # Get the dict representation
@@ -367,7 +367,7 @@ def GenerateJson(node, compact=False, sort=False, internal=False, validate=True)
     return out
 
 
-def GenerateNode(contents):
+def generate_node(contents):
     ''' Import from JSON string or objects '''
 
     jd = contents

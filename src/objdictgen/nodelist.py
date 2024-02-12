@@ -104,7 +104,7 @@ class NodeList:
 
     def LoadEDS(self, eds):
         edspath = os.path.join(self.GetEDSFolder(), eds)
-        node = eds_utils.GenerateNode(edspath)
+        node = eds_utils.generate_node(edspath)
         self.EDSNodes[eds] = node
 
     def AddSlaveNode(self, nodename, nodeid, eds):
@@ -145,7 +145,7 @@ class NodeList:
         cpjpath = os.path.join(self.Root, "nodelist.cpj")
         if os.path.isfile(cpjpath):
             try:
-                networks = eds_utils.ParseCPJFile(cpjpath)
+                networks = eds_utils.parse_cpj_file(cpjpath)
                 network = None
                 if netname:
                     for net in networks:
@@ -167,7 +167,7 @@ class NodeList:
         cpjpath = ''  # For linting
         try:
             cpjpath = os.path.join(self.Root, "nodelist.cpj")
-            content = eds_utils.GenerateCPJContent(self)
+            content = eds_utils.generate_cpj_content(self)
             if netname:
                 mode = "a"
             else:

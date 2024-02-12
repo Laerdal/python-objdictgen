@@ -42,7 +42,7 @@ CURRENTID = 0
 
 
 # Returns a new id
-def GetNewId():
+def get_new_id():
     global CURRENTID  # pylint: disable=global-statement
     CURRENTID += 1
     return CURRENTID
@@ -188,7 +188,7 @@ class NodeManager:
         # Load profile given
         if profile != "None":
             # Import profile
-            mapping, menuentries = nodelib.ImportProfile(filepath)
+            mapping, menuentries = nodelib.Node.ImportProfile(filepath)
             node.ProfileName = profile
             node.Profile = mapping
             node.SpecificMenu = menuentries
@@ -212,7 +212,7 @@ class NodeManager:
         for option in options:
             if option == "DS302":
                 # Import profile
-                mapping, menuentries = nodelib.ImportProfile("DS-302")
+                mapping, menuentries = nodelib.Node.ImportProfile("DS-302")
                 self.CurrentNode.DS302 = mapping
                 self.CurrentNode.SpecificMenu.extend(menuentries)
             elif option == "GenSYNC":
@@ -247,7 +247,7 @@ class NodeManager:
         """
         Open a file and store it in a new buffer
         """
-        node = Node.LoadFile(filepath)
+        node = nodelib.Node.LoadFile(filepath)
 
         self.CurrentNode = node
         self.CurrentNode.ID = 0
@@ -761,7 +761,7 @@ class NodeManager:
         self.CurrentNode = self.UndoBuffers[self.NodeIndex].Next().Copy()
 
     def AddNodeBuffer(self, currentstate=None, issaved=False):
-        self.NodeIndex = GetNewId()
+        self.NodeIndex = get_new_id()
         self.UndoBuffers[self.NodeIndex] = UndoBuffer(currentstate, issaved)
         self.FilePaths[self.NodeIndex] = ""
         self.FileNames[self.NodeIndex] = ""
@@ -1068,11 +1068,14 @@ class NodeManager:
         if self.CurrentNode.IsEntry(0x1F22, node_id):
             dcf_value = self.CurrentNode.GetEntry(0x1F22, node_id)
             if dcf_value:
-                nbparams = nodelib.BE_to_LE(dcf_value[:4])
+                nbparams = nodelib.Node.be_to_le(dcf_value[:4])
             else:
                 nbparams = 0
-            new_value = nodelib.LE_to_BE(nbparams + 1, 4) + dcf_value[4:]
-            new_value += nodelib.LE_to_BE(index, 2) + nodelib.LE_to_BE(subindex, 1) + nodelib.LE_to_BE(size, 4) + nodelib.LE_to_BE(value, size)
+            new_value = nodelib.Node.le_to_be(nbparams + 1, 4) + dcf_value[4:]
+            new_value += (nodelib.Node.le_to_be(index, 2)
+                         + nodelib.Node.le_to_be(subindex, 1)
+                         + nodelib.Node.le_to_be(size, 4)
+                         + nodelib.Node.le_to_be(value, size))
             self.CurrentNode.SetEntry(0x1F22, node_id, new_value)
 
     # --------------------------------------------------------------------------
@@ -1089,17 +1092,17 @@ class NodeManager:
     def GetEntryName(self, index, compute=True):
         if self.CurrentNode:
             return self.CurrentNode.GetEntryName(index, compute)
-        return nodelib.Find.EntryName(index, maps.MAPPING_DICTIONARY, compute)
+        return nodelib.Node.FindEntryName(index, maps.MAPPING_DICTIONARY, compute)
 
     def GetEntryInfos(self, index, compute=True):
         if self.CurrentNode:
             return self.CurrentNode.GetEntryInfos(index, compute)
-        return nodelib.Find.EntryInfos(index, maps.MAPPING_DICTIONARY, compute)
+        return nodelib.Node.FindEntryInfos(index, maps.MAPPING_DICTIONARY, compute)
 
     def GetSubentryInfos(self, index, subindex, compute=True):
         if self.CurrentNode:
             return self.CurrentNode.GetSubentryInfos(index, subindex, compute)
-        result = nodelib.Find.SubentryInfos(index, subindex, maps.MAPPING_DICTIONARY, compute)
+        result = nodelib.Node.FindSubentryInfos(index, subindex, maps.MAPPING_DICTIONARY, compute)
         if result:
             result["user_defined"] = False
         return result
@@ -1107,17 +1110,17 @@ class NodeManager:
     def GetTypeIndex(self, typename):
         if self.CurrentNode:
             return self.CurrentNode.GetTypeIndex(typename)
-        return nodelib.Find.TypeIndex(typename, maps.MAPPING_DICTIONARY)
+        return nodelib.Node.FindTypeIndex(typename, maps.MAPPING_DICTIONARY)
 
     def GetTypeName(self, typeindex):
         if self.CurrentNode:
             return self.CurrentNode.GetTypeName(typeindex)
-        return nodelib.Find.TypeName(typeindex, maps.MAPPING_DICTIONARY)
+        return nodelib.Node.FindTypeName(typeindex, maps.MAPPING_DICTIONARY)
 
     def GetTypeDefaultValue(self, typeindex):
         if self.CurrentNode:
             return self.CurrentNode.GetTypeDefaultValue(typeindex)
-        return nodelib.Find.TypeDefaultValue(typeindex, maps.MAPPING_DICTIONARY)
+        return nodelib.Node.FindTypeDefaultValue(typeindex, maps.MAPPING_DICTIONARY)
 
     def GetMapVariableList(self, compute=True):
         if self.CurrentNode:
@@ -1127,7 +1130,7 @@ class NodeManager:
     def GetMandatoryIndexes(self):
         if self.CurrentNode:
             return self.CurrentNode.GetMandatoryIndexes()
-        return nodelib.Find.MandatoryIndexes(maps.MAPPING_DICTIONARY)
+        return nodelib.Node.FindMandatoryIndexes(maps.MAPPING_DICTIONARY)
 
     def GetCustomisableTypes(self):
         return {

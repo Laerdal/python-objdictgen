@@ -41,337 +41,6 @@ RE_NAME = re.compile(r'(.*)\[[(](.*)[)]\]')
 
 
 # ------------------------------------------------------------------------------
-#                         Utils
-# ------------------------------------------------------------------------------
-def isXml(filepath):
-    with open(filepath, 'r') as f:
-        header = f.read(5)
-        return header == "<?xml"
-
-
-def isEds(filepath):
-    with open(filepath, 'r') as f:
-        header = f.readline().rstrip()
-        return header == "[FileInfo]"
-
-
-def StringFormat(text, idx, sub):  # pylint: disable=unused-argument
-    """
-    Format the text given with the index and subindex defined
-    """
-    result = RE_NAME.match(text)
-    if result:
-        fmt = result.groups()
-        try:
-            args = fmt[1].split(',')
-            args = [a.replace('idx', str(idx)) for a in args]
-            args = [a.replace('sub', str(sub)) for a in args]
-
-            # NOTE: Python2 type evaluations are baked into the maps.py
-            #   and json format OD so cannot be removed currently
-            if len(args) == 1:
-                return fmt[0] % (EvaluateExpression(args[0].strip()))
-            elif len(args) == 2:
-                return fmt[0] % (EvaluateExpression(args[0].strip()), EvaluateExpression(args[1].strip()))
-
-            return fmt[0]
-        except Exception as exc:
-            log.debug("PARSING FAILED: %s" % (exc, ))
-            raise
-    else:
-        return text
-
-def EvaluateExpression(expression: str):
-    """Parses a string expression and attempts to calculate the result
-    Supports:
-        - Addition (i.e. "3+4")
-        - Subraction (i.e. "7-4")
-        - Constants (i.e. "5")
-    This function will handle chained arithmatic i.e. "1+2+3" although operating order is not neccesarily preserved
-
-    Parameters:
-        expression (str): string to parse
-    """
-    tree = ast.parse(expression, mode="eval")
-    return EvaluateNode(tree.body)
-
-def EvaluateNode(node: ast.AST):
-    '''
-    Recursively parses ast.Node objects to evaluate arithmatic expressions
-    '''
-    if isinstance(node, ast.BinOp):
-        if isinstance(node.op, ast.Add):
-            return EvaluateNode(node.left) + EvaluateNode(node.right)
-        elif isinstance(node.op, ast.Sub):
-            return EvaluateNode(node.left) - EvaluateNode(node.right)
-        else:
-            raise SyntaxError("Unhandled arithmatic operation %s" % type(node.op))
-    elif isinstance(node, ast.Constant):
-        if isinstance(node.value, int | float | complex):
-            return node.value
-        else:
-            raise TypeError("Cannot parse str type constant '%s'" % node.value)
-    elif isinstance(node, ast.AST):
-        raise TypeError("Unhandled ast node class %s" % type(node))
-    else:
-        raise TypeError("Invalid argument type %s" % type(node) )
-
-
-def GetIndexRange(index):
-    for irange in maps.INDEX_RANGES:
-        if irange["min"] <= index <= irange["max"]:
-            return irange
-    raise ValueError("Cannot find index range for value '0x%x'" % index)
-
-
-def BE_to_LE(value):
-    """
-    Convert Big Endian to Little Endian
-    @param value: value expressed in Big Endian
-    @param size: number of bytes generated
-    @return: a string containing the value converted
-    """
-
-    # FIXME: This function is used in assosciation with DCF files, but have
-    # not been able to figure out how that work. It is very likely that this
-    # function is not working properly after the py2 -> py3 conversion
-    raise NotImplementedError("BE_to_LE() may be broken in py3")
-
-    # FIXME: The function title is confusing as the input data type (str) is
-    # different than the output (int)
-    return int("".join(["%2.2X" % ord(char) for char in reversed(value)]), 16)
-
-
-def LE_to_BE(value, size):
-    """
-    Convert Little Endian to Big Endian
-    @param value: value expressed in integer
-    @param size: number of bytes generated
-    @return: a string containing the value converted
-    """
-
-    # FIXME: This function is used in assosciation with DCF files, but have
-    # not been able to figure out how that work. It is very likely that this
-    # function is not working properly after the py2 -> py3 conversion due to
-    # the change of chr() behavior
-    raise NotImplementedError("LE_to_BE() is broken in py3")
-
-    # FIXME: The function title is confusing as the input data type (int) is
-    # different than the output (str)
-    data = ("%" + str(size * 2) + "." + str(size * 2) + "X") % value
-    list_car = [data[i:i + 2] for i in range(0, len(data), 2)]
-    list_car.reverse()
-    return "".join([chr(int(car, 16)) for car in list_car])
-
-
-# ------------------------------------------------------------------------------
-#                         Load mapping
-# ------------------------------------------------------------------------------
-def ImportProfile(profilename):
-    # Import profile
-
-    # Test if the profilename is a filepath which can be used directly. If not
-    # treat it as the name
-    # The UI use full filenames, while all other uses use profile names
-    profilepath = profilename
-    if not os.path.exists(profilepath):
-        fname = "%s.prf" % profilename
-        try:
-            profilepath = next(
-                os.path.join(base, fname)
-                for base in objdictgen.PROFILE_DIRECTORIES
-                if os.path.exists(os.path.join(base, fname))
-            )
-        except StopIteration:
-            raise ValueError("Unable to load profile '%s': '%s': No such file or directory" % (profilename, fname)) from None
-
-    # Mapping and AddMenuEntries are expected to be defined by the execfile
-    # The profiles requires some vars to be set
-    # pylint: disable=unused-variable
-    try:
-        with open(profilepath, "r") as f:
-            log.debug("EXECFILE %s" % (profilepath,))
-            code = compile(f.read(), profilepath, 'exec')
-            exec(code, globals(), locals())  # FIXME: Using exec is unsafe
-            # pylint: disable=undefined-variable
-            return Mapping, AddMenuEntries  # pyright: ignore  # noqa: F821
-    except Exception as exc:  # pylint: disable=broad-except
-        log.debug("EXECFILE FAILED: %s" % exc)
-        log.debug(traceback.format_exc())
-        raise ValueError("Loading profile '%s' failed: %s" % (profilepath, exc)) from exc
-
-
-# ------------------------------------------------------------------------------
-#                         Search in a Mapping Dictionary
-# ------------------------------------------------------------------------------
-
-class Find:
-    """ Collection of static methods for seaching in a mapping directory """
-
-    @staticmethod
-    def TypeIndex(typename, mappingdictionary):
-        """
-        Return the index of the typename given by searching in mappingdictionary
-        """
-        return {
-            values["name"]: index
-            for index, values in mappingdictionary.items()
-            if index < 0x1000
-        }.get(typename)
-
-    @staticmethod
-    def TypeName(typeindex, mappingdictionary):
-        """
-        Return the name of the type by searching in mappingdictionary
-        """
-        if typeindex < 0x1000 and typeindex in mappingdictionary:
-            return mappingdictionary[typeindex]["name"]
-        return None
-
-    @staticmethod
-    def TypeDefaultValue(typeindex, mappingdictionary):
-        """
-        Return the default value of the type by searching in mappingdictionary
-        """
-        if typeindex < 0x1000 and typeindex in mappingdictionary:
-            return mappingdictionary[typeindex]["default"]
-        return None
-
-    @staticmethod
-    def TypeList(mappingdictionary):
-        """
-        Return the list of types defined in mappingdictionary
-        """
-        return [
-            mappingdictionary[index]["name"]
-            for index in mappingdictionary
-            if index < 0x1000
-        ]
-
-    @staticmethod
-    def EntryName(index, mappingdictionary, compute=True):
-        """
-        Return the name of an entry by searching in mappingdictionary
-        """
-        base_index = Find.Index(index, mappingdictionary)
-        if base_index:
-            infos = mappingdictionary[base_index]
-            if infos["struct"] & OD.IdenticalIndexes and compute:
-                return StringFormat(infos["name"], (index - base_index) // infos["incr"] + 1, 0)
-            return infos["name"]
-        return None
-
-    @staticmethod
-    def EntryInfos(index, mappingdictionary, compute=True):
-        """
-        Return the informations of one entry by searching in mappingdictionary
-        """
-        base_index = Find.Index(index, mappingdictionary)
-        if base_index:
-            obj = mappingdictionary[base_index].copy()
-            if obj["struct"] & OD.IdenticalIndexes and compute:
-                obj["name"] = StringFormat(obj["name"], (index - base_index) // obj["incr"] + 1, 0)
-            obj.pop("values")
-            return obj
-        return None
-
-    @staticmethod
-    def SubentryInfos(index, subindex, mappingdictionary, compute=True):
-        """
-        Return the informations of one subentry of an entry by searching in mappingdictionary
-        """
-        base_index = Find.Index(index, mappingdictionary)
-        if base_index:
-            struct = mappingdictionary[base_index]["struct"]
-            if struct & OD.Subindex:
-                infos = None
-                if struct & OD.IdenticalSubindexes:
-                    if subindex == 0:
-                        infos = mappingdictionary[base_index]["values"][0].copy()
-                    elif 0 < subindex <= mappingdictionary[base_index]["values"][1]["nbmax"]:
-                        infos = mappingdictionary[base_index]["values"][1].copy()
-                elif struct & OD.MultipleSubindexes:
-                    idx = 0
-                    for subindex_infos in mappingdictionary[base_index]["values"]:
-                        if "nbmax" in subindex_infos:
-                            if idx <= subindex < idx + subindex_infos["nbmax"]:
-                                infos = subindex_infos.copy()
-                                break
-                            idx += subindex_infos["nbmax"]
-                        else:
-                            if subindex == idx:
-                                infos = subindex_infos.copy()
-                                break
-                            idx += 1
-                elif subindex == 0:
-                    infos = mappingdictionary[base_index]["values"][0].copy()
-
-                if infos is not None and compute:
-                    if struct & OD.IdenticalIndexes:
-                        incr = mappingdictionary[base_index]["incr"]
-                    else:
-                        incr = 1
-                    infos["name"] = StringFormat(infos["name"], (index - base_index) // incr + 1, subindex)
-
-                return infos
-        return None
-
-    @staticmethod
-    def MapVariableList(mappingdictionary, node, compute=True):
-        """
-        Return the list of variables that can be mapped defined in mappingdictionary
-        """
-        for index in mappingdictionary:
-            if node.IsEntry(index):
-                for subindex, values in enumerate(mappingdictionary[index]["values"]):
-                    if mappingdictionary[index]["values"][subindex]["pdo"]:
-                        infos = node.GetEntryInfos(mappingdictionary[index]["values"][subindex]["type"])
-                        name = mappingdictionary[index]["values"][subindex]["name"]
-                        if mappingdictionary[index]["struct"] & OD.IdenticalSubindexes:
-                            values = node.GetEntry(index)
-                            for i in range(len(values) - 1):
-                                computed_name = name
-                                if compute:
-                                    computed_name = StringFormat(computed_name, 1, i + 1)
-                                yield (index, i + 1, infos["size"], computed_name)
-                        else:
-                            computed_name = name
-                            if compute:
-                                computed_name = StringFormat(computed_name, 1, subindex)
-                            yield (index, subindex, infos["size"], computed_name)
-
-    @staticmethod
-    def MandatoryIndexes(mappingdictionary):
-        """
-        Return the list of mandatory indexes defined in mappingdictionary
-        """
-        return [
-            index
-            for index in mappingdictionary
-            if index >= 0x1000 and mappingdictionary[index]["need"]
-        ]
-
-    @staticmethod
-    def Index(index, mappingdictionary):
-        """
-        Return the index of the informations in the Object Dictionary in case of identical
-        indexes
-        """
-        if index in mappingdictionary:
-            return index
-        listpluri = [
-            idx for idx, mapping in mappingdictionary.items()
-            if mapping["struct"] & OD.IdenticalIndexes
-        ]
-        for idx in sorted(listpluri):
-            nb_max = mappingdictionary[idx]["nbmax"]
-            incr = mappingdictionary[idx]["incr"]
-            if idx < index < idx + incr * nb_max and (index - idx) % incr == 0:
-                return idx
-        return None
-
-
-# ------------------------------------------------------------------------------
 #                          Definition of Node Object
 # ------------------------------------------------------------------------------
 
@@ -398,21 +67,32 @@ class Node:
         self.IndexOrder = []
 
     # --------------------------------------------------------------------------
-    #                         Node Input/Output
+    #                      Node Input/Output
     # --------------------------------------------------------------------------
 
     @staticmethod
-    def LoadFile(filepath):
-        # type: (str) -> Node
+    def isXml(filepath):
+        with open(filepath, 'r') as f:
+            header = f.read(5)
+            return header == "<?xml"
+
+    @staticmethod
+    def isEds(filepath):
+        with open(filepath, 'r') as f:
+            header = f.readline().rstrip()
+            return header == "[FileInfo]"
+
+    @staticmethod
+    def LoadFile(filepath: str) -> "Node":
         """ Open a file and create a new node """
-        if isXml(filepath):
+        if Node.isXml(filepath):
             log.debug("Loading XML OD '%s'" % filepath)
             with open(filepath, "r") as f:
                 return nosis.xmlload(f)  # type: ignore
 
-        if isEds(filepath):
+        if Node.isEds(filepath):
             log.debug("Loading EDS '%s'" % filepath)
-            return eds_utils.GenerateNode(filepath)
+            return eds_utils.generate_node(filepath)
 
         log.debug("Loading JSON OD '%s'" % filepath)
         with open(filepath, "r") as f:
@@ -421,7 +101,7 @@ class Node:
     @staticmethod
     def LoadJson(contents):
         """ Import a new Node from a JSON string """
-        return jsonod.GenerateNode(contents)
+        return jsonod.generate_node(contents)
 
     def DumpFile(self, filepath, filetype="json", **kwargs):
         """ Save node into file """
@@ -434,7 +114,7 @@ class Node:
 
         if filetype == 'eds':
             log.debug("Writing EDS '%s'" % filepath)
-            eds_utils.GenerateEDSFile(filepath, self)
+            eds_utils.generate_eds_file(filepath, self)
             return
 
         if filetype == 'json':
@@ -446,19 +126,19 @@ class Node:
 
         if filetype == 'c':
             log.debug("Writing C files '%s'" % filepath)
-            gen_cfile.GenerateFile(filepath, self)
+            gen_cfile.generate_file(filepath, self)
             return
 
         raise ValueError("Unknown file suffix, unable to write file")
 
     def DumpJson(self, compact=False, sort=False, internal=False, validate=True):
         """ Dump the node into a JSON string """
-        return jsonod.GenerateJson(
+        return jsonod.generate_json(
             self, compact=compact, sort=sort, internal=internal, validate=validate
         )
 
     # --------------------------------------------------------------------------
-    #                         Node Functions
+    #                      Node Functions
     # --------------------------------------------------------------------------
 
     def GetMappings(self, userdefinedtoo=True):
@@ -835,24 +515,24 @@ class Node:
             return value
 
     # --------------------------------------------------------------------------
-    #                         Node Informations Functions
+    #                      Node Informations Functions
     # --------------------------------------------------------------------------
 
     def GetBaseIndex(self, index):
         """ Return the index number of the base object """
         for mapping in self.GetMappings():
-            result = Find.Index(index, mapping)
+            result = self.FindIndex(index, mapping)
             if result:
                 return result
-        return Find.Index(index, maps.MAPPING_DICTIONARY)
+        return self.FindIndex(index, maps.MAPPING_DICTIONARY)
 
     def GetBaseIndexNumber(self, index):
         """ Return the index number from the base object """
         for mapping in self.GetMappings():
-            result = Find.Index(index, mapping)
+            result = self.FindIndex(index, mapping)
             if result is not None:
                 return (index - result) // mapping[result].get("incr", 1)
-        result = Find.Index(index, maps.MAPPING_DICTIONARY)
+        result = self.FindIndex(index, maps.MAPPING_DICTIONARY)
         if result is not None:
             return (index - result) // maps.MAPPING_DICTIONARY[result].get("incr", 1)
         return 0
@@ -867,10 +547,10 @@ class Node:
         mappings = self.GetMappings()
         i = 0
         while not result and i < len(mappings):
-            result = Find.EntryName(index, mappings[i], compute)
+            result = self.FindEntryName(index, mappings[i], compute)
             i += 1
         if result is None:
-            result = Find.EntryName(index, maps.MAPPING_DICTIONARY, compute)
+            result = self.FindEntryName(index, maps.MAPPING_DICTIONARY, compute)
         return result
 
     def GetEntryInfos(self, index, compute=True):
@@ -878,9 +558,9 @@ class Node:
         mappings = self.GetMappings()
         i = 0
         while not result and i < len(mappings):
-            result = Find.EntryInfos(index, mappings[i], compute)
+            result = self.FindEntryInfos(index, mappings[i], compute)
             i += 1
-        r301 = Find.EntryInfos(index, maps.MAPPING_DICTIONARY, compute)
+        r301 = self.FindEntryInfos(index, maps.MAPPING_DICTIONARY, compute)
         if r301:
             if result is not None:
                 r301.update(result)
@@ -892,11 +572,11 @@ class Node:
         mappings = self.GetMappings()
         i = 0
         while not result and i < len(mappings):
-            result = Find.SubentryInfos(index, subindex, mappings[i], compute)
+            result = self.FindSubentryInfos(index, subindex, mappings[i], compute)
             if result:
                 result["user_defined"] = i == len(mappings) - 1 and index >= 0x1000
             i += 1
-        r301 = Find.SubentryInfos(index, subindex, maps.MAPPING_DICTIONARY, compute)
+        r301 = self.FindSubentryInfos(index, subindex, maps.MAPPING_DICTIONARY, compute)
         if r301:
             if result is not None:
                 r301.update(result)
@@ -947,10 +627,10 @@ class Node:
         mappings = self.GetMappings()
         i = 0
         while not result and i < len(mappings):
-            result = Find.TypeIndex(typename, mappings[i])
+            result = self.FindTypeIndex(typename, mappings[i])
             i += 1
         if result is None:
-            result = Find.TypeIndex(typename, maps.MAPPING_DICTIONARY)
+            result = self.FindTypeIndex(typename, maps.MAPPING_DICTIONARY)
         return result
 
     def GetTypeName(self, typeindex):
@@ -958,10 +638,10 @@ class Node:
         mappings = self.GetMappings()
         i = 0
         while not result and i < len(mappings):
-            result = Find.TypeName(typeindex, mappings[i])
+            result = self.FindTypeName(typeindex, mappings[i])
             i += 1
         if result is None:
-            result = Find.TypeName(typeindex, maps.MAPPING_DICTIONARY)
+            result = self.FindTypeName(typeindex, maps.MAPPING_DICTIONARY)
         return result
 
     def GetTypeDefaultValue(self, typeindex):
@@ -969,23 +649,23 @@ class Node:
         mappings = self.GetMappings()
         i = 0
         while not result and i < len(mappings):
-            result = Find.TypeDefaultValue(typeindex, mappings[i])
+            result = self.FindTypeDefaultValue(typeindex, mappings[i])
             i += 1
         if result is None:
-            result = Find.TypeDefaultValue(typeindex, maps.MAPPING_DICTIONARY)
+            result = self.FindTypeDefaultValue(typeindex, maps.MAPPING_DICTIONARY)
         return result
 
     def GetMapVariableList(self, compute=True):
-        list_ = list(Find.MapVariableList(maps.MAPPING_DICTIONARY, self, compute))
+        list_ = list(self.FindMapVariableList(maps.MAPPING_DICTIONARY, self, compute))
         for mapping in self.GetMappings():
-            list_.extend(Find.MapVariableList(mapping, self, compute))
+            list_.extend(self.FindMapVariableList(mapping, self, compute))
         list_.sort()
         return list_
 
     def GetMandatoryIndexes(self, node=None):  # pylint: disable=unused-argument
-        list_ = Find.MandatoryIndexes(maps.MAPPING_DICTIONARY)
+        list_ = self.FindMandatoryIndexes(maps.MAPPING_DICTIONARY)
         for mapping in self.GetMappings():
-            list_.extend(Find.MandatoryIndexes(mapping))
+            list_.extend(self.FindMandatoryIndexes(mapping))
         return list_
 
     def GetCustomisableTypes(self):
@@ -995,7 +675,7 @@ class Node:
         }
 
     # --------------------------------------------------------------------------
-    #                            Type helper functions
+    #                      Type helper functions
     # --------------------------------------------------------------------------
 
     def IsStringType(self, index):
@@ -1017,13 +697,13 @@ class Node:
         return False
 
     # --------------------------------------------------------------------------
-    #                            Type and Map Variable Lists
+    #                      Type and Map Variable Lists
     # --------------------------------------------------------------------------
 
     def GetTypeList(self):
-        list_ = Find.TypeList(maps.MAPPING_DICTIONARY)
+        list_ = self.FindTypeList(maps.MAPPING_DICTIONARY)
         for mapping in self.GetMappings():
-            list_.extend(Find.TypeList(mapping))
+            list_.extend(self.FindTypeList(mapping))
         return list_
 
     def GenerateMapName(self, name, index, subindex):  # pylint: disable=unused-argument
@@ -1123,7 +803,7 @@ class Node:
                 self.ProfileName = "None"
 
     # --------------------------------------------------------------------------
-    #                            Validator
+    #                      Validator
     # --------------------------------------------------------------------------
 
     def Validate(self, fix=False):
@@ -1193,7 +873,7 @@ class Node:
                         _warn("FIX: Set name to '{}'".format(subvals["name"]))
 
     # --------------------------------------------------------------------------
-    #                            Printing and output
+    #                      Printing and output
     # --------------------------------------------------------------------------
 
     def GetPrintLine(self, index, unused=False, compact=False):
@@ -1240,7 +920,7 @@ class Node:
                 continue
 
             # Print the parameter range header
-            ir = GetIndexRange(k)
+            ir = self.get_index_range(k)
             if index_range != ir:
                 index_range = ir
                 if not compact:
@@ -1317,6 +997,324 @@ class Node:
 
             if not compact and infos:
                 yield ""
+
+    # --------------------------------------------------------------------------
+    #                      Load mapping
+    # --------------------------------------------------------------------------
+
+    @staticmethod
+    def ImportProfile(profilename):
+
+        # Test if the profilename is a filepath which can be used directly. If not
+        # treat it as the name
+        # The UI use full filenames, while all other uses use profile names
+        profilepath = profilename
+        if not os.path.exists(profilepath):
+            fname = "%s.prf" % profilename
+            try:
+                profilepath = next(
+                    os.path.join(base, fname)
+                    for base in objdictgen.PROFILE_DIRECTORIES
+                    if os.path.exists(os.path.join(base, fname))
+                )
+            except StopIteration:
+                raise ValueError("Unable to load profile '%s': '%s': No such file or directory" % (profilename, fname)) from None
+
+        # Mapping and AddMenuEntries are expected to be defined by the execfile
+        # The profiles requires some vars to be set
+        # pylint: disable=unused-variable
+        try:
+            with open(profilepath, "r") as f:
+                log.debug("EXECFILE %s" % (profilepath,))
+                code = compile(f.read(), profilepath, 'exec')
+                exec(code, globals(), locals())  # FIXME: Using exec is unsafe
+                # pylint: disable=undefined-variable
+                return Mapping, AddMenuEntries  # pyright: ignore  # noqa: F821
+        except Exception as exc:  # pylint: disable=broad-except
+            log.debug("EXECFILE FAILED: %s" % exc)
+            log.debug(traceback.format_exc())
+            raise ValueError("Loading profile '%s' failed: %s" % (profilepath, exc)) from exc
+
+    # --------------------------------------------------------------------------
+    #                      Utils
+    # --------------------------------------------------------------------------
+
+    @staticmethod
+    def string_format(text, idx, sub):  # pylint: disable=unused-argument
+        """
+        Format the text given with the index and subindex defined
+        """
+        result = RE_NAME.match(text)
+        if result:
+            fmt = result.groups()
+            try:
+                args = fmt[1].split(',')
+                args = [a.replace('idx', str(idx)) for a in args]
+                args = [a.replace('sub', str(sub)) for a in args]
+
+                # NOTE: Python2 type evaluations are baked into the maps.py
+                #   and json format OD so cannot be removed currently
+                if len(args) == 1:
+                    return fmt[0] % (Node.evaluate_expression(args[0].strip()))
+                elif len(args) == 2:
+                    return fmt[0] % (Node.evaluate_expression(args[0].strip()), Node.evaluate_expression(args[1].strip()))
+
+                return fmt[0]
+            except Exception as exc:
+                log.debug("PARSING FAILED: %s" % (exc, ))
+                raise
+        else:
+            return text
+
+    @staticmethod
+    def evaluate_expression(expression: str):
+        """Parses a string expression and attempts to calculate the result
+        Supports:
+            - Addition (i.e. "3+4")
+            - Subraction (i.e. "7-4")
+            - Constants (i.e. "5")
+        This function will handle chained arithmatic i.e. "1+2+3" although operating order is not neccesarily preserved
+
+        Parameters:
+            expression (str): string to parse
+        """
+        tree = ast.parse(expression, mode="eval")
+        return Node.evaluate_node(tree.body)
+
+    @staticmethod
+    def evaluate_node(node: ast.AST):
+        '''
+        Recursively parses ast.Node objects to evaluate arithmatic expressions
+        '''
+        if isinstance(node, ast.BinOp):
+            if isinstance(node.op, ast.Add):
+                return Node.evaluate_node(node.left) + Node.evaluate_node(node.right)
+            elif isinstance(node.op, ast.Sub):
+                return Node.evaluate_node(node.left) - Node.evaluate_node(node.right)
+            else:
+                raise SyntaxError("Unhandled arithmatic operation %s" % type(node.op))
+        elif isinstance(node, ast.Constant):
+            if isinstance(node.value, int | float | complex):
+                return node.value
+            else:
+                raise TypeError("Cannot parse str type constant '%s'" % node.value)
+        elif isinstance(node, ast.AST):
+            raise TypeError("Unhandled ast node class %s" % type(node))
+        else:
+            raise TypeError("Invalid argument type %s" % type(node) )
+
+    @staticmethod
+    def get_index_range(index):
+        for irange in maps.INDEX_RANGES:
+            if irange["min"] <= index <= irange["max"]:
+                return irange
+        raise ValueError("Cannot find index range for value '0x%x'" % index)
+
+    @staticmethod
+    def be_to_le(value):
+        """
+        Convert Big Endian to Little Endian
+        @param value: value expressed in Big Endian
+        @param size: number of bytes generated
+        @return: a string containing the value converted
+        """
+
+        # FIXME: This function is used in assosciation with DCF files, but have
+        # not been able to figure out how that work. It is very likely that this
+        # function is not working properly after the py2 -> py3 conversion
+        raise NotImplementedError("be_to_le() may be broken in py3")
+
+        # FIXME: The function title is confusing as the input data type (str) is
+        # different than the output (int)
+        return int("".join(["%2.2X" % ord(char) for char in reversed(value)]), 16)
+
+    @staticmethod
+    def le_to_be(value, size):
+        """
+        Convert Little Endian to Big Endian
+        @param value: value expressed in integer
+        @param size: number of bytes generated
+        @return: a string containing the value converted
+        """
+
+        # FIXME: This function is used in assosciation with DCF files, but have
+        # not been able to figure out how that work. It is very likely that this
+        # function is not working properly after the py2 -> py3 conversion due to
+        # the change of chr() behavior
+        raise NotImplementedError("le_to_be() is broken in py3")
+
+        # FIXME: The function title is confusing as the input data type (int) is
+        # different than the output (str)
+        data = ("%" + str(size * 2) + "." + str(size * 2) + "X") % value
+        list_car = [data[i:i + 2] for i in range(0, len(data), 2)]
+        list_car.reverse()
+        return "".join([chr(int(car, 16)) for car in list_car])
+
+    # --------------------------------------------------------------------------
+    #                      Search in a Mapping Dictionary
+    # --------------------------------------------------------------------------
+
+    @staticmethod
+    def FindTypeIndex(typename, mappingdictionary):
+        """
+        Return the index of the typename given by searching in mappingdictionary
+        """
+        return {
+            values["name"]: index
+            for index, values in mappingdictionary.items()
+            if index < 0x1000
+        }.get(typename)
+
+    @staticmethod
+    def FindTypeName(typeindex, mappingdictionary):
+        """
+        Return the name of the type by searching in mappingdictionary
+        """
+        if typeindex < 0x1000 and typeindex in mappingdictionary:
+            return mappingdictionary[typeindex]["name"]
+        return None
+
+    @staticmethod
+    def FindTypeDefaultValue(typeindex, mappingdictionary):
+        """
+        Return the default value of the type by searching in mappingdictionary
+        """
+        if typeindex < 0x1000 and typeindex in mappingdictionary:
+            return mappingdictionary[typeindex]["default"]
+        return None
+
+    @staticmethod
+    def FindTypeList(mappingdictionary):
+        """
+        Return the list of types defined in mappingdictionary
+        """
+        return [
+            mappingdictionary[index]["name"]
+            for index in mappingdictionary
+            if index < 0x1000
+        ]
+
+    @staticmethod
+    def FindEntryName(index, mappingdictionary, compute=True):
+        """
+        Return the name of an entry by searching in mappingdictionary
+        """
+        base_index = Node.FindIndex(index, mappingdictionary)
+        if base_index:
+            infos = mappingdictionary[base_index]
+            if infos["struct"] & OD.IdenticalIndexes and compute:
+                return Node.string_format(infos["name"], (index - base_index) // infos["incr"] + 1, 0)
+            return infos["name"]
+        return None
+
+    @staticmethod
+    def FindEntryInfos(index, mappingdictionary, compute=True):
+        """
+        Return the informations of one entry by searching in mappingdictionary
+        """
+        base_index = Node.FindIndex(index, mappingdictionary)
+        if base_index:
+            obj = mappingdictionary[base_index].copy()
+            if obj["struct"] & OD.IdenticalIndexes and compute:
+                obj["name"] = Node.string_format(obj["name"], (index - base_index) // obj["incr"] + 1, 0)
+            obj.pop("values")
+            return obj
+        return None
+
+    @staticmethod
+    def FindSubentryInfos(index, subindex, mappingdictionary, compute=True):
+        """
+        Return the informations of one subentry of an entry by searching in mappingdictionary
+        """
+        base_index = Node.FindIndex(index, mappingdictionary)
+        if base_index:
+            struct = mappingdictionary[base_index]["struct"]
+            if struct & OD.Subindex:
+                infos = None
+                if struct & OD.IdenticalSubindexes:
+                    if subindex == 0:
+                        infos = mappingdictionary[base_index]["values"][0].copy()
+                    elif 0 < subindex <= mappingdictionary[base_index]["values"][1]["nbmax"]:
+                        infos = mappingdictionary[base_index]["values"][1].copy()
+                elif struct & OD.MultipleSubindexes:
+                    idx = 0
+                    for subindex_infos in mappingdictionary[base_index]["values"]:
+                        if "nbmax" in subindex_infos:
+                            if idx <= subindex < idx + subindex_infos["nbmax"]:
+                                infos = subindex_infos.copy()
+                                break
+                            idx += subindex_infos["nbmax"]
+                        else:
+                            if subindex == idx:
+                                infos = subindex_infos.copy()
+                                break
+                            idx += 1
+                elif subindex == 0:
+                    infos = mappingdictionary[base_index]["values"][0].copy()
+
+                if infos is not None and compute:
+                    if struct & OD.IdenticalIndexes:
+                        incr = mappingdictionary[base_index]["incr"]
+                    else:
+                        incr = 1
+                    infos["name"] = Node.string_format(infos["name"], (index - base_index) // incr + 1, subindex)
+
+                return infos
+        return None
+
+    @staticmethod
+    def FindMapVariableList(mappingdictionary, node, compute=True):
+        """
+        Return the list of variables that can be mapped defined in mappingdictionary
+        """
+        for index in mappingdictionary:
+            if node.IsEntry(index):
+                for subindex, values in enumerate(mappingdictionary[index]["values"]):
+                    if mappingdictionary[index]["values"][subindex]["pdo"]:
+                        infos = node.GetEntryInfos(mappingdictionary[index]["values"][subindex]["type"])
+                        name = mappingdictionary[index]["values"][subindex]["name"]
+                        if mappingdictionary[index]["struct"] & OD.IdenticalSubindexes:
+                            values = node.GetEntry(index)
+                            for i in range(len(values) - 1):
+                                computed_name = name
+                                if compute:
+                                    computed_name = Node.string_format(computed_name, 1, i + 1)
+                                yield (index, i + 1, infos["size"], computed_name)
+                        else:
+                            computed_name = name
+                            if compute:
+                                computed_name = Node.string_format(computed_name, 1, subindex)
+                            yield (index, subindex, infos["size"], computed_name)
+
+    @staticmethod
+    def FindMandatoryIndexes(mappingdictionary):
+        """
+        Return the list of mandatory indexes defined in mappingdictionary
+        """
+        return [
+            index
+            for index in mappingdictionary
+            if index >= 0x1000 and mappingdictionary[index]["need"]
+        ]
+
+    @staticmethod
+    def FindIndex(index, mappingdictionary):
+        """
+        Return the index of the informations in the Object Dictionary in case of identical
+        indexes
+        """
+        if index in mappingdictionary:
+            return index
+        listpluri = [
+            idx for idx, mapping in mappingdictionary.items()
+            if mapping["struct"] & OD.IdenticalIndexes
+        ]
+        for idx in sorted(listpluri):
+            nb_max = mappingdictionary[idx]["nbmax"]
+            incr = mappingdictionary[idx]["incr"]
+            if idx < index < idx + incr * nb_max and (index - idx) % incr == 0:
+                return idx
+        return None
 
 
 # Register node with gnosis

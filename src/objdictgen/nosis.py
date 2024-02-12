@@ -294,7 +294,7 @@ class StreamWriter:
         self.iohandle.write(item)
 
     def getvalue(self):
-        "Returns memory stream as a single string, or None for file objs"
+        """Returns memory stream as a single string, or None for file objs"""
         if hasattr(self, 'sio'):
             if self.iohandle != self.sio:
                 # if iohandle is a GzipFile, we need to close it to flush

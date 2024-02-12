@@ -25,7 +25,7 @@ import wx.grid
 
 import objdictgen
 from objdictgen.maps import OD
-from objdictgen.node import BE_to_LE, LE_to_BE
+from objdictgen.node import Node
 from objdictgen.ui.exception import display_error_dialog, display_exception_dialog
 
 log = logging.getLogger('objdictgen')
@@ -1567,13 +1567,13 @@ class DCFEntryValuesDialog(wx.Dialog):
         if values:
             data = values[4:]
             current = 0
-            for _ in range(BE_to_LE(values[:4])):
+            for _ in range(Node.be_to_le(values[:4])):
                 value = {}
-                value["Index"] = BE_to_LE(data[current:current + 2])
-                value["Subindex"] = BE_to_LE(data[current + 2:current + 3])
-                size = BE_to_LE(data[current + 3:current + 7])
+                value["Index"] = Node.be_to_le(data[current:current + 2])
+                value["Subindex"] = Node.be_to_le(data[current + 2:current + 3])
+                size = Node.be_to_le(data[current + 3:current + 7])
                 value["Size"] = size
-                value["Value"] = BE_to_LE(data[current + 7:current + 7 + size])
+                value["Value"] = Node.be_to_le(data[current + 7:current + 7 + size])
                 current += 7 + size
                 self.Values.append(value)
         self.RefreshValues()
@@ -1581,12 +1581,12 @@ class DCFEntryValuesDialog(wx.Dialog):
     def GetValues(self):
         if len(self.Values) <= 0:
             return ""
-        value = LE_to_BE(len(self.Values), 4)
+        value = Node.le_to_be(len(self.Values), 4)
         for row in self.Values:
-            value += LE_to_BE(row["Index"], 2)
-            value += LE_to_BE(row["Subindex"], 1)
-            value += LE_to_BE(row["Size"], 4)
-            value += LE_to_BE(row["Value"], row["Size"])
+            value += Node.le_to_be(row["Index"], 2)
+            value += Node.le_to_be(row["Subindex"], 1)
+            value += Node.le_to_be(row["Size"], 4)
+            value += Node.le_to_be(row["Value"], row["Size"])
         return value
 
     def RefreshValues(self):

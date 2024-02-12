@@ -44,13 +44,13 @@ class CFileContext:
 
 
 # Format a string for making a C++ variable
-def FormatName(name):
+def format_name(name):
     wordlist = [word for word in RE_WORD.findall(name) if word]
     return "_".join(wordlist)
 
 
 # Extract the informations from a given type name
-def GetValidTypeInfos(context, typename, items=None):
+def get_valid_type_infos(context, typename, items=None):
     items = items or []
     if typename in context.internal_types:
         return context.internal_types[typename]
@@ -88,7 +88,7 @@ def GetValidTypeInfos(context, typename, items=None):
     return typeinfos
 
 
-def ComputeValue(type_, value):
+def compute_value(type_, value):
     if type_ == "visible_string":
         return '"%s"' % value, ""
     if type_ == "domain":
@@ -101,7 +101,7 @@ def ComputeValue(type_, value):
     return "0x%X" % value, "\t/* %s */" % str(value)
 
 
-def GetTypeName(node, typenumber):
+def get_type_name(node, typenumber):
     typename = node.GetTypeName(typenumber)
     if typename is None:
         # FIXME: The !!! is for special UI handling
@@ -109,7 +109,7 @@ def GetTypeName(node, typenumber):
     return typename
 
 
-def GenerateFileContent(node, headerfilepath, pointers_dict=None):
+def generate_file_content(node, headerfilepath, pointers_dict=None):
     """
     pointers_dict = {(Idx,Sidx):"VariableName",...}
     """
@@ -157,7 +157,7 @@ def GenerateFileContent(node, headerfilepath, pointers_dict=None):
             num += 1
             typeindex = node.GetEntry(index, 1)
             typename = node.GetTypeName(typeindex)
-            typeinfos = GetValidTypeInfos(context, typename)
+            typeinfos = get_valid_type_infos(context, typename)
             context.internal_types[rangename] = (typeinfos[0], typeinfos[1], "valueRange_%d" % num)
             minvalue = node.GetEntry(index, 2)
             maxvalue = node.GetEntry(index, 3)
@@ -200,8 +200,8 @@ def GenerateFileContent(node, headerfilepath, pointers_dict=None):
         # Entry type is VAR
         if not isinstance(values, list):
             subentry_infos = node.GetSubentryInfos(index, 0)
-            typename = GetTypeName(node, subentry_infos["type"])
-            typeinfos = GetValidTypeInfos(context, typename, [values])
+            typename = get_type_name(node, subentry_infos["type"])
+            typeinfos = get_valid_type_infos(context, typename, [values])
             if typename == "DOMAIN" and index in variablelist:
                 if not typeinfos[1]:
                     raise ValueError("Domain variable not initialized, index: 0x%04X, subindex: 0x00" % index)
@@ -213,9 +213,9 @@ def GenerateFileContent(node, headerfilepath, pointers_dict=None):
                     texts["suffixe"] = "[%d]" % typeinfos[1]
             else:
                 texts["suffixe"] = ""
-            texts["value"], texts["comment"] = ComputeValue(typeinfos[2], values)
+            texts["value"], texts["comment"] = compute_value(typeinfos[2], values)
             if index in variablelist:
-                texts["name"] = RE_STARTS_WITH_DIGIT.sub(r'_\1', FormatName(subentry_infos["name"]))
+                texts["name"] = RE_STARTS_WITH_DIGIT.sub(r'_\1', format_name(subentry_infos["name"]))
                 strDeclareHeader += "extern %(subIndexType)s %(name)s%(suffixe)s;\t\t/* Mapped at index 0x%(index)04X, subindex 0x00*/\n" % texts
                 mappedVariableContent += "%(subIndexType)s %(name)s%(suffixe)s = %(value)s;\t\t/* Mapped at index 0x%(index)04X, subindex 0x00 */\n" % texts
             else:
@@ -223,8 +223,8 @@ def GenerateFileContent(node, headerfilepath, pointers_dict=None):
             values = [values]
         else:
             subentry_infos = node.GetSubentryInfos(index, 0)
-            typename = GetTypeName(node, subentry_infos["type"])
-            typeinfos = GetValidTypeInfos(context, typename)
+            typename = get_type_name(node, subentry_infos["type"])
+            typeinfos = get_valid_type_infos(context, typename)
             if index == 0x1003:
                 texts["value"] = 0
             else:
@@ -236,7 +236,7 @@ def GenerateFileContent(node, headerfilepath, pointers_dict=None):
             if entry_infos["struct"] & OD.IdenticalSubindexes:
                 subentry_infos = node.GetSubentryInfos(index, 1)
                 typename = node.GetTypeName(subentry_infos["type"])
-                typeinfos = GetValidTypeInfos(context, typename, values[1:])
+                typeinfos = get_valid_type_infos(context, typename, values[1:])
                 texts["subIndexType"] = typeinfos[0]
                 if typeinfos[1] is not None:
                     texts["suffixe"] = "[%d]" % typeinfos[1]
@@ -246,7 +246,7 @@ def GenerateFileContent(node, headerfilepath, pointers_dict=None):
                     texts["type_suffixe"] = ""
                 texts["length"] = values[0]
                 if index in variablelist:
-                    texts["name"] = RE_STARTS_WITH_DIGIT.sub(r'_\1', FormatName(entry_infos["name"]))
+                    texts["name"] = RE_STARTS_WITH_DIGIT.sub(r'_\1', format_name(entry_infos["name"]))
                     texts["values_count"] = str(len(values) - 1)
                     strDeclareHeader += "extern %(subIndexType)s %(name)s[%(values_count)s]%(suffixe)s;\t\t/* Mapped at index 0x%(index)04X, subindex 0x01 - 0x%(length)02X */\n" % texts
                     mappedVariableContent += "%(subIndexType)s %(name)s[]%(suffixe)s =\t\t/* Mapped at index 0x%(index)04X, subindex 0x01 - 0x%(length)02X */\n  {\n" % texts
@@ -255,7 +255,7 @@ def GenerateFileContent(node, headerfilepath, pointers_dict=None):
                         if subindex > 0:
                             if subindex == len(values) - 1:
                                 sep = ""
-                            value, comment = ComputeValue(typeinfos[2], value)
+                            value, comment = compute_value(typeinfos[2], value)
                             if len(value) == 2 and typename == "DOMAIN":
                                 raise ValueError("Domain variable not initialized, index : 0x%04X, subindex : 0x%02X" % (index, subindex))
                             mappedVariableContent += "    %s%s%s\n" % (value, sep, comment)
@@ -267,20 +267,20 @@ def GenerateFileContent(node, headerfilepath, pointers_dict=None):
                         if subindex > 0:
                             if subindex == len(values) - 1:
                                 sep = ""
-                            value, comment = ComputeValue(typeinfos[2], value)
+                            value, comment = compute_value(typeinfos[2], value)
                             strindex += "                      %s%s%s\n" % (value, sep, comment)
                     strindex += "                    };\n"
             else:
 
-                texts["parent"] = RE_STARTS_WITH_DIGIT.sub(r'_\1', FormatName(entry_infos["name"]))
+                texts["parent"] = RE_STARTS_WITH_DIGIT.sub(r'_\1', format_name(entry_infos["name"]))
                 # Entry type is RECORD
                 for subindex, value in enumerate(values):
                     texts["subindex"] = subindex
                     params_infos = node.GetParamsEntry(index, subindex)
                     if subindex > 0:
                         subentry_infos = node.GetSubentryInfos(index, subindex)
-                        typename = GetTypeName(node, subentry_infos["type"])
-                        typeinfos = GetValidTypeInfos(context, typename, [values[subindex]])
+                        typename = get_type_name(node, subentry_infos["type"])
+                        typeinfos = get_valid_type_infos(context, typename, [values[subindex]])
                         texts["subIndexType"] = typeinfos[0]
                         if typeinfos[1] is not None:
                             if params_infos["buffer_size"]:
@@ -289,8 +289,8 @@ def GenerateFileContent(node, headerfilepath, pointers_dict=None):
                                 texts["suffixe"] = "[%d]" % typeinfos[1]
                         else:
                             texts["suffixe"] = ""
-                        texts["value"], texts["comment"] = ComputeValue(typeinfos[2], value)
-                        texts["name"] = FormatName(subentry_infos["name"])
+                        texts["value"], texts["comment"] = compute_value(typeinfos[2], value)
+                        texts["name"] = format_name(subentry_infos["name"])
                         if index in variablelist:
                             strDeclareHeader += "extern %(subIndexType)s %(parent)s_%(name)s%(suffixe)s;\t\t/* Mapped at index 0x%(index)04X, subindex 0x%(subindex)02X */\n" % texts
                             mappedVariableContent += "%(subIndexType)s %(parent)s_%(name)s%(suffixe)s = %(value)s;\t\t/* Mapped at index 0x%(index)04X, subindex 0x%(subindex)02X */\n" % texts
@@ -317,28 +317,28 @@ def GenerateFileContent(node, headerfilepath, pointers_dict=None):
                 sep = ""
             typename = node.GetTypeName(subentry_infos["type"])
             if entry_infos["struct"] & OD.IdenticalSubindexes:
-                typeinfos = GetValidTypeInfos(context, typename, values[1:])
+                typeinfos = get_valid_type_infos(context, typename, values[1:])
             else:
-                typeinfos = GetValidTypeInfos(context, typename, [values[subindex]])
+                typeinfos = get_valid_type_infos(context, typename, [values[subindex]])
             if subindex == 0:
                 if index == 0x1003:
-                    typeinfos = GetValidTypeInfos(context, "valueRange_EMC")
+                    typeinfos = get_valid_type_infos(context, "valueRange_EMC")
                 if entry_infos["struct"] & OD.MultipleSubindexes:
                     name = "%(NodeName)s_highestSubIndex_obj%(index)04X" % texts
                 elif index in variablelist:
-                    name = FormatName(subentry_infos["name"])
+                    name = format_name(subentry_infos["name"])
                 else:
-                    name = FormatName("%s_obj%04X" % (texts["NodeName"], texts["index"]))
+                    name = format_name("%s_obj%04X" % (texts["NodeName"], texts["index"]))
             elif entry_infos["struct"] & OD.IdenticalSubindexes:
                 if index in variablelist:
-                    name = "%s[%d]" % (FormatName(entry_infos["name"]), subindex - 1)
+                    name = "%s[%d]" % (format_name(entry_infos["name"]), subindex - 1)
                 else:
                     name = "%s_obj%04X[%d]" % (texts["NodeName"], texts["index"], subindex - 1)
             else:
                 if index in variablelist:
-                    name = FormatName("%s_%s" % (entry_infos["name"], subentry_infos["name"]))
+                    name = format_name("%s_%s" % (entry_infos["name"], subentry_infos["name"]))
                 else:
-                    name = "%s_obj%04X_%s" % (texts["NodeName"], texts["index"], FormatName(subentry_infos["name"]))
+                    name = "%s_obj%04X_%s" % (texts["NodeName"], texts["index"], format_name(subentry_infos["name"]))
             if typeinfos[2] == "visible_string":
                 if params_infos["buffer_size"]:
                     sizeof = params_infos["buffer_size"]
@@ -642,11 +642,12 @@ extern CO_Data %(NodeName)s_Data;
 #                             Main Function
 # ------------------------------------------------------------------------------
 
-def GenerateFile(filepath, node, pointers_dict=None):
+def generate_file(filepath, node, pointers_dict=None):
+    """Main function to generate the C file from a object dictionary node."""
     pointers_dict = pointers_dict or {}
     filebase = os.path.splitext(filepath)[0]
     headerfilepath = filebase + ".h"
-    content, header, header_defs = GenerateFileContent(node, os.path.basename(headerfilepath), pointers_dict)
+    content, header, header_defs = generate_file_content(node, os.path.basename(headerfilepath), pointers_dict)
 
     # Write main .c contents
     with open(filepath, "wb") as f:
