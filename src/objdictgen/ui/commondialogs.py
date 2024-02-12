@@ -41,7 +41,7 @@ log = logging.getLogger('objdictgen')
     ID_COMMUNICATIONDIALOGCURRENTINDEXES, ID_COMMUNICATIONDIALOGSELECT,
     ID_COMMUNICATIONDIALOGUNSELECT, ID_COMMUNICATIONDIALOGSTATICTEXT1,
     ID_COMMUNICATIONDIALOGSTATICTEXT2
-] = [wx.NewId() for _init_ctrls in range(7)]
+] = [wx.NewId() for _ in range(7)]
 
 
 class CommunicationDialog(wx.Dialog):
@@ -233,7 +233,7 @@ class CommunicationDialog(wx.Dialog):
     ID_MAPVARIABLEDIALOGRADIOBUTTON3, ID_MAPVARIABLEDIALOGSTATICTEXT1,
     ID_MAPVARIABLEDIALOGSTATICTEXT2, ID_MAPVARIABLEDIALOGSTATICTEXT3,
     ID_MAPVARIABLEDIALOGSTATICTEXT4,
-] = [wx.NewId() for _init_ctrls in range(13)]
+] = [wx.NewId() for _ in range(13)]
 
 
 class MapVariableDialog(wx.Dialog):
@@ -424,7 +424,7 @@ class MapVariableDialog(wx.Dialog):
     ID_USERTYPEDIALOGSTATICBOX1, ID_USERTYPEDIALOGSTATICTEXT1,
     ID_USERTYPEDIALOGSTATICTEXT2, ID_USERTYPEDIALOGSTATICTEXT3,
     ID_USERTYPEDIALOGSTATICTEXT4,
-] = [wx.NewId() for _init_ctrls in range(11)]
+] = [wx.NewId() for _ in range(11)]
 
 
 class UserTypeDialog(wx.Dialog):
@@ -651,7 +651,7 @@ class UserTypeDialog(wx.Dialog):
     ID_NODEINFOSDIALOGSTATICTEXT1, ID_NODEINFOSDIALOGSTATICTEXT2,
     ID_NODEINFOSDIALOGSTATICTEXT3, ID_NODEINFOSDIALOGSTATICTEXT4,
     ID_NODEINFOSDIALOGSTATICTEXT5,
-] = [wx.NewId() for _init_ctrls in range(11)]
+] = [wx.NewId() for _ in range(11)]
 
 
 NODE_TYPES = ["master", "slave"]
@@ -810,7 +810,7 @@ class NodeInfosDialog(wx.Dialog):
     ID_CREATENODEDIALOGSTATICTEXT6, ID_CREATENODEDIALOGSTATICTEXT7,
     ID_CREATENODEDIALOGSTOREEDS, ID_CREATENODEDIALOGDESCRIPTION,
     ID_CREATENODEDIALOGTYPE,
-] = [wx.NewId() for _init_ctrls in range(21)]
+] = [wx.NewId() for _ in range(21)]
 
 
 class CreateNodeDialog(wx.Dialog):
@@ -1112,7 +1112,7 @@ class CreateNodeDialog(wx.Dialog):
     ID_ADDSLAVEDIALOGSLAVENODEID, ID_ADDSLAVEDIALOGEDSFILE,
     ID_ADDSLAVEDIALOGIMPORTEDS, ID_ADDSLAVEDIALOGSTATICTEXT1,
     ID_ADDSLAVEDIALOGSTATICTEXT2, ID_ADDSLAVEDIALOGSTATICTEXT3,
-] = [wx.NewId() for _init_ctrls in range(8)]
+] = [wx.NewId() for _ in range(8)]
 
 
 class AddSlaveDialog(wx.Dialog):
@@ -1407,18 +1407,11 @@ class DCFEntryValuesTable(wx.grid.GridTableBase):
     ID_DCFENTRYVALUESDIALOGADDBUTTON, ID_DCFENTRYVALUESDIALOGDELETEBUTTON,
     ID_DCFENTRYVALUESDIALOGUPBUTTON, ID_DCFENTRYVALUESDIALOGDOWNBUTTON,
     ID_VARIABLEEDITORPANELSTATICTEXT1,
-] = [wx.NewId() for _init_ctrls in range(7)]
+] = [wx.NewId() for _ in range(7)]
 
 
 class DCFEntryValuesDialog(wx.Dialog):
     # pylint: disable=attribute-defined-outside-init
-
-    if wx.VERSION < (2, 6, 0):
-        def Bind(self, event, function, id=None):  # pylint: disable=invalid-name, redefined-builtin
-            if id is not None:
-                event(self, id, function)
-            else:
-                event(self, function)
 
     def _init_coll_MainSizer_Items(self, parent):
         parent.Add(self.staticText1, 0, border=20, flag=wx.GROW | wx.TOP | wx.LEFT | wx.RIGHT)

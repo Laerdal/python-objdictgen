@@ -468,7 +468,7 @@ class Node:
         return copy.deepcopy(self.__dict__)
 
     def GetIndexDict(self, index):
-        ''' Return a dict representation of the index '''
+        """ Return a dict representation of the index """
         obj = {}
         if index in self.Dictionary:
             obj['dictionary'] = self.Dictionary[index]
@@ -807,9 +807,9 @@ class Node:
     # --------------------------------------------------------------------------
 
     def Validate(self, fix=False):
-        ''' Verify any inconsistencies when loading an OD. The function will
+        """ Verify any inconsistencies when loading an OD. The function will
             attempt to fix the data if the correct flag is enabled.
-        '''
+        """
         def _warn(text):
             name = self.GetEntryName(index)
             log.warning("WARNING: 0x{0:04x} ({0}) '{1}': {2}".format(index, name, text))
@@ -1083,9 +1083,9 @@ class Node:
 
     @staticmethod
     def evaluate_node(node: ast.AST):
-        '''
+        """
         Recursively parses ast.Node objects to evaluate arithmatic expressions
-        '''
+        """
         if isinstance(node, ast.BinOp):
             if isinstance(node.op, ast.Add):
                 return Node.evaluate_node(node.left) + Node.evaluate_node(node.right)

@@ -37,7 +37,7 @@ SCHEMA = None
 
 
 class ValidationError(Exception):
-    ''' Validation failure '''
+    """ Validation failure """
 
 
 # JSON Version history/formats
@@ -154,7 +154,7 @@ SUBINDEX0 = {
 
 
 def remove_jasonc(text):
-    ''' Remove jsonc annotations '''
+    """ Remove jsonc annotations """
     # Copied from https://github.com/NickolaiBeloguzov/jsonc-parser/blob/master/jsonc_parser/parser.py#L11-L39
     def __re_sub(match):
         if match.group(2) is not None:
@@ -224,12 +224,12 @@ def remove_underscore(d):
 
 
 def member_compare(a, must=None, optional=None, not_want=None, msg='', only_if=None):
-    ''' Compare the membes of a with set of wants
+    """ Compare the membes of a with set of wants
         must: Raise if a is missing any from must
         optional: Raise if a contains members that is not must or optional
         not_want: Raise error if any is present in a
         only_if: If False, raise error if must is present in a
-    '''
+    """
     have = set(a)
 
     if only_if is False:  # is is important here
@@ -258,7 +258,7 @@ def member_compare(a, must=None, optional=None, not_want=None, msg='', only_if=N
 
 
 def get_object_types(node=None, dictionary=None):
-    ''' Return two dicts with the object type mapping '''
+    """ Return two dicts with the object type mapping """
 
     groups = [maps.MAPPING_DICTIONARY]
     if node:
@@ -317,7 +317,7 @@ def compare_profile(profilename, params, menu=None):
 
 
 def generate_json(node, compact=False, sort=False, internal=False, validate=True):
-    ''' Export a JSON string representation of the node '''
+    """ Export a JSON string representation of the node """
 
     # Get the dict representation
     jd, objtypes_s2i = node_todict(
@@ -368,7 +368,7 @@ def generate_json(node, compact=False, sort=False, internal=False, validate=True
 
 
 def generate_node(contents):
-    ''' Import from JSON string or objects '''
+    """ Import from JSON string or objects """
 
     jd = contents
     if isinstance(contents, str):
@@ -399,7 +399,7 @@ def generate_node(contents):
 
 
 def node_todict(node, sort=False, rich=True, internal=False, validate=True):
-    '''
+    """
         Convert a node to dict representation for serialization.
 
         sort: Set if the output dictionary should be sorted before output.
@@ -414,7 +414,7 @@ def node_todict(node, sort=False, rich=True, internal=False, validate=True):
             low-level format debugging
         validate: Set if the output JSON should be validated to check if the
             output is valid. Used to double check format.
-    '''
+    """
 
     # Get the dict representation of the node object
     jd = node.GetDict()
@@ -555,9 +555,9 @@ def node_todict(node, sort=False, rich=True, internal=False, validate=True):
 
 
 def node_todict_parameter(obj, node, index):
-    ''' Modify obj from internal dict representation to generic dict structure
+    """ Modify obj from internal dict representation to generic dict structure
         which is suitable for serialization into JSON.
-    '''
+    """
 
     # Observations:
     # =============
@@ -835,7 +835,7 @@ def validate_nodeindex(node, index, obj):
 
 
 def node_fromdict(jd, internal=False):
-    ''' Convert a dict jd into a Node '''
+    """ Convert a dict jd into a Node """
 
     # Remove all underscore keys from the file
     jd = remove_underscore(jd)
@@ -1021,9 +1021,9 @@ def node_fromdict_parameter(obj, objtypes_s2i):
 
 
 def validate_fromdict(jsonobj, objtypes_i2s=None, objtypes_s2i=None):
-    ''' Validate that jsonobj is a properly formatted dictionary that may
+    """ Validate that jsonobj is a properly formatted dictionary that may
         be imported to the internal OD-format
-    '''
+    """
 
     jd = jsonobj
 

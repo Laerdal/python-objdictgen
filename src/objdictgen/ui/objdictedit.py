@@ -42,23 +42,26 @@ def usage():
 [
     ID_OBJDICTEDIT, ID_OBJDICTEDITFILEOPENED,
     ID_OBJDICTEDITHELPBAR,
-] = [wx.NewId() for _init_ctrls in range(3)]
+] = [wx.NewId() for _ in range(3)]
 
+# FileMenu_Items
 [
     ID_OBJDICTEDITFILEMENUIMPORTEDS, ID_OBJDICTEDITFILEMENUEXPORTEDS,
     ID_OBJDICTEDITFILEMENUEXPORTC,
-] = [wx.NewId() for _init_coll_FileMenu_Items in range(3)]
+] = [wx.NewId() for _ in range(3)]
 
+# EditMenu_Items
 [
     ID_OBJDICTEDITEDITMENUNODEINFOS, ID_OBJDICTEDITEDITMENUDS301PROFILE,
     ID_OBJDICTEDITEDITMENUDS302PROFILE, ID_OBJDICTEDITEDITMENUOTHERPROFILE,
-] = [wx.NewId() for _init_coll_EditMenu_Items in range(4)]
+] = [wx.NewId() for _ in range(4)]
 
+# AddMenu_Items
 [
     ID_OBJDICTEDITADDMENUSDOSERVER, ID_OBJDICTEDITADDMENUSDOCLIENT,
     ID_OBJDICTEDITADDMENUPDOTRANSMIT, ID_OBJDICTEDITADDMENUPDORECEIVE,
     ID_OBJDICTEDITADDMENUMAPVARIABLE, ID_OBJDICTEDITADDMENUUSERTYPE,
-] = [wx.NewId() for _init_coll_AddMenu_Items in range(6)]
+] = [wx.NewId() for _ in range(6)]
 
 
 class ObjdictEdit(wx.Frame, net.NodeEditorTemplate):

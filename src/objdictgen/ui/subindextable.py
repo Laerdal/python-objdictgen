@@ -292,17 +292,19 @@ class SubindexTable(wx.grid.GridTableBase):
     ID_EDITINGPANELINDEXLIST, ID_EDITINGPANELINDEXLISTPANEL, ID_EDITINGPANELPARTLIST,
     ID_EDITINGPANELSECONDSPLITTER, ID_EDITINGPANELSUBINDEXGRID,
     ID_EDITINGPANELSUBINDEXGRIDPANEL, ID_EDITINGPANELCALLBACKCHECK,
-] = [wx.NewId() for _init_ctrls in range(10)]
+] = [wx.NewId() for _ in range(10)]
 
+# IndexListMenu_Items
 [
     ID_EDITINGPANELINDEXLISTMENUITEMS0, ID_EDITINGPANELINDEXLISTMENUITEMS1,
     ID_EDITINGPANELINDEXLISTMENUITEMS2,
-] = [wx.NewId() for _init_coll_IndexListMenu_Items in range(3)]
+] = [wx.NewId() for _ in range(3)]
 
+# SubindexGridMenu_Items
 [
     ID_EDITINGPANELMENU1ITEMS0, ID_EDITINGPANELMENU1ITEMS1,
     ID_EDITINGPANELMENU1ITEMS3, ID_EDITINGPANELMENU1ITEMS4,
-] = [wx.NewId() for _init_coll_SubindexGridMenu_Items in range(4)]
+] = [wx.NewId() for _ in range(4)]
 
 
 class EditingPanel(wx.SplitterWindow):

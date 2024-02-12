@@ -41,22 +41,25 @@ def usage():
 [
     ID_NETWORKEDIT, ID_NETWORKEDITNETWORKNODES,
     ID_NETWORKEDITHELPBAR,
-] = [wx.NewId() for _init_ctrls in range(3)]
+] = [wx.NewId() for _ in range(3)]
 
+# AddMenu_Items
 [
     ID_NETWORKEDITNETWORKMENUBUILDMASTER,
-] = [wx.NewId() for _init_coll_AddMenu_Items in range(1)]
+] = [wx.NewId() for _ in range(1)]
 
+# EditMenu_Items
 [
     ID_NETWORKEDITEDITMENUNODEINFOS, ID_NETWORKEDITEDITMENUDS301PROFILE,
     ID_NETWORKEDITEDITMENUDS302PROFILE, ID_NETWORKEDITEDITMENUOTHERPROFILE,
-] = [wx.NewId() for _init_coll_EditMenu_Items in range(4)]
+] = [wx.NewId() for _ in range(4)]
 
+# AddMenu_Items
 [
     ID_NETWORKEDITADDMENUSDOSERVER, ID_NETWORKEDITADDMENUSDOCLIENT,
     ID_NETWORKEDITADDMENUPDOTRANSMIT, ID_NETWORKEDITADDMENUPDORECEIVE,
     ID_NETWORKEDITADDMENUMAPVARIABLE, ID_NETWORKEDITADDMENUUSERTYPE,
-] = [wx.NewId() for _init_coll_AddMenu_Items in range(6)]
+] = [wx.NewId() for _ in range(6)]
 
 
 class NetworkEdit(wx.Frame, NetworkEditorTemplate):

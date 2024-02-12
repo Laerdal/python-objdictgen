@@ -41,7 +41,7 @@ log.addHandler(logging.StreamHandler(sys.stdout))
 
 @dataclass
 class DebugOpts:
-    ''' Options for main to control the debug_wrapper '''
+    """ Options for main to control the debug_wrapper """
     show_debug: bool = field(default=False)
 
     def set_debug(self, dbg):
@@ -51,9 +51,9 @@ class DebugOpts:
 
 
 def debug_wrapper():
-    ''' Wrapper to catch all exceptions and supress the output unless debug
+    """ Wrapper to catch all exceptions and supress the output unless debug
         is set
-    '''
+    """
     def decorator(fn):
         @functools.wraps(fn)
         def inner(*args, **kw):
@@ -70,7 +70,7 @@ def debug_wrapper():
 
 
 def open_od(fname, validate=True, fix=False):
-    ''' Open and validate the OD file'''
+    """ Open and validate the OD file"""
 
     try:
         od = objdictgen.LoadFile(fname)
@@ -117,7 +117,7 @@ def print_diffs(diffs, show=False):
 
 @debug_wrapper()
 def main(debugopts, args=None):
-    ''' Main command dispatcher '''
+    """ Main command dispatcher """
 
     parser = argparse.ArgumentParser(
         prog=objdictgen.ODG_PROGRAM,
@@ -130,9 +130,9 @@ def main(debugopts, args=None):
 
     # FIXME: New options: new file, add parameter, delete parameter, copy parameter
 
-    subparser = parser.add_subparsers(title="command", dest="command", metavar="command", help='''
+    subparser = parser.add_subparsers(title="command", dest="command", metavar="command", help="""
         Commands
-    ''', required=True)
+    """, required=True)
 
 
     # -- COMMON --
@@ -143,15 +143,15 @@ def main(debugopts, args=None):
     parser.add_argument('-D', '--debug', **opt_debug)
 
     # -- HELP --
-    subp = subparser.add_parser('help', help='''
+    subp = subparser.add_parser('help', help="""
         Show help of all commands
-    ''')
+    """)
     subp.add_argument('-D', '--debug', **opt_debug)
 
     # -- CONVERT --
-    subp = subparser.add_parser('convert', help='''
+    subp = subparser.add_parser('convert', help="""
         Generate
-    ''', aliases=['gen', 'conv'])
+    """, aliases=['gen', 'conv'])
     subp.add_argument('od', **opt_od)
     subp.add_argument('out', default=None, help="Output file")
     subp.add_argument('-i', '--index', action="append", help="OD Index to include. Filter out the rest.")
@@ -166,9 +166,9 @@ def main(debugopts, args=None):
     subp.add_argument('-D', '--debug', **opt_debug)
 
     # -- DIFF --
-    subp = subparser.add_parser('diff', help='''
+    subp = subparser.add_parser('diff', help="""
         Compare OD files
-    ''', aliases=['compare'])
+    """, aliases=['compare'])
     subp.add_argument('od1', **opt_od)
     subp.add_argument('od2', **opt_od)
     subp.add_argument('--internal', action="store_true", help="Diff internal object")
@@ -177,16 +177,16 @@ def main(debugopts, args=None):
     subp.add_argument('-D', '--debug', **opt_debug)
 
     # -- EDIT --
-    subp = subparser.add_parser('edit', help='''
+    subp = subparser.add_parser('edit', help="""
         Edit OD (UI)
-    ''')
+    """)
     subp.add_argument('od', nargs="*", help="Object dictionary")
     subp.add_argument('-D', '--debug', **opt_debug)
 
     # -- LIST --
-    subp = subparser.add_parser('list', help='''
+    subp = subparser.add_parser('list', help="""
         List
-    ''')
+    """)
     subp.add_argument('od', nargs="+", help="Object dictionary")
     subp.add_argument('-i', '--index', action="append", help="Specify parameter index to show")
     subp.add_argument('--all', action="store_true", help="Show all subindexes, including subindex 0")
@@ -199,16 +199,16 @@ def main(debugopts, args=None):
     subp.add_argument('-D', '--debug', **opt_debug)
 
     # -- NETWORK --
-    subp = subparser.add_parser('network', help='''
+    subp = subparser.add_parser('network', help="""
         Edit network (UI)
-    ''')
+    """)
     subp.add_argument('dir', nargs="?", help="Project directory")
     subp.add_argument('-D', '--debug', **opt_debug)
 
     # -- NODELIST --
-    subp = subparser.add_parser('nodelist', help='''
+    subp = subparser.add_parser('nodelist', help="""
         List project nodes
-    ''')
+    """)
     subp.add_argument('dir', nargs="?", help="Project directory")
     subp.add_argument('-D', '--debug', **opt_debug)
 

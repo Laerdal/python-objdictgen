@@ -26,7 +26,7 @@ from objdictgen.ui.exception import display_exception_dialog
 
 [
     ID_NETWORKEDITNETWORKNODES,
-] = [wx.NewId() for _init_ctrls in range(1)]
+] = [wx.NewId() for _ in range(1)]
 
 
 class NetworkEditorTemplate(net.NodeEditorTemplate):
