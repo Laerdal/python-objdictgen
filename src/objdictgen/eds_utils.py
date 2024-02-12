@@ -22,7 +22,7 @@ import os
 import re
 from time import localtime, strftime
 
-import objdictgen
+from objdictgen import node as nodelib
 from objdictgen.maps import OD
 
 # Regular expression for finding index section names
@@ -653,7 +653,7 @@ def GenerateCPJContent(nodelist):
 # Function that generates Node from an EDS file
 def GenerateNode(filepath, nodeid=0):
     # Create a new node
-    node = objdictgen.Node(id=nodeid)
+    node = nodelib.Node(id=nodeid)
 
     # Parse file and extract dictionary of EDS entry
     eds_dict = ParseEDSFile(filepath)
@@ -673,7 +673,7 @@ def GenerateNode(filepath, nodeid=0):
         try:
             # Import profile
             profilename = "DS-%d" % profilenb
-            mapping, menuentries = objdictgen.ImportProfile(profilename)
+            mapping, menuentries = nodelib.ImportProfile(profilename)
             node.ProfileName = profilename
             node.Profile = mapping
             node.SpecificMenu = menuentries

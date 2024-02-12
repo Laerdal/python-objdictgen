@@ -27,7 +27,7 @@ import deepdiff
 import jsonschema
 
 import objdictgen
-from objdictgen import maps
+from objdictgen import maps, node as nodelib
 from objdictgen.maps import OD
 
 log = logging.getLogger('objdictgen')
@@ -299,7 +299,7 @@ def get_object_types(node=None, dictionary=None):
 
 def compare_profile(profilename, params, menu=None):
     try:
-        dsmap, menumap = objdictgen.ImportProfile(profilename)
+        dsmap, menumap = nodelib.ImportProfile(profilename)
         identical = all(
             k in dsmap and k in params and dsmap[k] == params[k]
             for k in set(dsmap) | set(params)
@@ -852,7 +852,7 @@ def node_fromdict(jd, internal=False):
     jd.setdefault("profile", "None")
 
     # Create the node and fill the most basic data
-    node = objdictgen.Node(
+    node = nodelib.Node(
         name=jd["name"], type=jd["type"], id=jd["id"],
         description=jd["description"], profilename=jd["profile"],
     )

@@ -24,9 +24,8 @@ import re
 
 import colorama
 
-from objdictgen import maps
-from objdictgen.maps import MAPPING_DICTIONARY, OD
-from objdictgen.node import BE_to_LE, Find, ImportProfile, LE_to_BE, Node
+from objdictgen import maps, node as nodelib
+from objdictgen.maps import OD
 
 log = logging.getLogger('objdictgen')
 
@@ -185,11 +184,11 @@ class NodeManager:
         Create a new node and add a new buffer for storing it
         """
         # Create a new node
-        node = Node()
+        node = nodelib.Node()
         # Load profile given
         if profile != "None":
             # Import profile
-            mapping, menuentries = ImportProfile(filepath)
+            mapping, menuentries = nodelib.ImportProfile(filepath)
             node.ProfileName = profile
             node.Profile = mapping
             node.SpecificMenu = menuentries
@@ -213,7 +212,7 @@ class NodeManager:
         for option in options:
             if option == "DS302":
                 # Import profile
-                mapping, menuentries = ImportProfile("DS-302")
+                mapping, menuentries = nodelib.ImportProfile("DS-302")
                 self.CurrentNode.DS302 = mapping
                 self.CurrentNode.SpecificMenu.extend(menuentries)
             elif option == "GenSYNC":
@@ -816,10 +815,10 @@ class NodeManager:
 
     def GetCurrentCommunicationLists(self):
         list_ = []
-        for index in MAPPING_DICTIONARY:
+        for index in maps.MAPPING_DICTIONARY:
             if 0x1000 <= index < 0x1200:
                 list_.append(index)
-        return self.GetProfileLists(MAPPING_DICTIONARY, list_)
+        return self.GetProfileLists(maps.MAPPING_DICTIONARY, list_)
 
     def GetCurrentDS302Lists(self):
         return self.GetSpecificProfileLists(self.CurrentNode.DS302)
@@ -941,7 +940,7 @@ class NodeManager:
                 good &= min_ <= index <= max_
             if good:
                 validchoices.append((menu, None))
-        list_ = [index for index in MAPPING_DICTIONARY if index >= 0x1000]
+        list_ = [index for index in maps.MAPPING_DICTIONARY if index >= 0x1000]
         profiles = self.CurrentNode.GetMappings(False)
         for profile in profiles:
             list_.extend(list(profile))
@@ -1069,11 +1068,11 @@ class NodeManager:
         if self.CurrentNode.IsEntry(0x1F22, node_id):
             dcf_value = self.CurrentNode.GetEntry(0x1F22, node_id)
             if dcf_value:
-                nbparams = BE_to_LE(dcf_value[:4])
+                nbparams = nodelib.BE_to_LE(dcf_value[:4])
             else:
                 nbparams = 0
-            new_value = LE_to_BE(nbparams + 1, 4) + dcf_value[4:]
-            new_value += LE_to_BE(index, 2) + LE_to_BE(subindex, 1) + LE_to_BE(size, 4) + LE_to_BE(value, size)
+            new_value = nodelib.LE_to_BE(nbparams + 1, 4) + dcf_value[4:]
+            new_value += nodelib.LE_to_BE(index, 2) + nodelib.LE_to_BE(subindex, 1) + nodelib.LE_to_BE(size, 4) + nodelib.LE_to_BE(value, size)
             self.CurrentNode.SetEntry(0x1F22, node_id, new_value)
 
     # --------------------------------------------------------------------------
@@ -1090,17 +1089,17 @@ class NodeManager:
     def GetEntryName(self, index, compute=True):
         if self.CurrentNode:
             return self.CurrentNode.GetEntryName(index, compute)
-        return Find.EntryName(index, MAPPING_DICTIONARY, compute)
+        return nodelib.Find.EntryName(index, maps.MAPPING_DICTIONARY, compute)
 
     def GetEntryInfos(self, index, compute=True):
         if self.CurrentNode:
             return self.CurrentNode.GetEntryInfos(index, compute)
-        return Find.EntryInfos(index, MAPPING_DICTIONARY, compute)
+        return nodelib.Find.EntryInfos(index, maps.MAPPING_DICTIONARY, compute)
 
     def GetSubentryInfos(self, index, subindex, compute=True):
         if self.CurrentNode:
             return self.CurrentNode.GetSubentryInfos(index, subindex, compute)
-        result = Find.SubentryInfos(index, subindex, MAPPING_DICTIONARY, compute)
+        result = nodelib.Find.SubentryInfos(index, subindex, maps.MAPPING_DICTIONARY, compute)
         if result:
             result["user_defined"] = False
         return result
@@ -1108,17 +1107,17 @@ class NodeManager:
     def GetTypeIndex(self, typename):
         if self.CurrentNode:
             return self.CurrentNode.GetTypeIndex(typename)
-        return Find.TypeIndex(typename, MAPPING_DICTIONARY)
+        return nodelib.Find.TypeIndex(typename, maps.MAPPING_DICTIONARY)
 
     def GetTypeName(self, typeindex):
         if self.CurrentNode:
             return self.CurrentNode.GetTypeName(typeindex)
-        return Find.TypeName(typeindex, MAPPING_DICTIONARY)
+        return nodelib.Find.TypeName(typeindex, maps.MAPPING_DICTIONARY)
 
     def GetTypeDefaultValue(self, typeindex):
         if self.CurrentNode:
             return self.CurrentNode.GetTypeDefaultValue(typeindex)
-        return Find.TypeDefaultValue(typeindex, MAPPING_DICTIONARY)
+        return nodelib.Find.TypeDefaultValue(typeindex, maps.MAPPING_DICTIONARY)
 
     def GetMapVariableList(self, compute=True):
         if self.CurrentNode:
@@ -1128,7 +1127,7 @@ class NodeManager:
     def GetMandatoryIndexes(self):
         if self.CurrentNode:
             return self.CurrentNode.GetMandatoryIndexes()
-        return Find.MandatoryIndexes(MAPPING_DICTIONARY)
+        return nodelib.Find.MandatoryIndexes(maps.MAPPING_DICTIONARY)
 
     def GetCustomisableTypes(self):
         return {

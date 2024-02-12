@@ -25,6 +25,7 @@ import sys
 import wx
 
 import objdictgen
+from objdictgen import nodemanager
 from objdictgen.ui import commondialogs as cdia
 from objdictgen.ui import nodeeditortemplate as net
 from objdictgen.ui import subindextable as sit
@@ -212,7 +213,7 @@ class ObjdictEdit(wx.Frame, net.NodeEditorTemplate):
     def __init__(self, parent, manager=None, filesopen=None):
         filesopen = filesopen or []
         if manager is None:
-            net.NodeEditorTemplate.__init__(self, objdictgen.NodeManager(), self, True)
+            net.NodeEditorTemplate.__init__(self, nodemanager.NodeManager(), self, True)
         else:
             net.NodeEditorTemplate.__init__(self, manager, self, False)
         self._init_ctrls(parent)

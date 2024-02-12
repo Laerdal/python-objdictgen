@@ -28,7 +28,7 @@ import colorama
 
 import objdictgen
 from objdictgen import eds_utils, gen_cfile, jsonod, maps, nosis
-from objdictgen.maps import MAPPING_DICTIONARY, OD
+from objdictgen.maps import OD
 
 log = logging.getLogger('objdictgen')
 
@@ -844,7 +844,7 @@ class Node:
             result = Find.Index(index, mapping)
             if result:
                 return result
-        return Find.Index(index, MAPPING_DICTIONARY)
+        return Find.Index(index, maps.MAPPING_DICTIONARY)
 
     def GetBaseIndexNumber(self, index):
         """ Return the index number from the base object """
@@ -852,9 +852,9 @@ class Node:
             result = Find.Index(index, mapping)
             if result is not None:
                 return (index - result) // mapping[result].get("incr", 1)
-        result = Find.Index(index, MAPPING_DICTIONARY)
+        result = Find.Index(index, maps.MAPPING_DICTIONARY)
         if result is not None:
-            return (index - result) // MAPPING_DICTIONARY[result].get("incr", 1)
+            return (index - result) // maps.MAPPING_DICTIONARY[result].get("incr", 1)
         return 0
 
     def GetCustomisedTypeValues(self, index):
@@ -870,7 +870,7 @@ class Node:
             result = Find.EntryName(index, mappings[i], compute)
             i += 1
         if result is None:
-            result = Find.EntryName(index, MAPPING_DICTIONARY, compute)
+            result = Find.EntryName(index, maps.MAPPING_DICTIONARY, compute)
         return result
 
     def GetEntryInfos(self, index, compute=True):
@@ -880,7 +880,7 @@ class Node:
         while not result and i < len(mappings):
             result = Find.EntryInfos(index, mappings[i], compute)
             i += 1
-        r301 = Find.EntryInfos(index, MAPPING_DICTIONARY, compute)
+        r301 = Find.EntryInfos(index, maps.MAPPING_DICTIONARY, compute)
         if r301:
             if result is not None:
                 r301.update(result)
@@ -896,7 +896,7 @@ class Node:
             if result:
                 result["user_defined"] = i == len(mappings) - 1 and index >= 0x1000
             i += 1
-        r301 = Find.SubentryInfos(index, subindex, MAPPING_DICTIONARY, compute)
+        r301 = Find.SubentryInfos(index, subindex, maps.MAPPING_DICTIONARY, compute)
         if r301:
             if result is not None:
                 r301.update(result)
@@ -950,7 +950,7 @@ class Node:
             result = Find.TypeIndex(typename, mappings[i])
             i += 1
         if result is None:
-            result = Find.TypeIndex(typename, MAPPING_DICTIONARY)
+            result = Find.TypeIndex(typename, maps.MAPPING_DICTIONARY)
         return result
 
     def GetTypeName(self, typeindex):
@@ -961,7 +961,7 @@ class Node:
             result = Find.TypeName(typeindex, mappings[i])
             i += 1
         if result is None:
-            result = Find.TypeName(typeindex, MAPPING_DICTIONARY)
+            result = Find.TypeName(typeindex, maps.MAPPING_DICTIONARY)
         return result
 
     def GetTypeDefaultValue(self, typeindex):
@@ -972,18 +972,18 @@ class Node:
             result = Find.TypeDefaultValue(typeindex, mappings[i])
             i += 1
         if result is None:
-            result = Find.TypeDefaultValue(typeindex, MAPPING_DICTIONARY)
+            result = Find.TypeDefaultValue(typeindex, maps.MAPPING_DICTIONARY)
         return result
 
     def GetMapVariableList(self, compute=True):
-        list_ = list(Find.MapVariableList(MAPPING_DICTIONARY, self, compute))
+        list_ = list(Find.MapVariableList(maps.MAPPING_DICTIONARY, self, compute))
         for mapping in self.GetMappings():
             list_.extend(Find.MapVariableList(mapping, self, compute))
         list_.sort()
         return list_
 
     def GetMandatoryIndexes(self, node=None):  # pylint: disable=unused-argument
-        list_ = Find.MandatoryIndexes(MAPPING_DICTIONARY)
+        list_ = Find.MandatoryIndexes(maps.MAPPING_DICTIONARY)
         for mapping in self.GetMappings():
             list_.extend(Find.MandatoryIndexes(mapping))
         return list_
@@ -1021,7 +1021,7 @@ class Node:
     # --------------------------------------------------------------------------
 
     def GetTypeList(self):
-        list_ = Find.TypeList(MAPPING_DICTIONARY)
+        list_ = Find.TypeList(maps.MAPPING_DICTIONARY)
         for mapping in self.GetMappings():
             list_.extend(Find.TypeList(mapping))
         return list_
