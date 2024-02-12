@@ -22,6 +22,7 @@ import wx
 from objdictgen.ui import commondialogs as cdia
 from objdictgen.ui import nodeeditortemplate as net
 from objdictgen.ui import subindextable as sit
+from objdictgen.ui.exception import display_exception_dialog
 
 [
     ID_NETWORKEDITNETWORKNODES,
@@ -113,7 +114,7 @@ class NetworkEditorTemplate(net.NodeEditorTemplate):
                 self.NetworkNodes.SetSelection(idx)
                 self.RefreshBufferState()
             except Exception as exc:  # pylint: disable=broad-except
-                self.ShowErrorMessage(exc)
+                display_exception_dialog(self.Frame)
         dialog.Destroy()
 
     def OnRemoveSlaveMenu(self, event):  # pylint: disable=unused-argument
@@ -134,7 +135,7 @@ class NetworkEditorTemplate(net.NodeEditorTemplate):
                         self.NodeList.CurrentSelected = slaveids[new_selection - 1]
                 self.RefreshBufferState()
             except Exception as exc:  # pylint: disable=broad-except
-                self.ShowErrorMessage(exc)
+                display_exception_dialog(self.Frame)
         dialog.Destroy()
 
     def OpenMasterDCFDialog(self, node_id):

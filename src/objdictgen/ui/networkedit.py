@@ -27,7 +27,7 @@ import wx
 import objdictgen
 from objdictgen.nodelist import NodeList
 from objdictgen.nodemanager import NodeManager
-from objdictgen.ui.exception import AddExceptHook
+from objdictgen.ui.exception import add_except_hook, display_exception_dialog
 from objdictgen.ui.networkeditortemplate import NetworkEditorTemplate
 
 log = logging.getLogger('objdictgen')
@@ -277,9 +277,7 @@ class NetworkEdit(wx.Frame, NetworkEditorTemplate):
                     self.RefreshProfileMenu()
                     self.RefreshMainMenu()
                 except Exception as exc:  # pylint: disable=broad-except
-                    message = wx.MessageDialog(self, str(exc), "ERROR", wx.OK | wx.ICON_ERROR)
-                    message.ShowModal()
-                    message.Destroy()
+                    display_exception_dialog(self)
 
     def OnOpenProjectMenu(self, event):  # pylint: disable=unused-argument
         if self.NodeList:
@@ -305,9 +303,7 @@ class NetworkEdit(wx.Frame, NetworkEditorTemplate):
                     self.RefreshProfileMenu()
                     self.RefreshMainMenu()
                 except Exception as exc:  # pylint: disable=broad-except
-                    message = wx.MessageDialog(self, str(exc), "Error", wx.OK | wx.ICON_ERROR)
-                    message.ShowModal()
-                    message.Destroy()
+                    display_exception_dialog(self)
         dialog.Destroy()
 
     def OnSaveProjectMenu(self, event):  # pylint: disable=unused-argument
@@ -317,9 +313,7 @@ class NetworkEdit(wx.Frame, NetworkEditorTemplate):
             try:
                 self.NodeList.SaveProject()
             except Exception as exc:  # pylint: disable=broad-except
-                message = wx.MessageDialog(self, str(exc), "Error", wx.OK | wx.ICON_ERROR)
-                message.ShowModal()
-                message.Destroy()
+                display_exception_dialog(self)
 
     def OnCloseProjectMenu(self, event):  # pylint: disable=unused-argument
         if self.NodeList:
@@ -331,9 +325,7 @@ class NetworkEdit(wx.Frame, NetworkEditorTemplate):
                     try:
                         self.NodeList.SaveProject()
                     except Exception as exc:  # pylint: disable=broad-except
-                        message = wx.MessageDialog(self, str(exc), "Error", wx.OK | wx.ICON_ERROR)
-                        message.ShowModal()
-                        message.Destroy()
+                        display_exception_dialog(self)
                 elif answer == wx.ID_NO:
                     self.NodeList.Changed = False
             if not self.NodeList.HasChanged():
@@ -410,7 +402,7 @@ def uimain(project):
     wx.InitAllImageHandlers()
 
     # Install a exception handle for bug reports
-    AddExceptHook(os.getcwd(), objdictgen.ODG_VERSION)
+    add_except_hook()
 
     frame = NetworkEdit(None, projectOpen=project)
 

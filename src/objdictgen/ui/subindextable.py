@@ -25,6 +25,7 @@ import wx.grid
 from objdictgen import maps
 from objdictgen.maps import OD
 from objdictgen.ui import commondialogs as cdia
+from objdictgen.ui.exception import display_error_dialog
 
 COL_SIZES = [75, 250, 150, 125, 100, 60, 250, 60]
 COL_ALIGNMENTS = [wx.ALIGN_CENTER, wx.ALIGN_LEFT, wx.ALIGN_CENTER, wx.ALIGN_RIGHT, wx.ALIGN_CENTER, wx.ALIGN_CENTER, wx.ALIGN_LEFT, wx.ALIGN_LEFT]
@@ -864,9 +865,7 @@ class EditingPanel(wx.SplitterWindow):
                             self.ParentWindow.RefreshBufferState()
                             self.RefreshIndexList()
                         except ValueError:
-                            message = wx.MessageDialog(self, "An integer is required!", "ERROR", wx.OK | wx.ICON_ERROR)
-                            message.ShowModal()
-                            message.Destroy()
+                            display_error_dialog(self, "An integer is required!")
                     dialog.Destroy()
 
     def OnDeleteSubindexMenu(self, event):  # pylint: disable=unused-argument
@@ -884,9 +883,7 @@ class EditingPanel(wx.SplitterWindow):
                             self.ParentWindow.RefreshBufferState()
                             self.RefreshIndexList()
                         except ValueError:
-                            message = wx.MessageDialog(self, "An integer is required!", "ERROR", wx.OK | wx.ICON_ERROR)
-                            message.ShowModal()
-                            message.Destroy()
+                            display_error_dialog(self, "An integer is required!")
                     dialog.Destroy()
 
     def OnDefaultValueSubindexMenu(self, event):  # pylint: disable=unused-argument

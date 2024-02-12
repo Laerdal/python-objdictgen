@@ -26,6 +26,7 @@ import wx.grid
 import objdictgen
 from objdictgen.maps import OD
 from objdictgen.node import BE_to_LE, LE_to_BE
+from objdictgen.ui.exception import display_error_dialog, display_exception_dialog
 
 log = logging.getLogger('objdictgen')
 
@@ -376,9 +377,7 @@ class MapVariableDialog(wx.Dialog):
                     text += (" and %s") % item + " must be integers!"
                 else:
                     text += ", %s" % item + " must be integer!"
-            message = wx.MessageDialog(self, "Form isn't valid. %s" % text, "Error", wx.OK | wx.ICON_ERROR)
-            message.ShowModal()
-            message.Destroy()
+            display_error_dialog(self, "Form isn't valid. %s" % text)
         else:
             self.EndModal(wx.ID_OK)
 
@@ -577,9 +576,7 @@ class UserTypeDialog(wx.Dialog):
         else:
             message = "A type must be selected!"
         if message is not None:
-            message = wx.MessageDialog(self, "Form isn't valid. %s" % (message,), "Error", wx.OK | wx.ICON_ERROR)
-            message.ShowModal()
-            message.Destroy()
+            display_error_dialog(self, "Form isn't valid. %s" % message)
         else:
             self.EndModal(wx.ID_OK)
 
@@ -775,9 +772,7 @@ class NodeInfosDialog(wx.Dialog):
                 log.debug("ValueError: '%s': %s" % (self.NodeID.GetValue(), exc))
                 message = "Node ID must be integer!"
         if message:
-            message = wx.MessageDialog(self, message, "ERROR", wx.OK | wx.ICON_ERROR)
-            message.ShowModal()
-            message.Destroy()
+            display_error_dialog(self, message)
             self.NodeName.SetFocus()
         else:
             self.EndModal(wx.ID_OK)
@@ -1050,9 +1045,7 @@ class CreateNodeDialog(wx.Dialog):
                 log.debug("ValueError: '%s': %s" % (self.NodeID.GetValue(), exc))
                 message = "Node ID must be integer!"
         if message:
-            message = wx.MessageDialog(self, message, "ERROR", wx.OK | wx.ICON_ERROR)
-            message.ShowModal()
-            message.Destroy()
+            display_error_dialog(self, message)
             self.NodeName.SetFocus()
         else:
             self.EndModal(wx.ID_OK)
@@ -1226,9 +1219,7 @@ class AddSlaveDialog(wx.Dialog):
                     text += " and %s" % item
                 else:
                     text += ", %s" % item
-            message = wx.MessageDialog(self, "Form isn't complete. %s must be filled!" % text, "Error", wx.OK | wx.ICON_ERROR)
-            message.ShowModal()
-            message.Destroy()
+            display_error_dialog(self, "Form isn't complete. %s must be filled!" % text)
         else:
             try:
                 nodeid = self.SlaveNodeID.GetValue()
@@ -1238,18 +1229,12 @@ class AddSlaveDialog(wx.Dialog):
                     nodeid = int(nodeid)
             except ValueError as exc:
                 log.debug("ValueError: '%s': %s" % (self.SlaveNodeID.GetValue(), exc))
-                message = wx.MessageDialog(self, "Slave Node ID must be a value in decimal or hexadecimal!", "Error", wx.OK | wx.ICON_ERROR)
-                message.ShowModal()
-                message.Destroy()
+                display_error_dialog(self, "Slave Node ID must be a value in decimal or hexadecimal!")
                 return
             if not 0 <= nodeid <= 127:
-                message = wx.MessageDialog(self, "Slave Node ID must be between 0 and 127!", "Error", wx.OK | wx.ICON_ERROR)
-                message.ShowModal()
-                message.Destroy()
+                display_error_dialog(self, "Slave Node ID must be between 0 and 127!")
             elif nodeid == self.NodeList.GetMasterNodeID() or nodeid in self.NodeList.GetSlaveIDs():
-                message = wx.MessageDialog(self, "A Node with this ID already exist in the network!", "Error", wx.OK | wx.ICON_ERROR)
-                message.ShowModal()
-                message.Destroy()
+                display_error_dialog(self, "A Node with this ID already exist in the network!")
             else:
                 self.EndModal(wx.ID_OK)
 
@@ -1272,9 +1257,7 @@ class AddSlaveDialog(wx.Dialog):
                     try:
                         self.NodeList.ImportEDSFile(filepath)
                     except Exception as exc:  # pylint: disable=broad-except
-                        dialog = wx.MessageDialog(self, str(exc), "Error", wx.OK | wx.ICON_ERROR)
-                        dialog.ShowModal()
-                        dialog.Destroy()
+                        display_exception_dialog(self)
                 dialog.Destroy()
         self.RefreshEDSFile()
         event.Skip()
@@ -1532,9 +1515,7 @@ class DCFEntryValuesDialog(wx.Dialog):
         try:
             self.Values[row][colname] = int(value, 16)
         except ValueError:
-            message = wx.MessageDialog(self, "'%s' is not a valid value!" % value, "Error", wx.OK | wx.ICON_ERROR)
-            message.ShowModal()
-            message.Destroy()
+            display_error_dialog(self, "'%s' is not a valid value!" % value)
         wx.CallAfter(self.RefreshValues)
         event.Skip()
 

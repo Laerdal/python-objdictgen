@@ -21,6 +21,7 @@ import wx
 
 from objdictgen.maps import OD
 from objdictgen.ui import commondialogs as cdia
+from objdictgen.ui.exception import display_error_dialog, display_exception_dialog
 
 
 class NodeEditorTemplate:
@@ -220,10 +221,10 @@ class NodeEditorTemplate:
                     self.RefreshBufferState()
                     self.RefreshCurrentIndexList()
                 except Exception as exc:  # pylint: disable=broad-except
-                    self.ShowErrorMessage(exc)
+                    display_exception_dialog(self.Frame)
             dialog.Destroy()
         else:
-            self.ShowErrorMessage("No map variable index left!")
+            display_error_dialog(self.Frame, "No map variable index left!")
 
     def AddUserType(self):
         dialog = cdia.UserTypeDialog(self)
@@ -234,10 +235,5 @@ class NodeEditorTemplate:
                 self.RefreshBufferState()
                 self.RefreshCurrentIndexList()
             except Exception as exc:  # pylint: disable=broad-except
-                self.ShowErrorMessage(str(exc))
+                display_exception_dialog(self.Frame)
         dialog.Destroy()
-
-    def ShowErrorMessage(self, message):
-        message = wx.MessageDialog(self.Frame, message, "Error", wx.OK | wx.ICON_ERROR)
-        message.ShowModal()
-        message.Destroy()

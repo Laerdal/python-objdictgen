@@ -28,7 +28,7 @@ import objdictgen
 from objdictgen.ui import commondialogs as cdia
 from objdictgen.ui import nodeeditortemplate as net
 from objdictgen.ui import subindextable as sit
-from objdictgen.ui.exception import AddExceptHook
+from objdictgen.ui.exception import add_except_hook, display_error_dialog, display_exception_dialog
 
 log = logging.getLogger('objdictgen')
 
@@ -386,9 +386,7 @@ class ObjdictEdit(wx.Frame, net.NodeEditorTemplate):
                 self.RefreshProfileMenu()
                 self.RefreshMainMenu()
             except Exception as exc:  # pylint: disable=broad-except
-                message = wx.MessageDialog(self, str(exc), "ERROR", wx.OK | wx.ICON_ERROR)
-                message.ShowModal()
-                message.Destroy()
+                display_exception_dialog(self)
         dialog.Destroy()
 
     def OnOpenMenu(self, event):  # pylint: disable=unused-argument
@@ -416,9 +414,7 @@ class ObjdictEdit(wx.Frame, net.NodeEditorTemplate):
                     self.RefreshProfileMenu()
                     self.RefreshMainMenu()
                 except Exception as exc:  # pylint: disable=broad-except
-                    message = wx.MessageDialog(self, str(exc), "Error", wx.OK | wx.ICON_ERROR)
-                    message.ShowModal()
-                    message.Destroy()
+                    display_exception_dialog(self)
         dialog.Destroy()
 
     def OnSaveMenu(self, event):  # pylint: disable=unused-argument
@@ -439,9 +435,7 @@ class ObjdictEdit(wx.Frame, net.NodeEditorTemplate):
             else:
                 self.RefreshBufferState()
         except Exception as exc:  # pylint: disable=broad-except
-            message = wx.MessageDialog(self, str(exc), "Error", wx.OK | wx.ICON_ERROR)
-            message.ShowModal()
-            message.Destroy()
+            display_exception_dialog(self)
 
     def SaveAs(self):
         filepath = self.Manager.GetCurrentFilePath()
@@ -459,9 +453,7 @@ class ObjdictEdit(wx.Frame, net.NodeEditorTemplate):
             filepath = dialog.GetPath()
 
             if not os.path.isdir(os.path.dirname(filepath)):
-                message = wx.MessageDialog(self, "%s is not a valid folder!" % os.path.dirname(filepath), "Error", wx.OK | wx.ICON_ERROR)
-                message.ShowModal()
-                message.Destroy()
+                display_error_dialog(self, "'%s' is not a valid folder!" % os.path.dirname(filepath))
             else:
                 try:
                     #Try and save the file and then update the filepath if successfull
@@ -469,9 +461,7 @@ class ObjdictEdit(wx.Frame, net.NodeEditorTemplate):
                         self.Manager.SetCurrentFilePath(filepath)
                     self.RefreshBufferState()
                 except Exception as exc:  # pylint: disable=broad-except
-                    message = wx.MessageDialog(self, str(exc), "Error", wx.OK | wx.ICON_ERROR)
-                    message.ShowModal()
-                    message.Destroy()
+                    display_exception_dialog(self)
 
     def OnCloseMenu(self, event):
         answer = wx.ID_YES
@@ -517,13 +507,9 @@ class ObjdictEdit(wx.Frame, net.NodeEditorTemplate):
                     message.ShowModal()
                     message.Destroy()
                 except Exception as exc:  # pylint: disable=broad-except
-                    message = wx.MessageDialog(self, str(exc), "Error", wx.OK | wx.ICON_ERROR)
-                    message.ShowModal()
-                    message.Destroy()
+                    display_exception_dialog(self)
             else:
-                message = wx.MessageDialog(self, "'%s' is not a valid file!" % filepath, "Error", wx.OK | wx.ICON_ERROR)
-                message.ShowModal()
-                message.Destroy()
+                display_error_dialog(self, "'%s' is not a valid file!" % filepath)
         dialog.Destroy()
 
     def OnExportEDSMenu(self, event):  # pylint: disable=unused-argument
@@ -531,9 +517,7 @@ class ObjdictEdit(wx.Frame, net.NodeEditorTemplate):
         if dialog.ShowModal() == wx.ID_OK:
             filepath = dialog.GetPath()
             if not os.path.isdir(os.path.dirname(filepath)):
-                message = wx.MessageDialog(self, "'%s' is not a valid folder!" % os.path.dirname(filepath), "Error", wx.OK | wx.ICON_ERROR)
-                message.ShowModal()
-                message.Destroy()
+                display_error_dialog(self, "'%s' is not a valid folder!" % os.path.dirname(filepath))
             else:
                 path, extend = os.path.splitext(filepath)
                 if extend in ("", "."):
@@ -544,9 +528,7 @@ class ObjdictEdit(wx.Frame, net.NodeEditorTemplate):
                     message.ShowModal()
                     message.Destroy()
                 except Exception as exc:  # pylint: disable=broad-except
-                    message = wx.MessageDialog(self, str(exc), "Error", wx.OK | wx.ICON_ERROR)
-                    message.ShowModal()
-                    message.Destroy()
+                    display_exception_dialog(self)
         dialog.Destroy()
 
     def OnExportCMenu(self, event):  # pylint: disable=unused-argument
@@ -554,9 +536,7 @@ class ObjdictEdit(wx.Frame, net.NodeEditorTemplate):
         if dialog.ShowModal() == wx.ID_OK:
             filepath = dialog.GetPath()
             if not os.path.isdir(os.path.dirname(filepath)):
-                message = wx.MessageDialog(self, "'%s' is not a valid folder!" % os.path.dirname(filepath), "Error", wx.OK | wx.ICON_ERROR)
-                message.ShowModal()
-                message.Destroy()
+                display_error_dialog(self, "'%s' is not a valid folder!" % os.path.dirname(filepath))
             else:
                 path, extend = os.path.splitext(filepath)
                 if extend in ("", "."):
@@ -567,9 +547,7 @@ class ObjdictEdit(wx.Frame, net.NodeEditorTemplate):
                     message.ShowModal()
                     message.Destroy()
                 except Exception as exc:  # pylint: disable=broad-except
-                    message = wx.MessageDialog(self, str(exc), "Error", wx.OK | wx.ICON_ERROR)
-                    message.ShowModal()
-                    message.Destroy()
+                    display_exception_dialog(self)
         dialog.Destroy()
 
 
@@ -579,7 +557,7 @@ def uimain(args):
     wx.InitAllImageHandlers()
 
     # Install a exception handle for bug reports
-    AddExceptHook(os.getcwd(), objdictgen.ODG_VERSION)
+    add_except_hook()
 
     frame = ObjdictEdit(None, filesopen=args)
 
