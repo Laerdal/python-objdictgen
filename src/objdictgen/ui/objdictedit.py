@@ -221,7 +221,7 @@ class ObjdictEdit(wx.Frame, net.NodeEditorTemplate):
             net.NodeEditorTemplate.__init__(self, manager, self, False)
         self._init_ctrls(parent)
 
-        icon = wx.Icon(os.path.join(objdictgen.SCRIPT_DIRECTORY, "ui", "networkedit.ico"), wx.BITMAP_TYPE_ICO)
+        icon = wx.Icon(os.path.join(objdictgen.SCRIPT_DIRECTORY, "img", "networkedit.ico"), wx.BITMAP_TYPE_ICO)
         self.SetIcon(icon)
 
         if self.ModeSolo:

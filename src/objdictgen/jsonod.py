@@ -436,7 +436,7 @@ def node_todict(node, sort=False, rich=True, internal=False, validate=True):
         '$id': JSON_ID,
         '$version': JSON_INTERNAL_VERSION if internal else JSON_VERSION,
         '$description': JSON_DESCRIPTION,
-        '$tool': str(objdictgen.ODG_PROGRAM) + ' ' + str(objdictgen.ODG_VERSION),
+        '$tool': str(objdictgen.ODG_PROGRAM) + ' ' + str(objdictgen.__version__),
         '$date': datetime.isoformat(datetime.now()),
     })
 

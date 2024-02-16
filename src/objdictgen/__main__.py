@@ -139,7 +139,7 @@ def main(debugopts, args=None):
     opt_debug = dict(action='store_true', help="Debug: enable tracebacks on errors")
     opt_od = dict(metavar='od', default=None, help="Object dictionary")
 
-    parser.add_argument('--version', action='version', version='%(prog)s ' + objdictgen.ODG_VERSION)
+    parser.add_argument('--version', action='version', version='%(prog)s ' + objdictgen.__version__)
     parser.add_argument('-D', '--debug', **opt_debug)
 
     # -- HELP --

@@ -87,8 +87,7 @@ IGNORED_EXCEPTIONS = []  # a problem with a line in a module is only reported on
 def handle_exception(e_type, e_value, e_traceback, parent=None):
 
     # Import here to prevent circular import
-    from objdictgen import ODG_VERSION  # pylint: disable=import-outside-toplevel
-    app_version = ODG_VERSION
+    from objdictgen import __version__  # pylint: disable=import-outside-toplevel
 
     traceback.print_exception(e_type, e_value, e_traceback)  # this is very helpful when there's an exception in the rest of this func
     last_tb = get_last_traceback(e_traceback)
@@ -102,7 +101,7 @@ def handle_exception(e_type, e_value, e_traceback, parent=None):
     if result:
         info = {
             'app-title': wx.GetApp().GetAppName(),  # app_title
-            'app-version': app_version,
+            'app-version': __version__,
             'wx-version': wx.VERSION_STRING,
             'wx-platform': wx.Platform,
             'python-version': platform.python_version(),  # sys.version.split()[0],

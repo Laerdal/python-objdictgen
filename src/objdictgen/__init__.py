@@ -22,12 +22,13 @@ import os
 from objdictgen.node import Node
 from objdictgen.nodemanager import NodeManager
 
+__version__ = "3.4"
+
 # Shortcuts
 LoadFile = Node.LoadFile
 LoadJson = Node.LoadJson
 
 ODG_PROGRAM = "odg"
-ODG_VERSION = "3.4"
 
 SCRIPT_DIRECTORY = os.path.split(__file__)[0]
 

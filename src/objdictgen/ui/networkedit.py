@@ -218,7 +218,7 @@ class NetworkEdit(wx.Frame, NetworkEditorTemplate):
         # FIXME: Unused. Delete this?
         # self.HtmlFrameOpened = []
 
-        icon = wx.Icon(os.path.join(objdictgen.SCRIPT_DIRECTORY, "ui", "networkedit.ico"), wx.BITMAP_TYPE_ICO)
+        icon = wx.Icon(os.path.join(objdictgen.SCRIPT_DIRECTORY, "img", "networkedit.ico"), wx.BITMAP_TYPE_ICO)
         self.SetIcon(icon)
 
         if self.ModeSolo:
