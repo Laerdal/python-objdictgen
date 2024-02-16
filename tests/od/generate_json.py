@@ -26,7 +26,7 @@ log.addHandler(logging.StreamHandler(sys.stdout))
 def convert(fname):
     base = fname.replace('.od', '')
 
-    print("Reading %s" % fname)
+    print(f"Reading {fname}")
     node = Node.LoadFile(base + '.od')
 
     node.Validate(fix=True)

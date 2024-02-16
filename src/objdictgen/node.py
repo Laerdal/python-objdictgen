@@ -86,15 +86,15 @@ class Node:
     def LoadFile(filepath: str) -> "Node":
         """ Open a file and create a new node """
         if Node.isXml(filepath):
-            log.debug("Loading XML OD '%s'" % filepath)
+            log.debug("Loading XML OD '%s'", filepath)
             with open(filepath, "r") as f:
                 return nosis.xmlload(f)  # type: ignore
 
         if Node.isEds(filepath):
-            log.debug("Loading EDS '%s'" % filepath)
+            log.debug("Loading EDS '%s'", filepath)
             return eds_utils.generate_node(filepath)
 
-        log.debug("Loading JSON OD '%s'" % filepath)
+        log.debug("Loading JSON OD '%s'", filepath)
         with open(filepath, "r") as f:
             return Node.LoadJson(f.read())
 
@@ -106,26 +106,26 @@ class Node:
     def DumpFile(self, filepath, filetype="json", **kwargs):
         """ Save node into file """
         if filetype == 'od':
-            log.debug("Writing XML OD '%s'" % filepath)
+            log.debug("Writing XML OD '%s'", filepath)
             with open(filepath, "w") as f:
                 # Never generate an od with IndexOrder in it
                 nosis.xmldump(f, self, omit=('IndexOrder', ))
             return
 
         if filetype == 'eds':
-            log.debug("Writing EDS '%s'" % filepath)
+            log.debug("Writing EDS '%s'", filepath)
             eds_utils.generate_eds_file(filepath, self)
             return
 
         if filetype == 'json':
-            log.debug("Writing JSON OD '%s'" % filepath)
+            log.debug("Writing JSON OD '%s'", filepath)
             jdata = self.DumpJson(**kwargs)
             with open(filepath, "w") as f:
                 f.write(jdata)
             return
 
         if filetype == 'c':
-            log.debug("Writing C files '%s'" % filepath)
+            log.debug("Writing C files '%s'", filepath)
             gen_cfile.generate_file(filepath, self)
             return
 
@@ -251,7 +251,7 @@ class Node:
         returns the number of subindex in the entry except the first.
         """
         if index not in self.Dictionary:
-            raise KeyError("Index 0x%04x does not exist" % index)
+            raise KeyError(f"Index 0x{index:04x} does not exist")
         if subindex is None:
             if isinstance(self.Dictionary[index], list):
                 return [len(self.Dictionary[index])] + [
@@ -269,7 +269,7 @@ class Node:
             return self.CompileValue(self.Dictionary[index], index, compute)
         if isinstance(self.Dictionary[index], list) and 0 < subindex <= len(self.Dictionary[index]):
             return self.CompileValue(self.Dictionary[index][subindex - 1], index, compute)
-        raise ValueError("Invalid subindex %s for index 0x%04x" % (subindex, index))
+        raise ValueError(f"Invalid subindex {subindex} for index 0x{index:04x}")
 
     def GetParamsEntry(self, index, subindex=None, aslist=False):
         """
@@ -277,7 +277,7 @@ class Node:
         returns the number of subindex in the entry except the first.
         """
         if index not in self.Dictionary:
-            raise KeyError("Index 0x%04x does not exist" % index)
+            raise KeyError(f"Index 0x{index:04x} does not exist")
         if subindex is None:
             if isinstance(self.Dictionary[index], list):
                 if index in self.ParamsDictionary:
@@ -306,7 +306,7 @@ class Node:
             if index in self.ParamsDictionary and subindex in self.ParamsDictionary[index]:
                 result.update(self.ParamsDictionary[index][subindex])
             return result
-        raise ValueError("Invalid subindex %s for index 0x%04x" % (subindex, index))
+        raise ValueError(f"Invalid subindex {subindex} for index 0x{index:04x}")
 
     def HasEntryCallbacks(self, index):
         entry_infos = self.GetEntryInfos(index)
@@ -497,11 +497,11 @@ class Node:
             # NOTE: Don't change base, as the eval() use this
             base = self.GetBaseIndexNumber(index)  # noqa: F841  pylint: disable=unused-variable
             try:
-                log.debug("EVAL CompileValue() #1: '%s'" % (value,))
+                log.debug("EVAL CompileValue() #1: '%s'", value)
                 raw = eval(value)  # FIXME: Using eval is not safe
                 if compute and isinstance(raw, str):
                     raw = raw.upper().replace("$NODEID", "self.ID")
-                    log.debug("EVAL CompileValue() #2: '%s'" % (raw,))
+                    log.debug("EVAL CompileValue() #2: '%s'", raw)
                     return eval(raw)  # FIXME: Using eval is not safe
                 # NOTE: This has a side effect: It will strip away # '"$NODEID"' into '$NODEID'
                 #       even if compute is False.
@@ -509,8 +509,8 @@ class Node:
                 #     warning(f"CompileValue() changed '{value}' into '{raw}'")
                 return raw
             except Exception as exc:  # pylint: disable=broad-except
-                log.debug("EVAL FAILED: %s" % exc)
-                raise ValueError("CompileValue failed for '%s'" % (value,)) from exc
+                log.debug("EVAL FAILED: %s", exc)
+                raise ValueError(f"CompileValue failed for '{value}'") from exc
         else:
             return value
 
@@ -707,7 +707,7 @@ class Node:
         return list_
 
     def GenerateMapName(self, name, index, subindex):  # pylint: disable=unused-argument
-        return "%s (0x%4.4X)" % (name, index)
+        return f"{name} (0x{index:04X})"
 
     def GetMapValue(self, mapname):
         if mapname == "None":
@@ -812,7 +812,7 @@ class Node:
         """
         def _warn(text):
             name = self.GetEntryName(index)
-            log.warning("WARNING: 0x{0:04x} ({0}) '{1}': {2}".format(index, name, text))
+            log.warning("WARNING: 0x%04x (%d) '%s': %s", index, index, name, text)
 
         # Iterate over all the values and user parameters
         params = set(self.Dictionary.keys())
@@ -844,14 +844,15 @@ class Node:
             }
             excessive_params = {k for k in params if k > dictlen}
             if excessive_params:
-                log.debug("Excessive params: {}".format(excessive_params))
-                _warn("Excessive user parameters ({}) or too few dictionary values ({})".format(len(excessive_params), dictlen))
+                log.debug("Excessive params: %s", excessive_params)
+                _warn(f"Excessive user parameters ({len(excessive_params)}) or too few dictionary values ({dictlen})")
 
                 if index in self.Dictionary:
                     for idx in excessive_params:
                         del self.ParamsDictionary[index][idx]
                         del params[idx]
-                    _warn("FIX: Deleting ParamDictionary entries {}".format(", ".join(str(k) for k in excessive_params)))
+                    t_p = ", ".join(str(k) for k in excessive_params)
+                    _warn(f"FIX: Deleting ParamDictionary entries {t_p}")
 
                     # If params have been emptied because of this, remove it altogether
                     if not params:
@@ -867,10 +868,10 @@ class Node:
                 # Test if subindex have a name
                 #
                 if not subvals["name"]:
-                    _warn("Sub index {}: Missing name".format(idx))
+                    _warn(f"Sub index {idx}: Missing name")
                     if fix:
-                        subvals["name"] = "Subindex {}".format(idx)
-                        _warn("FIX: Set name to '{}'".format(subvals["name"]))
+                        subvals["name"] = f"Subindex {idx}"
+                        _warn(f"FIX: Set name to '{subvals['name']}'")
 
     # --------------------------------------------------------------------------
     #                      Printing and output
@@ -893,11 +894,12 @@ class Node:
                 flags[i] = Fore.RED + ' *MISSING* ' + Style.RESET_ALL
 
         # Print formattings
+        t_flags = ', '.join(flags)
         fmt = {
-            'key': "{0}0x{1:04x} ({1}){2}".format(Fore.GREEN, index, Style.RESET_ALL),
+            'key': f"{Fore.GREEN}0x{index:04x} ({index}){Style.RESET_ALL}",
             'name': self.GetEntryName(index),
             'struct': maps.ODStructTypes.to_string(obj.get('struct'), '???').upper(),  # type: ignore
-            'flags': "  {}{}{}".format(Fore.CYAN, ', '.join(flags), Style.RESET_ALL) if flags else '',
+            'flags': f"  {Fore.CYAN}{t_flags}{Style.RESET_ALL}" if flags else '',
             'pre': '    ' if not compact else '',
         }
 
@@ -951,15 +953,15 @@ class Node:
                     suffix = '???' if value else ''
                     if pdo:
                         suffix = str(pdo["name"])
-                    value = "0x{:x}  {}".format(value, suffix)
+                    value = f"0x{value:x}  {suffix}"
                 elif i and value and (k in (4120, ) or 'COB ID' in info["name"]):
-                    value = "0x{:x}".format(value)
+                    value = f"0x{value:x}"
                 else:
                     value = str(value)
 
                 comment = info['comment'] or ''
                 if comment:
-                    comment = '{}/* {} */{}'.format(Fore.LIGHTBLACK_EX, info.get('comment'), Style.RESET_ALL)
+                    comment = f"{Fore.LIGHTBLACK_EX}/* {info.get('comment')} */{Style.RESET_ALL}"
 
                 # Omit printing this subindex if:
                 if not verbose and i == 0 and fmt['struct'] in ('RECORD', 'NRECORD', 'ARRAY', 'NARRAY') and not comment:
@@ -967,7 +969,7 @@ class Node:
 
                 # Print formatting
                 infos.append({
-                    'i': "{:02d}".format(i),
+                    'i': f"{i:02d}",
                     'access': info['access'],
                     'pdo': 'P' if info['pdo'] else ' ',
                     'name': info['name'],
@@ -987,8 +989,9 @@ class Node:
             }
 
             # Generate a format string based on the calculcated column widths
+            # Legitimate use of % as this is making a string containing format specifiers
             fmt = "{pre}    {i:%ss}  {access:%ss}  {pdo:%ss}  {name:%ss}  {type:%ss}  {value:%ss}  {comment}" % (
-                         w["i"],  w["access"],  w["pdo"],  w["name"],  w["type"],  w["value"]  # noqa: E126, E241
+                w["i"],  w["access"],  w["pdo"],  w["name"],  w["type"],  w["value"]  # noqa: E126, E241
             )
 
             # Print each line using the generated format string
@@ -1010,7 +1013,7 @@ class Node:
         # The UI use full filenames, while all other uses use profile names
         profilepath = profilename
         if not os.path.exists(profilepath):
-            fname = "%s.prf" % profilename
+            fname = f"{profilename}.prf"
             try:
                 profilepath = next(
                     os.path.join(base, fname)
@@ -1018,22 +1021,22 @@ class Node:
                     if os.path.exists(os.path.join(base, fname))
                 )
             except StopIteration:
-                raise ValueError("Unable to load profile '%s': '%s': No such file or directory" % (profilename, fname)) from None
+                raise ValueError(f"Unable to load profile '{profilename}': '{fname}': No such file or directory") from None
 
         # Mapping and AddMenuEntries are expected to be defined by the execfile
         # The profiles requires some vars to be set
         # pylint: disable=unused-variable
         try:
             with open(profilepath, "r") as f:
-                log.debug("EXECFILE %s" % (profilepath,))
+                log.debug("EXECFILE %s", profilepath)
                 code = compile(f.read(), profilepath, 'exec')
                 exec(code, globals(), locals())  # FIXME: Using exec is unsafe
                 # pylint: disable=undefined-variable
                 return Mapping, AddMenuEntries  # pyright: ignore  # noqa: F821
         except Exception as exc:  # pylint: disable=broad-except
-            log.debug("EXECFILE FAILED: %s" % exc)
+            log.debug("EXECFILE FAILED: %s", exc)
             log.debug(traceback.format_exc())
-            raise ValueError("Loading profile '%s' failed: %s" % (profilepath, exc)) from exc
+            raise ValueError(f"Loading profile '{profilepath}' failed: {exc}") from exc
 
     # --------------------------------------------------------------------------
     #                      Utils
@@ -1052,8 +1055,8 @@ class Node:
                 args = [a.replace('idx', str(idx)) for a in args]
                 args = [a.replace('sub', str(sub)) for a in args]
 
-                # NOTE: Python2 type evaluations are baked into the maps.py
-                #   and json format OD so cannot be removed currently
+                # NOTE: Legacy Python2 type evaluations are baked into the OD
+                #       and cannot be removed currently
                 if len(args) == 1:
                     return fmt[0] % (Node.evaluate_expression(args[0].strip()))
                 elif len(args) == 2:
@@ -1061,7 +1064,7 @@ class Node:
 
                 return fmt[0]
             except Exception as exc:
-                log.debug("PARSING FAILED: %s" % (exc, ))
+                log.debug("PARSING FAILED: %s", exc)
                 raise
         else:
             return text
@@ -1092,23 +1095,23 @@ class Node:
             elif isinstance(node.op, ast.Sub):
                 return Node.evaluate_node(node.left) - Node.evaluate_node(node.right)
             else:
-                raise SyntaxError("Unhandled arithmatic operation %s" % type(node.op))
+                raise SyntaxError(f"Unhandled arithmatic operation {type(node.op)}")
         elif isinstance(node, ast.Constant):
             if isinstance(node.value, int | float | complex):
                 return node.value
             else:
-                raise TypeError("Cannot parse str type constant '%s'" % node.value)
+                raise TypeError(f"Cannot parse str type constant '{node.value}'")
         elif isinstance(node, ast.AST):
-            raise TypeError("Unhandled ast node class %s" % type(node))
+            raise TypeError(f"Unhandled ast node class {type(node)}")
         else:
-            raise TypeError("Invalid argument type %s" % type(node) )
+            raise TypeError(f"Invalid argument type {type(node)}")
 
     @staticmethod
     def get_index_range(index):
         for irange in maps.INDEX_RANGES:
             if irange["min"] <= index <= irange["max"]:
                 return irange
-        raise ValueError("Cannot find index range for value '0x%x'" % index)
+        raise ValueError(f"Cannot find index range for value '0x{index:x}'")
 
     @staticmethod
     def be_to_le(value):
@@ -1126,7 +1129,7 @@ class Node:
 
         # FIXME: The function title is confusing as the input data type (str) is
         # different than the output (int)
-        return int("".join(["%2.2X" % ord(char) for char in reversed(value)]), 16)
+        return int("".join([f"{ord(char):02X}" for char in reversed(value)]), 16)
 
     @staticmethod
     def le_to_be(value, size):

@@ -52,13 +52,13 @@ re_float = re.compile(pat_fl + r'$')
 re_zero = r'[+-]?0$'
 pat_int = r'[-+]?[1-9]\d*'
 re_int = re.compile(pat_int + r'$')
-pat_flint = r'(%s|%s)' % (pat_fl, pat_int)    # float or int
+pat_flint = f'({pat_fl}|{pat_int})'    # float or int
 re_long = re.compile(r'[-+]?\d+[lL]' + r'$')
 re_hex = re.compile(r'([-+]?)(0[xX])([0-9a-fA-F]+)' + r'$')
 re_oct = re.compile(r'([-+]?)(0)([0-7]+)' + r'$')
-pat_complex = r'(%s)?[-+]%s[jJ]' % (pat_flint, pat_flint)
+pat_complex = f'({pat_flint})?[-+]{pat_flint}[jJ]'
 re_complex = re.compile(pat_complex + r'$')
-pat_complex2 = r'(%s):(%s)' % (pat_flint, pat_flint)
+pat_complex2 = f'({pat_flint}):({pat_flint})'
 re_complex2 = re.compile(pat_complex2 + r'$')
 
 
@@ -106,25 +106,25 @@ def aton(s):
         r, i = s.split(':')
         return complex(float(r), float(i))
 
-    raise ValueError("Invalid string '%s' passed to to_number()'d" % s)
+    raise ValueError(f"Invalid string '{s}'")
 
 
 # we use ntoa() instead of repr() to ensure we have a known output format
 def ntoa(num: int|float|complex) -> str:
     """Convert a number to a string without calling repr()"""
     if isinstance(num, int):
-        s = "%d" % num
+        s = str(num)
     elif isinstance(num, float):
-        s = "%.17g" % num
+        s = f"{num:.17g}"
         # ensure a '.', adding if needed (unless in scientific notation)
         if '.' not in s and 'e' not in s:
             s = s + '.'
     elif isinstance(num, complex):
         # these are always used as doubles, so it doesn't
         # matter if the '.' shows up
-        s = "%.17g+%.17gj" % (num.real, num.imag)
+        s = f"{num.real:.17g}+{num.imag:.17g}j"
     else:
-        raise ValueError("Unknown numeric type: %s" % repr(num))
+        raise ValueError(f"Unknown numeric type: {repr(num)}")
     return s
 
 
@@ -225,7 +225,7 @@ def get_class_from_name(classname):
     klass = CLASS_STORE.get(classname, None)
     if klass:
         return klass
-    raise ValueError("Cannot create class '%s'" % classname)
+    raise ValueError(f"Cannot create class '{classname}'")
 
 
 def obj_from_node(node):
@@ -372,19 +372,19 @@ def _pickle_toplevel_obj(xml_list, py_obj, deepcopy, omit=None):
     # Generate the XML string
     # if klass not in CLASS_STORE.values():
     module = klass.__module__.replace('objdictgen.', '')  # Workaround to be backwards compatible
-    extra = '%smodule="%s" class="%s"' % (famtype, module, klass_tag)
+    extra = f'{famtype}module="{module}" class="{klass_tag}"'
     # else:
-    #     extra = '%s class="%s"' % (famtype, klass_tag)
+    #     extra = f'{famtype} class="{klass_tag}"'
 
     xml_list.append('<?xml version="1.0"?>\n'
                     + '<!DOCTYPE PyObject SYSTEM "PyObjects.dtd">\n')
 
     if deepcopy:
-        xml_list.append('<PyObject %s>\n' % (extra))
+        xml_list.append(f'<PyObject {extra}>\n')
     elif id_ is not None:
-        xml_list.append('<PyObject %s id="%s">\n' % (extra, id_))
+        xml_list.append(f'<PyObject {extra} id="{id_}">\n')
     else:
-        xml_list.append('<PyObject %s>\n' % (extra))
+        xml_list.append(f'<PyObject {extra}>\n')
 
     pickle_instance(py_obj, xml_list, level=0, deepcopy=deepcopy, omit=omit)
     xml_list.append('</PyObject>\n')
@@ -419,7 +419,7 @@ def pickle_instance(obj, list_, level=0, deepcopy=0, omit=None):
                 continue
             list_.append(_attr_tag(key, val, level, deepcopy))
     else:
-        raise ValueError("'%s.__dict__' is not a dict" % (obj))
+        raise ValueError(f"'{obj}.__dict__' is not a dict")
 
 
 def unpickle_instance(node):
@@ -452,7 +452,7 @@ def unpickle_instance(node):
 
 # --- Functions to create XML output tags ---
 def _attr_tag(name, thing, level=0, deepcopy=0):
-    start_tag = '  ' * level + ('<attr name="%s" ' % name)
+    start_tag = '  ' * level + (f'<attr name="{name}" ')
     close_tag = '  ' * level + '</attr>\n'
     return _tag_completer(start_tag, thing, close_tag, level, deepcopy)
 
@@ -482,14 +482,15 @@ def _tag_compound(start_tag, family_type, thing, deepcopy, extra=''):
     """
     if deepcopy:
         # don't need ids in a deepcopied file (looks neater)
-        start_tag = start_tag + '%s %s>\n' % (family_type, extra)
+        start_tag = f'{start_tag}{family_type} {extra}>\n'
         return (start_tag, 1)
 
-    if VISITED.get(id(thing)):
-        start_tag = start_tag + '%s refid="%s" />\n' % (family_type, id(thing))
+    idt = id(thing)
+    if VISITED.get(idt):
+        start_tag = f'{start_tag}{family_type} refid="{idt}" />\n'
         return (start_tag, 0)
 
-    start_tag = start_tag + '%s id="%s" %s>\n' % (family_type, id(thing), extra)
+    start_tag = f'{start_tag}{family_type} id="{idt}" {extra}>\n'
     return (start_tag, 1)
 
 
@@ -525,15 +526,15 @@ def _family_type(family, typename, mtype, mextra):
     if mtype is None:
         # family tags are technically only necessary for mutated types.
         # we can intuit family for builtin types.
-        return 'type="%s"' % typename
+        return f'type="{typename}"'
 
     if mtype and len(mtype):
         if mextra:
-            mextra = 'extra="%s"' % mextra
+            mextra = f'extra="{mextra}"'
         else:
             mextra = ''
-        return 'family="%s" type="%s" %s' % (family, mtype, mextra)
-    return 'family="%s" type="%s"' % (family, typename)
+        return f'family="{family}" type="{mtype}" {mextra}'
+    return f'family="{family}" type="{typename}"'
 
 
 def _fix_family(family, typename):
@@ -566,7 +567,7 @@ def _fix_family(family, typename):
         return 'uniq'
     if typename == 'False':
         return 'uniq'
-    raise ValueError("family= must be given for unknown type '%s'" % typename)
+    raise ValueError(f"family= must be given for unknown type '{typename}'")
 
 
 def _tag_completer(start_tag, orig_thing, close_tag, level, deepcopy):
@@ -575,7 +576,8 @@ def _tag_completer(start_tag, orig_thing, close_tag, level, deepcopy):
     (mtag, thing, in_body, mextra) = (None, orig_thing, getInBody(type(orig_thing)), None)
 
     if thing is None:
-        start_tag = start_tag + "%s />\n" % (_family_type('none', 'None', None, None))
+        ft = _family_type('none', 'None', None, None)
+        start_tag = f"{start_tag}{ft} />\n"
         close_tag = ''
     # bool cannot be used as a base class (see sanity check above) so if thing
     # is a bool it will always be BooleanType, and either True or False
@@ -585,38 +587,35 @@ def _tag_completer(start_tag, orig_thing, close_tag, level, deepcopy):
         else:  # must be False
             typestr = 'False'
 
+        ft = _family_type('uniq', typestr, mtag, mextra)
         if in_body:
-            start_tag = start_tag + '%s>%s' % (
-                _family_type('uniq', typestr, mtag, mextra), '')
+            start_tag = f"{start_tag}{ft}>"
             close_tag = close_tag.lstrip()
         else:
-            start_tag = start_tag + '%s value="%s" />\n' % (
-                _family_type('uniq', typestr, mtag, mextra), '')
+            start_tag = f'{start_tag}{ft} value="" />\n'
             close_tag = ''
     elif isinstance(thing, (int, float, complex)):
         # thing_str = repr(thing)
         thing_str = ntoa(thing)
 
+        ft = _family_type("atom", "numeric", mtag, mextra)
         if in_body:
             # we don't call safe_content() here since numerics won't
             # contain special XML chars.
             # the unpickler can either call unsafe_content() or not,
             # it won't matter
-            start_tag = start_tag + '%s>%s' % (
-                _family_type('atom', 'numeric', mtag, mextra), thing_str)
+            start_tag = f'{start_tag}{ft}>{thing_str}'
             close_tag = close_tag.lstrip()
         else:
-            start_tag = start_tag + '%s value="%s" />\n' % (
-                _family_type('atom', 'numeric', mtag, mextra), thing_str)
+            start_tag = f'{start_tag}{ft} value="{thing_str}" />\n'
             close_tag = ''
     elif isinstance(thing, str):
+        ft = _family_type("atom", "string", mtag, mextra)
         if in_body:
-            start_tag = start_tag + '%s>%s' % (
-                _family_type('atom', 'string', mtag, mextra), safe_content(thing))
+            start_tag = f'{start_tag}{ft}>{safe_content(thing)}'
             close_tag = close_tag.lstrip()
         else:
-            start_tag = start_tag + '%s value="%s" />\n' % (
-                _family_type('atom', 'string', mtag, mextra), safe_string(thing))
+            start_tag = f'{start_tag}{ft} value="{safe_string(thing)}" />\n'
             close_tag = ''
     # General notes:
     #   1. When we make references, set type to referenced object
@@ -658,7 +657,7 @@ def _tag_completer(start_tag, orig_thing, close_tag, level, deepcopy):
         else:
             close_tag = ''
     else:
-        raise ValueError("Non-handled type %s" % type(thing))
+        raise ValueError(f"Non-handled type {type(thing)}")
 
     # need to keep a ref to the object for two reasons -
     #  1. we can ref it later instead of copying it into the XML stream
@@ -734,9 +733,9 @@ def _thing_from_dom(dom_node, container=None):
                 elif node_type == 'False':
                     node_val = False
                 else:
-                    raise ValueError("Unknown uniq type %s" % node_type)
+                    raise ValueError(f"Unknown uniq type {node_type}")
             else:
-                raise ValueError("Unknown family %s,%s,%s" % (node_family, node_type, node_name))
+                raise ValueError(f"Unknown family {node_family},{node_type},{node_name}")
 
             # step 2 - take basic thing and make exact thing
             # Note there are several NOPs here since node_val has been decided
@@ -768,7 +767,7 @@ def _thing_from_dom(dom_node, container=None):
             elif node_type == 'False':
                 node_val = node_val
             else:
-                raise ValueError("Unknown type %s,%s" % (node, node_type))
+                raise ValueError(f"Unknown type {node},{node_type}")
 
             if node.nodeName == 'attr':
                 setattr(container, node_name, node_val)
@@ -784,6 +783,6 @@ def _thing_from_dom(dom_node, container=None):
             # <entry> has no id for refchecking
 
         else:
-            raise ValueError("Element %s is not in PyObjects.dtd" % node.nodeName)
+            raise ValueError(f"Element {node.nodeName} is not in PyObjects.dtd")
 
     return container

@@ -554,7 +554,7 @@ class NodeManager:
                 node = self.CurrentNode
             assert node  # For mypy
             if node.IsEntry(index):
-                raise ValueError("Index 0x%04X already defined!" % index)
+                raise ValueError(f"Index 0x{index:04X} already defined!")
             node.AddMappingEntry(index, name=name, struct=struct)
             if struct == OD.VAR:
                 values = {"name": name, "type": 0x05, "access": "rw", "pdo": True}
@@ -576,7 +576,7 @@ class NodeManager:
             if not disable_buffer:
                 self.BufferCurrentNode()
             return
-        raise ValueError("Index 0x%04X isn't a valid index for Map Variable!" % index)
+        raise ValueError(f"Index 0x{index:04X} isn't a valid index for Map Variable!")
 
     def AddUserTypeToCurrent(self, type_, min_, max_, length):
         assert self.CurrentNode  # For mypy
@@ -590,7 +590,7 @@ class NodeManager:
         size = self.GetEntryInfos(type_)["size"]
         default = self.GetTypeDefaultValue(type_)
         if valuetype == 0:
-            self.CurrentNode.AddMappingEntry(index, name="%s[%d-%d]" % (name, min_, max_), struct=OD.RECORD, size=size, default=default)
+            self.CurrentNode.AddMappingEntry(index, name=f"{name}[{min_}-{max_}]", struct=OD.RECORD, size=size, default=default)
             self.CurrentNode.AddMappingEntry(index, 0, values={"name": "Number of Entries", "type": 0x05, "access": "ro", "pdo": False})
             self.CurrentNode.AddMappingEntry(index, 1, values={"name": "Type", "type": 0x05, "access": "ro", "pdo": False})
             self.CurrentNode.AddMappingEntry(index, 2, values={"name": "Minimum Value", "type": type_, "access": "ro", "pdo": False})
@@ -599,7 +599,7 @@ class NodeManager:
             self.CurrentNode.AddEntry(index, 2, min_)
             self.CurrentNode.AddEntry(index, 3, max_)
         elif valuetype == 1:
-            self.CurrentNode.AddMappingEntry(index, name="%s%d" % (name, length), struct=OD.RECORD, size=length * size, default=default)
+            self.CurrentNode.AddMappingEntry(index, name=f"{name}{length}", struct=OD.RECORD, size=length * size, default=default)
             self.CurrentNode.AddMappingEntry(index, 0, values={"name": "Number of Entries", "type": 0x05, "access": "ro", "pdo": False})
             self.CurrentNode.AddMappingEntry(index, 1, values={"name": "Type", "type": 0x05, "access": "ro", "pdo": False})
             self.CurrentNode.AddMappingEntry(index, 2, values={"name": "Length", "type": 0x05, "access": "ro", "pdo": False})
@@ -656,7 +656,7 @@ class NodeManager:
                     if dic[type_] == 0:
                         # Might fail if number is malformed
                         if value.startswith("$NODEID"):
-                            value = '"%s"' % value
+                            value = f'"{value}"'
                         elif value.startswith("0x"):
                             value = int(value, 16)
                         else:
@@ -711,7 +711,7 @@ class NodeManager:
         size = self.GetEntryInfos(type_)["size"]
         default = self.GetTypeDefaultValue(type_)
         if new_valuetype == 0:
-            self.CurrentNode.SetMappingEntry(index, name="%s[%d-%d]" % (name, min_, max_), struct=OD.RECORD, size=size, default=default)
+            self.CurrentNode.SetMappingEntry(index, name=f"{name}[{min_}-{max_}]", struct=OD.RECORD, size=size, default=default)
             if valuetype == 1:
                 self.CurrentNode.SetMappingEntry(index, 2, values={"name": "Minimum Value", "type": type_, "access": "ro", "pdo": False})
                 self.CurrentNode.AddMappingEntry(index, 3, values={"name": "Maximum Value", "type": type_, "access": "ro", "pdo": False})
@@ -722,7 +722,7 @@ class NodeManager:
             else:
                 self.CurrentNode.SetEntry(index, 3, max_)
         elif new_valuetype == 1:
-            self.CurrentNode.SetMappingEntry(index, name="%s%d" % (name, length), struct=OD.RECORD, size=size, default=default)
+            self.CurrentNode.SetMappingEntry(index, name=f"{name}{length}", struct=OD.RECORD, size=size, default=default)
             if valuetype == 0:
                 self.CurrentNode.SetMappingEntry(index, 2, values={"name": "Length", "type": 0x02, "access": "ro", "pdo": False})
                 self.CurrentNode.RemoveMappingEntry(index, 3)
@@ -789,7 +789,7 @@ class NodeManager:
     def GetFilename(self, index):
         if self.UndoBuffers[index].IsCurrentSaved():
             return self.FileNames[index]
-        return "~%s~" % self.FileNames[index]
+        return f"~{self.FileNames[index]}~"
 
     def SetCurrentFilePath(self, filepath):
         self.FilePaths[self.NodeIndex] = filepath
@@ -797,7 +797,7 @@ class NodeManager:
             self.FileNames[self.NodeIndex] = os.path.splitext(os.path.basename(filepath))[0]
         else:
             self.LastNewIndex += 1
-            self.FileNames[self.NodeIndex] = "Unnamed%d" % self.LastNewIndex
+            self.FileNames[self.NodeIndex] = f"Unnamed{self.LastNewIndex}"
 
     def GetCurrentFilePath(self):
         if len(self.FilePaths) > 0:
@@ -979,7 +979,7 @@ class NodeManager:
                 infos = node.GetSubentryInfos(index, i)
                 if infos["name"] == "Number of Entries":
                     dic["buffer_size"] = ""
-                dic["subindex"] = "0x%02X" % i
+                dic["subindex"] = f"0x{i:02X}"
                 dic["name"] = infos["name"]
                 dic["type"] = node.GetTypeName(infos["type"])
                 if dic["type"] is None:
@@ -1035,14 +1035,14 @@ class NodeManager:
                             if values[0] == "UNSIGNED":
                                 dic["buffer_size"] = ""
                                 try:
-                                    fmt = "0x%0" + str(int(values[1]) // 4) + "X"
+                                    fmt = "0x{:0" + str(int(values[1]) // 4) + "X}"
                                 except ValueError as exc:
-                                    log.debug("ValueError: '%s': %s" % (values[1], exc))
+                                    log.debug("ValueError: '%s': %s", values[1], exc)
                                     raise  # FIXME: Originial code swallows exception
                                 try:
-                                    dic["value"] = fmt % dic["value"]
+                                    dic["value"] = fmt.format(dic["value"])
                                 except TypeError as exc:
-                                    log.debug("ValueError: '%s': %s" % (dic["value"], exc))
+                                    log.debug("ValueError: '%s': %s", dic["value"], exc)
                                     # FIXME: dict["value"] can contain $NODEID for PDOs which is not an int i.e. $NODEID+0x200
                                 editor["value"] = "string"
                             if values[0] == "INTEGER":

@@ -88,7 +88,7 @@ class NetworkEditorTemplate(net.NodeEditorTemplate):
         if self.NodeList is not None:
             nodeid = self.Manager.GetCurrentNodeID()
             if nodeid is not None:
-                nodename = "0x%2.2X %s" % (nodeid, self.Manager.GetCurrentNodeName())
+                nodename = f"0x{nodeid:02X} {self.Manager.GetCurrentNodeName()}"
             else:
                 nodename = self.Manager.GetCurrentNodeName()
             self.NetworkNodes.SetPageText(0, nodename)

@@ -36,7 +36,7 @@ log = logging.getLogger('objdictgen')
 
 def usage():
     print("\nUsage of objdictedit :")
-    print("\n   %s [Filepath, ...]\n" % sys.argv[0])
+    print(f"\n   {sys.argv[0]} [Filepath, ...]\n")
 
 
 [
@@ -232,7 +232,7 @@ class ObjdictEdit(wx.Frame, net.NodeEditorTemplate):
                     new_editingpanel.SetIndex(index)
                     self.FileOpened.AddPage(new_editingpanel, "")
                 except Exception as exc:  # Need this broad exception?
-                    log.debug("Swallowed Exception: %s" % (exc, ))
+                    log.debug("Swallowed Exception: %s", exc)
                     raise  # FIXME: Originial code swallows exception
         else:
             for index in self.Manager.GetBufferIndexes():
@@ -303,7 +303,7 @@ class ObjdictEdit(wx.Frame, net.NodeEditorTemplate):
 
     def RefreshTitle(self):
         if self.FileOpened.GetPageCount() > 0:
-            self.SetTitle("Objdictedit - %s" % self.Manager.GetCurrentFilename())
+            self.SetTitle(f"Objdictedit - {self.Manager.GetCurrentFilename()}")
         else:
             self.SetTitle("Objdictedit")
 
@@ -446,7 +446,7 @@ class ObjdictEdit(wx.Frame, net.NodeEditorTemplate):
         if filepath:
             directory, filename = os.path.split(filepath)
         else:
-            directory, filename = os.getcwd(), "%s" % self.Manager.GetCurrentNodeInfos()[0]
+            directory, filename = os.getcwd(), str(self.Manager.GetCurrentNodeInfos()[0])
 
         with wx.FileDialog(self, "Choose a file", directory, filename, wildcard="OD JSON file (*.json)|*.json;|OD file (*.od)|*.od;|EDS file (*.eds)|*.eds",
                            style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT | wx.FD_CHANGE_DIR) as dialog:
@@ -457,7 +457,7 @@ class ObjdictEdit(wx.Frame, net.NodeEditorTemplate):
             filepath = dialog.GetPath()
 
             if not os.path.isdir(os.path.dirname(filepath)):
-                display_error_dialog(self, "'%s' is not a valid folder!" % os.path.dirname(filepath))
+                display_error_dialog(self, f"'{os.path.dirname(filepath)}' is not a valid folder!")
             else:
                 try:
                     #Try and save the file and then update the filepath if successfull
@@ -513,7 +513,7 @@ class ObjdictEdit(wx.Frame, net.NodeEditorTemplate):
                 except Exception as exc:  # pylint: disable=broad-except
                     display_exception_dialog(self)
             else:
-                display_error_dialog(self, "'%s' is not a valid file!" % filepath)
+                display_error_dialog(self, f"'{filepath}' is not a valid file!")
         dialog.Destroy()
 
     def OnExportEDSMenu(self, event):  # pylint: disable=unused-argument
@@ -521,7 +521,7 @@ class ObjdictEdit(wx.Frame, net.NodeEditorTemplate):
         if dialog.ShowModal() == wx.ID_OK:
             filepath = dialog.GetPath()
             if not os.path.isdir(os.path.dirname(filepath)):
-                display_error_dialog(self, "'%s' is not a valid folder!" % os.path.dirname(filepath))
+                display_error_dialog(self, f"'{os.path.dirname(filepath)}' is not a valid folder!")
             else:
                 path, extend = os.path.splitext(filepath)
                 if extend in ("", "."):
@@ -540,7 +540,7 @@ class ObjdictEdit(wx.Frame, net.NodeEditorTemplate):
         if dialog.ShowModal() == wx.ID_OK:
             filepath = dialog.GetPath()
             if not os.path.isdir(os.path.dirname(filepath)):
-                display_error_dialog(self, "'%s' is not a valid folder!" % os.path.dirname(filepath))
+                display_error_dialog(self, f"'{os.path.dirname(filepath)}' is not a valid folder!")
             else:
                 path, extend = os.path.splitext(filepath)
                 if extend in ("", "."):

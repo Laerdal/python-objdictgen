@@ -236,7 +236,7 @@ class SubindexTable(wx.grid.GridTableBase):
                         editor = wx.grid.GridCellNumberEditor()
                         renderer = wx.grid.GridCellNumberRenderer()
                         if colname == "value" and "min" in editors and "max" in editors:
-                            editor.SetParameters("%s,%s" % (editors["min"], editors["max"]))
+                            editor.SetParameters(f"{editors['min']},{editors['max']}")
                     elif editortype == "float":
                         editor = wx.grid.GridCellTextEditor()
                         renderer = wx.grid.GridCellStringRenderer()
@@ -473,7 +473,7 @@ class EditingPanel(wx.SplitterWindow):
         self.Index = None
 
         for values in maps.INDEX_RANGES:
-            text = "   0x%04X-0x%04X      %s" % (values["min"], values["max"], values["description"])
+            text = f"   0x{values['min']:04X}-0x{values['max']:04X}      {values['description']}"
             self.PartList.Append(text)
         self.Table = SubindexTable(self, [], [], SUBINDEX_TABLE_COLNAMES)
         self.SubindexGrid.SetTable(self.Table)
@@ -518,10 +518,10 @@ class EditingPanel(wx.SplitterWindow):
                         typeinfos = self.Manager.GetEntryInfos(subentry_infos["type"])
                         if typeinfos:
                             bus_id = '.'.join(map(str, self.ParentWindow.GetBusId()))
-                            var_name = "%s_%04x_%02x" % (self.Manager.GetCurrentNodeName(), index, subindex)
+                            var_name = f"{self.Manager.GetCurrentNodeName()}_{index:04x}_{subindex:02x}"
                             size = typeinfos["size"]
                             data = wx.TextDataObject(str(
-                                ("%s%s.%d.%d" % (SIZE_CONVERSION[size], bus_id, index, subindex),
+                                (f"{SIZE_CONVERSION[size]}{bus_id}.{index}.{subindex}",
                                  "location",
                                  IEC_TYPE_CONVERSION.get(typeinfos["name"]),
                                  var_name, "")))
@@ -541,10 +541,10 @@ class EditingPanel(wx.SplitterWindow):
                         typeinfos = self.Manager.GetEntryInfos(subentry_infos["type"])
                         if subentry_infos["pdo"] and typeinfos:
                             bus_id = '.'.join(map(str, self.ParentWindow.GetBusId()))
-                            var_name = "%s_%04x_%02x" % (self.Manager.GetSlaveName(node_id), index, subindex)
+                            var_name = f"{self.Manager.GetSlaveName(node_id)}_{index:04x}_{subindex:02x}"
                             size = typeinfos["size"]
                             data = wx.TextDataObject(str(
-                                ("%s%s.%d.%d.%d" % (SIZE_CONVERSION[size], bus_id, node_id, index, subindex),
+                                (f"{SIZE_CONVERSION[size]}{bus_id}.{node_id}.{index}.{subindex}",
                                  "location",
                                  IEC_TYPE_CONVERSION.get(typeinfos["name"]),
                                  var_name, "")))
@@ -608,7 +608,7 @@ class EditingPanel(wx.SplitterWindow):
             values = maps.INDEX_RANGES[i]
             self.ListIndex = []
             for name, index in self.Manager.GetCurrentValidIndexes(values["min"], values["max"]):
-                self.IndexList.Append("0x%04X   %s" % (index, name))
+                self.IndexList.Append(f"0x{index:04X}   {name}")
                 self.ListIndex.append(index)
             if self.Editable:
                 self.ChoiceIndex = []
@@ -624,7 +624,7 @@ class EditingPanel(wx.SplitterWindow):
                 else:
                     for name, index in self.Manager.GetCurrentValidChoices(values["min"], values["max"]):
                         if index:
-                            self.IndexChoice.Append("0x%04X   %s" % (index, name))
+                            self.IndexChoice.Append(f"0x{index:04X}   {name}")
                         else:
                             self.IndexChoice.Append(name)
                         self.ChoiceIndex.append(index)
@@ -815,7 +815,7 @@ class EditingPanel(wx.SplitterWindow):
                 index = self.ListIndex[selected]
                 if self.Manager.IsCurrentEntry(index):
                     infos = self.Manager.GetEntryInfos(index)
-                    dialog = wx.TextEntryDialog(self, "Give a new name for index 0x%04X" % index,
+                    dialog = wx.TextEntryDialog(self, f"Give a new name for index 0x{index:04X}",
                                  "Rename an index", infos["name"], wx.OK | wx.CANCEL)
                     if dialog.ShowModal() == wx.ID_OK:
                         self.Manager.SetCurrentEntryName(index, dialog.GetValue())

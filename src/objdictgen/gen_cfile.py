@@ -58,11 +58,11 @@ def get_valid_type_infos(context, typename, items=None):
     if result:
         values = result.groups()
         if values[0] == "UNSIGNED" and int(values[1]) in [i * 8 for i in range(1, 9)]:
-            typeinfos = ("UNS%s" % values[1], None, "uint%s" % values[1], True)
+            typeinfos = (f"UNS{values[1]}", None, f"uint{values[1]}", True)
         elif values[0] == "INTEGER" and int(values[1]) in [i * 8 for i in range(1, 9)]:
-            typeinfos = ("INTEGER%s" % values[1], None, "int%s" % values[1], False)
+            typeinfos = (f"INTEGER{values[1]}", None, f"int{values[1]}", False)
         elif values[0] == "REAL" and int(values[1]) in (32, 64):
-            typeinfos = ("%s%s" % (values[0], values[1]), None, "real%s" % values[1], False)
+            typeinfos = (f"{values[0]}{values[1]}", None, f"real{values[1]}", False)
         elif values[0] in ["VISIBLE_STRING", "OCTET_STRING"]:
             size = context.default_string_size
             for item in items:
@@ -79,33 +79,34 @@ def get_valid_type_infos(context, typename, items=None):
             typeinfos = ("UNS8", None, "boolean", False)
         else:
             # FIXME: The !!! is for special UI handling
-            raise ValueError("!!! '%s' isn't a valid type for CanFestival." % typename)
+            raise ValueError(f"!!! '{typename}' isn't a valid type for CanFestival.")
         if typeinfos[2] not in ["visible_string", "domain"]:
             context.internal_types[typename] = typeinfos
     else:
         # FIXME: The !!! is for special UI handling
-        raise ValueError("!!! '%s' isn't a valid type for CanFestival." % typename)
+        raise ValueError(f"!!! '{typename}' isn't a valid type for CanFestival.")
     return typeinfos
 
 
 def compute_value(type_, value):
     if type_ == "visible_string":
-        return '"%s"' % value, ""
+        return f'"{value}"', ""
     if type_ == "domain":
-        return '"%s"' % ''.join(["\\x%2.2x" % ord(char) for char in value]), ""
+        tp = ''.join([f"\\x{ord(char):02x}" for char in value])
+        return f'"{tp}"', ""
     if type_.startswith("real"):
-        return "%f" % value, ""
+        return str(value), ""
     # value is integer; make sure to handle negative numbers correctly
     if value < 0:
-        return "-0x%X" % (-value), "\t/* %s */" % str(value)
-    return "0x%X" % value, "\t/* %s */" % str(value)
+        return f"-0x{-value:X}", f"\t/* {value} */"
+    return f"0x{value:X}", f"\t/* {value} */"
 
 
 def get_type_name(node, typenumber):
     typename = node.GetTypeName(typenumber)
     if typename is None:
         # FIXME: The !!! is for special UI handling
-        raise ValueError("!!! Datatype with value '0x%4.4X' isn't defined in CanFestival." % typenumber)
+        raise ValueError(f"!!! Datatype with value '0x{typenumber:04X}' isn't defined in CanFestival.")
     return typename
 
 
@@ -158,16 +159,16 @@ def generate_file_content(node, headerfilepath, pointers_dict=None):
             typeindex = node.GetEntry(index, 1)
             typename = node.GetTypeName(typeindex)
             typeinfos = get_valid_type_infos(context, typename)
-            context.internal_types[rangename] = (typeinfos[0], typeinfos[1], "valueRange_%d" % num)
+            context.internal_types[rangename] = (typeinfos[0], typeinfos[1], f"valueRange_{num}")
             minvalue = node.GetEntry(index, 2)
             maxvalue = node.GetEntry(index, 3)
-            strDefine += "\n#define valueRange_%d 0x%02X /* Type %s, %s < value < %s */" % (num, index, typeinfos[0], str(minvalue), str(maxvalue))
-            strSwitch += "    case valueRange_%d:\n" % (num)
+            strDefine += f"\n#define valueRange_{num} 0x{index:02X} /* Type {typeinfos[0]}, {minvalue} < value < {maxvalue} */"
+            strSwitch += f"    case valueRange_{num}:\n"
             if typeinfos[3] and minvalue <= 0:
                 strSwitch += "      /* Negative or null low limit ignored because of unsigned type */;\n"
             else:
-                strSwitch += "      if (*(%s*)value < (%s)%s) return OD_VALUE_TOO_LOW;\n" % (typeinfos[0], typeinfos[0], str(minvalue))
-            strSwitch += "      if (*(%s*)value > (%s)%s) return OD_VALUE_TOO_HIGH;\n" % (typeinfos[0], typeinfos[0], str(maxvalue))
+                strSwitch += f"      if (*({typeinfos[0]}*)value < ({typeinfos[0]}){minvalue}) return OD_VALUE_TOO_LOW;\n"
+            strSwitch += f"      if (*({typeinfos[0]}*)value > ({typeinfos[0]}){maxvalue}) return OD_VALUE_TOO_HIGH;\n"
             strSwitch += "    break;\n"
 
     valueRangeContent += strDefine
@@ -204,13 +205,13 @@ def generate_file_content(node, headerfilepath, pointers_dict=None):
             typeinfos = get_valid_type_infos(context, typename, [values])
             if typename == "DOMAIN" and index in variablelist:
                 if not typeinfos[1]:
-                    raise ValueError("Domain variable not initialized, index: 0x%04X, subindex: 0x00" % index)
+                    raise ValueError(f"Domain variable not initialized, index: 0x{index:04X}, subindex: 0x00")
             texts["subIndexType"] = typeinfos[0]
             if typeinfos[1] is not None:
                 if params_infos["buffer_size"]:
-                    texts["suffixe"] = "[%s]" % params_infos["buffer_size"]
+                    texts["suffixe"] = f"[{params_infos['buffer_size']}]"
                 else:
-                    texts["suffixe"] = "[%d]" % typeinfos[1]
+                    texts["suffixe"] = f"[{typeinfos[1]}]"
             else:
                 texts["suffixe"] = ""
             texts["value"], texts["comment"] = compute_value(typeinfos[2], values)
@@ -239,7 +240,7 @@ def generate_file_content(node, headerfilepath, pointers_dict=None):
                 typeinfos = get_valid_type_infos(context, typename, values[1:])
                 texts["subIndexType"] = typeinfos[0]
                 if typeinfos[1] is not None:
-                    texts["suffixe"] = "[%d]" % typeinfos[1]
+                    texts["suffixe"] = f"[{typeinfos[1]}]"
                     texts["type_suffixe"] = "*"
                 else:
                     texts["suffixe"] = ""
@@ -257,8 +258,8 @@ def generate_file_content(node, headerfilepath, pointers_dict=None):
                                 sep = ""
                             value, comment = compute_value(typeinfos[2], value)
                             if len(value) == 2 and typename == "DOMAIN":
-                                raise ValueError("Domain variable not initialized, index : 0x%04X, subindex : 0x%02X" % (index, subindex))
-                            mappedVariableContent += "    %s%s%s\n" % (value, sep, comment)
+                                raise ValueError(f"Domain variable not initialized, index : 0x{index:04X}, subindex : 0x{subindex:02X}")
+                            mappedVariableContent += f"    {value}{sep}{comment}\n"
                     mappedVariableContent += "  };\n"
                 else:
                     strindex += "                    %(subIndexType)s%(type_suffixe)s %(NodeName)s_obj%(index)04X[] = \n                    {\n" % texts
@@ -268,7 +269,7 @@ def generate_file_content(node, headerfilepath, pointers_dict=None):
                             if subindex == len(values) - 1:
                                 sep = ""
                             value, comment = compute_value(typeinfos[2], value)
-                            strindex += "                      %s%s%s\n" % (value, sep, comment)
+                            strindex += f"                      {value}{sep}{comment}\n"
                     strindex += "                    };\n"
             else:
 
@@ -284,9 +285,9 @@ def generate_file_content(node, headerfilepath, pointers_dict=None):
                         texts["subIndexType"] = typeinfos[0]
                         if typeinfos[1] is not None:
                             if params_infos["buffer_size"]:
-                                texts["suffixe"] = "[%s]" % params_infos["buffer_size"]
+                                texts["suffixe"] = f"[{params_infos['buffer_size']}]"
                             else:
-                                texts["suffixe"] = "[%d]" % typeinfos[1]
+                                texts["suffixe"] = f"[{typeinfos[1]}]"
                         else:
                             texts["suffixe"] = ""
                         texts["value"], texts["comment"] = compute_value(typeinfos[2], value)
@@ -297,13 +298,8 @@ def generate_file_content(node, headerfilepath, pointers_dict=None):
                         else:
                             strindex += "                    %(subIndexType)s %(NodeName)s_obj%(index)04X_%(name)s%(suffixe)s = %(value)s;%(comment)s\n" % texts
         headerObjectDefinitionContent += (
-            "\n#define "
-            + RE_NOTW.sub("_", texts["NodeName"])
-            + "_"
-            + RE_NOTW.sub("_", texts["EntryName"])
-            + "_Idx "
-            + str(format(texts["index"], "#04x"))
-            + "\n")
+            f"\n#define {RE_NOTW.sub('_', texts['NodeName'])}_{RE_NOTW.sub('_', texts['EntryName'])}_Idx {texts['index']:#04x}\n"
+        )
 
         # Generating Dictionary C++ entry
         strindex += "                    subindex %(NodeName)s_Index%(index)04X[] = \n                     {\n" % texts
@@ -328,17 +324,17 @@ def generate_file_content(node, headerfilepath, pointers_dict=None):
                 elif index in variablelist:
                     name = format_name(subentry_infos["name"])
                 else:
-                    name = format_name("%s_obj%04X" % (texts["NodeName"], texts["index"]))
+                    name = format_name(f"{texts['NodeName']}_obj{texts['index']:04X}")
             elif entry_infos["struct"] & OD.IdenticalSubindexes:
                 if index in variablelist:
-                    name = "%s[%d]" % (format_name(entry_infos["name"]), subindex - 1)
+                    name = f"{format_name(entry_infos['name'])}[{subindex - 1}]"
                 else:
-                    name = "%s_obj%04X[%d]" % (texts["NodeName"], texts["index"], subindex - 1)
+                    name = f"{texts['NodeName']}_obj{texts['index']:04X}[{subindex - 1}]"
             else:
                 if index in variablelist:
-                    name = format_name("%s_%s" % (entry_infos["name"], subentry_infos["name"]))
+                    name = format_name(f"{entry_infos['name']}_{subentry_infos['name']}")
                 else:
-                    name = "%s_obj%04X_%s" % (texts["NodeName"], texts["index"], format_name(subentry_infos["name"]))
+                    name = f"{texts['NodeName']}_obj{texts['index']:%04X}_{format_name(subentry_infos['name'])}"
             if typeinfos[2] == "visible_string":
                 if params_infos["buffer_size"]:
                     sizeof = params_infos["buffer_size"]
@@ -347,27 +343,22 @@ def generate_file_content(node, headerfilepath, pointers_dict=None):
             elif typeinfos[2] == "domain":
                 sizeof = str(len(values[subindex]))
             else:
-                sizeof = "sizeof (%s)" % typeinfos[0]
+                sizeof = f"sizeof ({typeinfos[0]})"
             params = node.GetParamsEntry(index, subindex)
             if params["save"]:
                 save = "|TO_BE_SAVE"
             else:
                 save = ""
-            strindex += "                       { %s%s, %s, %s, (void*)&%s, NULL }%s\n" % (subentry_infos["access"].upper(), save, typeinfos[2], sizeof, RE_STARTS_WITH_DIGIT.sub(r'_\1', name), sep)
+            start_digit = RE_STARTS_WITH_DIGIT.sub(r'_\1', name)
+            strindex += f"                       {{ {subentry_infos['access'].upper()}{save}, {typeinfos[2]}, {sizeof}, (void*)&{start_digit}, NULL }}{sep}\n"
             pointer_name = pointers_dict.get((index, subindex), None)
             if pointer_name is not None:
-                pointedVariableContent += "%s* %s = &%s;\n" % (typeinfos[0], pointer_name, name)
+                pointedVariableContent += f"{typeinfos[0]}* {pointer_name} = &{name};\n"
             if not entry_infos["struct"] & OD.IdenticalSubindexes:
                 generateSubIndexArrayComment = True
                 headerObjectDefinitionContent += (
-                    "#define "
-                    + RE_NOTW.sub("_", texts["NodeName"])
-                    + "_"
-                    + RE_NOTW.sub("_", texts["EntryName"])
-                    + "_"
-                    + RE_NOTW.sub("_", subentry_infos["name"])
-                    + "_sIdx "
-                    + str(format(subindex, "#04x")))
+                    f"#define {RE_NOTW.sub('_', texts['NodeName'])}_{RE_NOTW.sub('_', texts['EntryName'])}_{RE_NOTW.sub('_', subentry_infos['name'])}_sIdx {subindex:#04x}"
+                )
                 if params_infos["comment"]:
                     headerObjectDefinitionContent += "    /* " + params_infos["comment"] + " */\n"
                 else:
@@ -376,14 +367,8 @@ def generate_file_content(node, headerfilepath, pointers_dict=None):
                 generateSubIndexArrayComment = False
                 # Generate Number_of_Entries_sIdx define and write comment about not generating defines for the rest of the array objects
                 headerObjectDefinitionContent += (
-                    "#define "
-                    + RE_NOTW.sub("_", texts["NodeName"])
-                    + "_"
-                    + RE_NOTW.sub("_", texts["EntryName"])
-                    + "_"
-                    + RE_NOTW.sub("_", subentry_infos["name"])
-                    + "_sIdx " + str(format(subindex, "#04x"))
-                    + "\n")
+                    f"#define {RE_NOTW.sub('_', texts['NodeName'])}_{RE_NOTW.sub('_', texts['EntryName'])}_{RE_NOTW.sub('_', subentry_infos['name'])}_sIdx {subindex:#04x}\n"
+                )
                 headerObjectDefinitionContent += "/* subindex define not generated for array objects */\n"
         strindex += "                     };\n"
         indexContents[index] = strindex
@@ -477,7 +462,7 @@ def generate_file_content(node, headerfilepath, pointers_dict=None):
     for i, index in enumerate(listindex):
         texts["index"] = index
         strDeclareIndex += "  { (subindex*)%(NodeName)s_Index%(index)04X,sizeof(%(NodeName)s_Index%(index)04X)/sizeof(%(NodeName)s_Index%(index)04X[0]), 0x%(index)04X},\n" % texts
-        strDeclareSwitch += "       case 0x%04X: i = %d;break;\n" % (index, i)
+        strDeclareSwitch += f"       case 0x{index:04X}: i = {i};break;\n"
         for cat, idx_min, idx_max in CATEGORIES:
             if idx_min <= index <= idx_max:
                 quick_index["lastIndex"][cat] = i
@@ -487,21 +472,21 @@ def generate_file_content(node, headerfilepath, pointers_dict=None):
                     maxPDOtransmit += 1
     texts["maxPDOtransmit"] = max(1, maxPDOtransmit)
     for index_cat in INDEX_CATEGORIES:
-        strQuickIndex += "\nconst quick_index %s_%s = {\n" % (texts["NodeName"], index_cat)
+        strQuickIndex += f"\nconst quick_index {texts['NodeName']}_{index_cat} = {{\n"
         sep = ","
         for i, (cat, idx_min, idx_max) in enumerate(CATEGORIES):
             if i == len(CATEGORIES) - 1:
                 sep = ""
-            strQuickIndex += "  %d%s /* %s */\n" % (quick_index[index_cat][cat], sep, cat)
+            strQuickIndex += f"  {quick_index[index_cat][cat]}{sep} /* {cat} */\n"
         strQuickIndex += "};\n"
 
 # ------------------------------------------------------------------------------
 #                            Write File Content
 # ------------------------------------------------------------------------------
 
-    fileContent = FILE_HEADER + """
-#include "%s"
-""" % (headerfilepath)
+    fileContent = FILE_HEADER + f"""
+#include "{headerfilepath}"
+"""
 
     fileContent += """
 /**************************************************************************/

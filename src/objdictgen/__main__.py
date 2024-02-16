@@ -63,7 +63,7 @@ def debug_wrapper():
             except Exception as exc:  # pylint: disable=broad-except
                 if opts.show_debug:
                     raise
-                print("{}: {}: {}".format(objdictgen.ODG_PROGRAM, exc.__class__.__name__, exc))
+                print(f"{objdictgen.ODG_PROGRAM}: {exc.__class__.__name__}: {exc}")
                 sys.exit(1)
         return inner
     return decorator
@@ -80,7 +80,7 @@ def open_od(fname, validate=True, fix=False):
 
         return od
     except Exception as exc:
-        jsonod.exc_amend(exc, "{}: ".format(fname))
+        jsonod.exc_amend(exc, f"{fname}: ")
         raise
 
 
@@ -93,25 +93,25 @@ def print_diffs(diffs, show=False):
     def _printlines(entries):
         for chtype, change, path in entries:
             if 'removed' in chtype:
-                print("<<<     {} only in LEFT".format(path))
+                print(f"<<<     {path} only in LEFT")
                 if show:
                     _pprint(change.t1)
             elif 'added' in chtype:
-                print("    >>> {} only in RIGHT".format(path))
+                print(f"    >>> {path} only in RIGHT")
                 if show:
                     _pprint(change.t2)
             elif 'changed' in chtype:
-                print("<< - >> {} value changed from '{}' to '{}'".format(path, change.t1, change.t2))
+                print(f"<< - >> {path} value changed from '{change.t1}' to '{change.t2}'")
             else:
-                print("{}{} {} {}{}".format(Fore.RED, chtype, path, change, Style.RESET_ALL))
+                print(f"{Fore.RED}{chtype} {path} {change}{Style.RESET_ALL}")
 
     rest = diffs.pop('', None)
     if rest:
-        print("{}Changes:{}".format(Fore.GREEN, Style.RESET_ALL))
+        print(f"{Fore.GREEN}Changes:{Style.RESET_ALL}")
         _printlines(rest)
 
     for index in sorted(diffs):
-        print("{0}Index 0x{1:04x} ({1}){2}".format(Fore.GREEN, index, Style.RESET_ALL))
+        print(f"{Fore.GREEN}Index 0x{index:04x} ({index}){Style.RESET_ALL}")
         _printlines(diffs[index])
 
 
@@ -231,7 +231,7 @@ def main(debugopts, args=None):
         for subparsers_action in (a for a in parser._actions
                                   if isinstance(a, argparse._SubParsersAction)):
             for choice, subparser in subparsers_action.choices.items():
-                print("command '{}'".format(choice))
+                print(f"command '{choice}'")
                 for info in subparser.format_help().split('\n'):
                     print("    " + info)
 
@@ -287,10 +287,10 @@ def main(debugopts, args=None):
 
         if diffs:
             errcode = 1
-            print("{}: '{}' and '{}' differ".format(objdictgen.ODG_PROGRAM, opts.od1, opts.od2))
+            print(f"{objdictgen.ODG_PROGRAM}: '{opts.od1}' and '{opts.od2}' differ")
         else:
             errcode = 0
-            print("{}: '{}' and '{}' are equal".format(objdictgen.ODG_PROGRAM, opts.od1, opts.od2))
+            print(f"{objdictgen.ODG_PROGRAM}: '{opts.od1}' and '{opts.od2}' are equal")
 
         print_diffs(diffs, show=opts.show)
         parser.exit(errcode)
@@ -323,7 +323,7 @@ def main(debugopts, args=None):
                 keys = tuple(k for k in keys if k in index)
                 missing = ", ".join((str(k) for k in index if k not in keys))
                 if missing:
-                    parser.error("Unknown index {}".format(missing))
+                    parser.error(f"Unknown index {missing}")
 
             profiles = []
             if od.DS302:
@@ -340,19 +340,20 @@ def main(debugopts, args=None):
             if pname and pname != 'None':
                 loaded, equal = jsonod.compare_profile(pname, od.Profile, od.SpecificMenu)
                 if equal:
-                    extra = "%s (equal)" % pname
+                    extra = f"{pname} (equal)"
                 elif loaded:
-                    extra = "%s (not equal)" % pname
+                    extra = f"{pname} (not equal)"
                 else:
-                    extra = "%s (not loaded)" % pname
+                    extra = f"{pname} (not loaded)"
                 profiles.append(extra)
 
             if not opts.compact:
-                print("File:      %s" % (name))
-                print("Name:      %s  [%s]  %s" % (od.Name, od.Type.upper(), od.Description))
-                print("Profiles:  %s" % (", ".join(profiles) or None))
+                print(f"File:      {name}")
+                print(f"Name:      {od.Name}  [{od.Type.upper()}]  {od.Description}")
+                tp = ", ".join(profiles) or None
+                print(f"Profiles:  {tp}")
                 if od.ID:
-                    print("ID:        %s" % (od.ID))
+                    print(f"ID:        {od.ID}")
                 print("")
 
             if opts.header:
@@ -383,7 +384,7 @@ def main(debugopts, args=None):
 
 
     else:
-        parser.error("Programming error: Uknown option '%s'" % (opts.command))
+        parser.error(f"Programming error: Uknown option '{opts.command}'")
 
 
 def main_objdictgen():
@@ -391,7 +392,7 @@ def main_objdictgen():
 
     def usage():
         print("\nUsage of objdictgen :")
-        print("\n   %s XMLFilePath CFilePath\n" % sys.argv[0])
+        print(f"\n   {sys.argv[0]} XMLFilePath CFilePath\n")
 
     try:
         opts, args = getopt.getopt(sys.argv[1:], "h", ["help"])

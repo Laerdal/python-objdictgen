@@ -35,7 +35,7 @@ log = logging.getLogger('objdictgen')
 
 def usage():
     print("\nUsage of networkedit.py :")
-    print("\n   %s [Projectpath]\n" % sys.argv[0])
+    print(f"\n   {sys.argv[0]} [Projectpath]\n")
 
 
 [
@@ -229,7 +229,7 @@ class NetworkEdit(wx.Frame, NetworkEditorTemplate):
                     self.RefreshNetworkNodes()
                     self.RefreshProfileMenu()
                 except Exception as exc:
-                    log.debug("Exception: %s" % exc)
+                    log.debug("Exception: %s", exc)
                     raise  # FIXME: Temporary. Orginal code swallows exception
             else:
                 self.NodeList = None
@@ -344,7 +344,7 @@ class NetworkEdit(wx.Frame, NetworkEditorTemplate):
 
     def RefreshTitle(self):
         if self.NodeList is not None:
-            self.SetTitle("Networkedit - %s" % self.NodeList.NetworkName)
+            self.SetTitle(f"Networkedit - {self.NodeList.NetworkName}")
         else:
             self.SetTitle("Networkedit")
 
