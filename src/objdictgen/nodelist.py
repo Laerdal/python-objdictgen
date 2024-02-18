@@ -1,3 +1,4 @@
+"""Module to manage a list of nodes for a CANOpen network."""
 #
 # Copyright (C) 2022-2024  Svein Seldal, Laerdal Medical AS
 # Copyright (C): Edouard TISSERANT, Francis DUPIN and Laurent BESSARD
@@ -128,7 +129,9 @@ class NodeList:
         if os.path.isfile(masterpath):
             index = self.Manager.OpenFileInCurrent(masterpath)
         else:
-            index = self.Manager.CreateNewNode("MasterNode", 0x00, "master", "", "None", "", "Heartbeat", ["DS302"])
+            index = self.Manager.CreateNewNode(
+                "MasterNode", 0x00, "master", "", "None", "", "Heartbeat", ["DS302"]
+            )
         return index
 
     def SaveMasterNode(self, netname=None):

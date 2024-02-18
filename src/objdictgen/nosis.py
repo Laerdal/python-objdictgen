@@ -43,9 +43,6 @@ TYPE_IN_BODY = {
     str: 1,
 }
 
-def getInBody(typename):
-    return TYPE_IN_BODY.get(typename) or 0
-
 # pylint: disable=invalid-name
 pat_fl = r'[-+]?(((((\d+)?[.]\d+|\d+[.])|\d+)[eE][+-]?\d+)|((\d+)?[.]\d+|\d+[.]))'
 re_float = re.compile(pat_fl + r'$')
@@ -113,19 +110,21 @@ def aton(s):
 def ntoa(num: int|float|complex) -> str:
     """Convert a number to a string without calling repr()"""
     if isinstance(num, int):
-        s = str(num)
-    elif isinstance(num, float):
+        return str(num)
+
+    if isinstance(num, float):
         s = f"{num:.17g}"
         # ensure a '.', adding if needed (unless in scientific notation)
         if '.' not in s and 'e' not in s:
             s = s + '.'
-    elif isinstance(num, complex):
+        return s
+
+    if isinstance(num, complex):
         # these are always used as doubles, so it doesn't
         # matter if the '.' shows up
-        s = f"{num.real:.17g}+{num.imag:.17g}j"
-    else:
-        raise ValueError(f"Unknown numeric type: {repr(num)}")
-    return s
+        return f"{num.real:.17g}+{num.imag:.17g}j"
+
+    raise ValueError(f"Unknown numeric type: {repr(num)}")
 
 
 XML_QUOTES = (
@@ -138,15 +137,12 @@ XML_QUOTES = (
 
 
 def safe_string(s):
-    # markup XML entities
-    s = s.replace('&', '&amp;')
-    s = s.replace('<', '&lt;')
-    s = s.replace('>', '&gt;')
-    s = s.replace('"', '&quot;')
-    s = s.replace("'", '&apos;')
+    """Quote XML entries"""
+
+    for repl in XML_QUOTES:
+        s = s.replace(repl[0], repl[1])
     # for others, use Python style escapes
-    s = repr(s)
-    return s[1:-1]  # without the extra single-quotes
+    return repr(s)[1:-1]  # without the extra single-quotes
 
 
 def unsafe_string(s):
@@ -163,11 +159,10 @@ def unsafe_string(s):
 
 def safe_content(s):
     """Markup XML entities and strings so they're XML & unicode-safe"""
-    s = s.replace('&', '&amp;')
-    s = s.replace('<', '&lt;')
-    s = s.replace('>', '&gt;')
-
-    return s  # To be able to be used with py3
+    # Quote XML entries
+    for repl in XML_QUOTES:
+        s = s.replace(repl[0], repl[1])
+    return s
 
     # # wrap "regular" python strings as unicode
     # if isinstance(s, str):
@@ -248,7 +243,7 @@ def get_node_valuetext(node):
     # a value= attribute. ie. pickler can place it in either
     # place (based on user preference) and unpickler doesn't care
 
-    if 'value' in node._attrs:
+    if 'value' in node._attrs:  # pylint: disable=protected-access
         # text in tag
         ttext = node.getAttribute('value')
         return unsafe_string(ttext)
@@ -333,7 +328,9 @@ def xmldump(iohandle=None, obj=None, binary=0, deepcopy=None, omit=None):
     """Create the XML representation as a string."""
     if deepcopy is None:
         deepcopy = 0
-    return _pickle_toplevel_obj(StreamWriter(iohandle, binary), obj, deepcopy, omit)
+    return _pickle_toplevel_obj(
+        StreamWriter(iohandle, binary), obj, deepcopy, omit,
+    )
 
 
 def xmlload(filehandle):
@@ -404,8 +401,9 @@ def pickle_instance(obj, list_, level=0, deepcopy=0, omit=None):
     #   1. the object attributes (the "stuff")
     #
     # There is a twist to this -- instead of always putting the "stuff"
-    # into a container, we can make the elements of "stuff" first-level attributes,
-    # which gives a more natural-looking XML representation of the object.
+    # into a container, we can make the elements of "stuff" first-level
+    # attributes, which gives a more natural-looking XML representation of the
+    # object.
 
     stuff = obj.__dict__
 
@@ -423,7 +421,8 @@ def pickle_instance(obj, list_, level=0, deepcopy=0, omit=None):
 
 
 def unpickle_instance(node):
-    """Take a <PyObject> or <.. type="PyObject"> DOM node and unpickle the object."""
+    """Take a <PyObject> or <.. type="PyObject"> DOM node and unpickle
+    the object."""
 
     # we must first create an empty obj of the correct	type and place
     # it in VISITED{} (so we can handle self-refs within the object)
@@ -537,6 +536,23 @@ def _family_type(family, typename, mtype, mextra):
     return f'family="{family}" type="{typename}"'
 
 
+# Encodings for builtin types.
+TYPENAMES = {
+    'None': 'none',
+    'dict': 'map',
+    'list': 'seq',
+    'tuple': 'seq',
+    'numeric': 'atom',
+    'string': 'atom',
+    'bytes': 'atom',
+    'PyObject': 'obj',
+    'function': 'lang',
+    'class': 'lang',
+    'True': 'uniq',
+    'False': 'uniq',
+}
+
+
 def _fix_family(family, typename):
     """
     If family is None or empty, guess family based on typename.
@@ -545,35 +561,19 @@ def _fix_family(family, typename):
     if family and len(family):
         return family  # sometimes it's None, sometimes it's empty ...
 
-    if typename == 'None':
-        return 'none'
-    if typename == 'dict':
-        return 'map'
-    if typename == 'list':
-        return 'seq'
-    if typename == 'tuple':
-        return 'seq'
-    if typename == 'numeric':
-        return 'atom'
-    if typename == 'string':
-        return 'atom'
-    if typename == 'PyObject':
-        return 'obj'
-    if typename == 'function':
-        return 'lang'
-    if typename == 'class':
-        return 'lang'
-    if typename == 'True':
-        return 'uniq'
-    if typename == 'False':
-        return 'uniq'
+    typename = TYPENAMES.get(typename)
+    if typename is not None:
+        return typename
     raise ValueError(f"family= must be given for unknown type '{typename}'")
 
 
 def _tag_completer(start_tag, orig_thing, close_tag, level, deepcopy):
     tag_body = []
 
-    (mtag, thing, in_body, mextra) = (None, orig_thing, getInBody(type(orig_thing)), None)
+    mtag = None
+    thing = orig_thing
+    in_body = TYPE_IN_BODY.get(type(orig_thing), 0)
+    mextra = None
 
     if thing is None:
         ft = _family_type('none', 'None', None, None)

@@ -1,3 +1,4 @@
+"""Template for the NodeEditor class."""
 #
 # Copyright (C) 2022-2024  Svein Seldal, Laerdal Medical AS
 # Copyright (C): Edouard TISSERANT, Francis DUPIN and Laurent BESSARD
@@ -25,6 +26,7 @@ from objdictgen.ui.exception import display_error_dialog, display_exception_dial
 
 
 class NodeEditorTemplate:
+    """Template for the NodeEditor class."""
 
     EDITMENU_ID = None
 
@@ -120,7 +122,9 @@ class NodeEditorTemplate:
                     self.Frame.AddMenu.AppendSeparator()
                     for text, _ in self.Manager.GetCurrentSpecificMenu():
                         new_id = wx.NewId()
-                        self.Frame.AddMenu.Append(helpString='', id=new_id, kind=wx.ITEM_NORMAL, item=text)
+                        self.Frame.AddMenu.Append(
+                            helpString='', id=new_id,kind=wx.ITEM_NORMAL, item=text,
+                        )
                         self.Frame.Bind(wx.EVT_MENU, self.GetProfileCallBack(text), id=new_id)
                 else:
                     edititem.SetItemLabel("Other Profile")
@@ -161,33 +165,31 @@ class NodeEditorTemplate:
         self.EditProfile(title, dictionary, current)
 
     def EditProfile(self, title, dictionary, current):
-        dialog = cdia.CommunicationDialog(self.Frame)
-        dialog.SetTitle(title)
-        dialog.SetIndexDictionary(dictionary)
-        dialog.SetCurrentList(current)
-        dialog.RefreshLists()
-        if dialog.ShowModal() == wx.ID_OK:
-            new_profile = dialog.GetCurrentList()
-            addinglist = []
-            removinglist = []
-            for index in new_profile:
-                if index not in current:
-                    addinglist.append(index)
-            for index in current:
-                if index not in new_profile:
-                    removinglist.append(index)
-            self.Manager.ManageEntriesOfCurrent(addinglist, removinglist)
-            self.Manager.BufferCurrentNode()
-            self.RefreshBufferState()
-
-        dialog.Destroy()
+        with cdia.CommunicationDialog(self.Frame) as dialog:
+            dialog.SetTitle(title)
+            dialog.SetIndexDictionary(dictionary)
+            dialog.SetCurrentList(current)
+            dialog.RefreshLists()
+            if dialog.ShowModal() == wx.ID_OK:
+                new_profile = dialog.GetCurrentList()
+                addinglist = []
+                removinglist = []
+                for index in new_profile:
+                    if index not in current:
+                        addinglist.append(index)
+                for index in current:
+                    if index not in new_profile:
+                        removinglist.append(index)
+                self.Manager.ManageEntriesOfCurrent(addinglist, removinglist)
+                self.Manager.BufferCurrentNode()
+                self.RefreshBufferState()
 
     def GetProfileCallBack(self, text):
-        def ProfileCallBack(event):  # pylint: disable=unused-argument
+        def profile_cb(event):  # pylint: disable=unused-argument
             self.Manager.AddSpecificEntryToCurrent(text)
             self.RefreshBufferState()
             self.RefreshCurrentIndexList()
-        return ProfileCallBack
+        return profile_cb
 
 # ------------------------------------------------------------------------------
 #                         Edit Node informations function
@@ -213,27 +215,25 @@ class NodeEditorTemplate:
     def AddMapVariable(self):
         index = self.Manager.GetCurrentNextMapIndex()
         if index:
-            dialog = cdia.MapVariableDialog(self.Frame)
-            dialog.SetIndex(index)
-            if dialog.ShowModal() == wx.ID_OK:
-                try:
-                    self.Manager.AddMapVariableToCurrent(*dialog.GetValues())
-                    self.RefreshBufferState()
-                    self.RefreshCurrentIndexList()
-                except Exception as exc:  # pylint: disable=broad-except
-                    display_exception_dialog(self.Frame)
-            dialog.Destroy()
+            with cdia.MapVariableDialog(self.Frame) as dialog:
+                dialog.SetIndex(index)
+                if dialog.ShowModal() == wx.ID_OK:
+                    try:
+                        self.Manager.AddMapVariableToCurrent(*dialog.GetValues())
+                        self.RefreshBufferState()
+                        self.RefreshCurrentIndexList()
+                    except Exception:  # pylint: disable=broad-except
+                        display_exception_dialog(self.Frame)
         else:
             display_error_dialog(self.Frame, "No map variable index left!")
 
     def AddUserType(self):
-        dialog = cdia.UserTypeDialog(self)
-        dialog.SetTypeList(self.Manager.GetCustomisableTypes())
-        if dialog.ShowModal() == wx.ID_OK:
-            try:
-                self.Manager.AddUserTypeToCurrent(*dialog.GetValues())
-                self.RefreshBufferState()
-                self.RefreshCurrentIndexList()
-            except Exception as exc:  # pylint: disable=broad-except
-                display_exception_dialog(self.Frame)
-        dialog.Destroy()
+        with cdia.UserTypeDialog(self) as dialog:
+            dialog.SetTypeList(self.Manager.GetCustomisableTypes())
+            if dialog.ShowModal() == wx.ID_OK:
+                try:
+                    self.Manager.AddUserTypeToCurrent(*dialog.GetValues())
+                    self.RefreshBufferState()
+                    self.RefreshCurrentIndexList()
+                except Exception:  # pylint: disable=broad-except
+                    display_exception_dialog(self.Frame)

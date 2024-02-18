@@ -1,3 +1,4 @@
+"""Network Editor Template."""
 #
 # Copyright (C) 2022-2024  Svein Seldal, Laerdal Medical AS
 # Copyright (C): Edouard TISSERANT, Francis DUPIN and Laurent BESSARD
@@ -30,14 +31,19 @@ from objdictgen.ui.exception import display_exception_dialog
 
 
 class NetworkEditorTemplate(net.NodeEditorTemplate):
+    """Network Editor Template."""
     # pylint: disable=attribute-defined-outside-init
 
     def _init_ctrls(self, prnt):
-        self.NetworkNodes = wx.Notebook(id=ID_NETWORKEDITNETWORKNODES,
-              name='NetworkNodes', parent=prnt, pos=wx.Point(0, 0),
-              size=wx.Size(0, 0), style=wx.NB_LEFT)
-        self.NetworkNodes.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED,
-              self.OnNodeSelectedChanged, id=ID_NETWORKEDITNETWORKNODES)
+        self.NetworkNodes = wx.Notebook(
+            id=ID_NETWORKEDITNETWORKNODES,
+            name='NetworkNodes', parent=prnt, pos=wx.Point(0, 0),
+            size=wx.Size(0, 0), style=wx.NB_LEFT,
+        )
+        self.NetworkNodes.Bind(
+            wx.EVT_NOTEBOOK_PAGE_CHANGED,
+            self.OnNodeSelectedChanged, id=ID_NETWORKEDITNETWORKNODES
+        )
 
     def __init__(self, manager, frame, mode_solo):
         self.NodeList = manager
@@ -76,7 +82,8 @@ class NetworkEditorTemplate(net.NodeEditorTemplate):
             if selected >= 0:
                 window = self.NetworkNodes.GetPage(selected)
                 self.NodeList.CurrentSelected = window.GetIndex()
-            wx.CallAfter(self.RefreshMainMenu)  # FIXME: Missing symbol. From where?
+            raise NotImplementedError("Missing unknown symbol. Please report this issue.")
+            # wx.CallAfter(self.RefreshMainMenu)  # FIXME: Missing symbol. From where?
             wx.CallAfter(self.RefreshStatusBar)
         event.Skip()
 
@@ -100,43 +107,49 @@ class NetworkEditorTemplate(net.NodeEditorTemplate):
 # ------------------------------------------------------------------------------
 
     def OnAddSlaveMenu(self, event):  # pylint: disable=unused-argument
-        dialog = cdia.AddSlaveDialog(self.Frame)
-        dialog.SetNodeList(self.NodeList)
-        if dialog.ShowModal() == wx.ID_OK:
+        with cdia.AddSlaveDialog(self.Frame) as dialog:
+            dialog.SetNodeList(self.NodeList)
+            if dialog.ShowModal() != wx.ID_OK:
+                return
             values = dialog.GetValues()
-            try:
-                self.NodeList.AddSlaveNode(values["slaveName"], values["slaveNodeID"], values["edsFile"])
-                new_editingpanel = sit.EditingPanel(self.NetworkNodes, self, self.NodeList, False)
-                new_editingpanel.SetIndex(values["slaveNodeID"])
-                idx = self.NodeList.GetOrderNumber(values["slaveNodeID"])
-                self.NetworkNodes.InsertPage(idx, new_editingpanel, "")
-                self.NodeList.CurrentSelected = idx
-                self.NetworkNodes.SetSelection(idx)
-                self.RefreshBufferState()
-            except Exception as exc:  # pylint: disable=broad-except
-                display_exception_dialog(self.Frame)
-        dialog.Destroy()
+
+        try:
+            self.NodeList.AddSlaveNode(
+                values["slaveName"], values["slaveNodeID"], values["edsFile"],
+            )
+            new_editingpanel = sit.EditingPanel(self.NetworkNodes, self, self.NodeList, False)
+            new_editingpanel.SetIndex(values["slaveNodeID"])
+            idx = self.NodeList.GetOrderNumber(values["slaveNodeID"])
+            self.NetworkNodes.InsertPage(idx, new_editingpanel, "")
+            self.NodeList.CurrentSelected = idx
+            self.NetworkNodes.SetSelection(idx)
+            self.RefreshBufferState()
+        except Exception:  # pylint: disable=broad-except
+            display_exception_dialog(self.Frame)
 
     def OnRemoveSlaveMenu(self, event):  # pylint: disable=unused-argument
         slavenames = self.NodeList.GetSlaveNames()
         slaveids = self.NodeList.GetSlaveIDs()
-        dialog = wx.SingleChoiceDialog(self.Frame, "Choose a slave to remove", "Remove slave", slavenames)
-        if dialog.ShowModal() == wx.ID_OK:
+        with wx.SingleChoiceDialog(
+            self.Frame, "Choose a slave to remove", "Remove slave", slavenames,
+        ) as dialog:
+            if dialog.ShowModal() != wx.ID_OK:
+                return
             choice = dialog.GetSelection()
-            try:
-                self.NodeList.RemoveSlaveNode(slaveids[choice])
-                slaveids.pop(choice)
-                current = self.NetworkNodes.GetSelection()
-                self.NetworkNodes.DeletePage(choice + 1)
-                if self.NetworkNodes.GetPageCount() > 0:
-                    new_selection = min(current, self.NetworkNodes.GetPageCount() - 1)
-                    self.NetworkNodes.SetSelection(new_selection)
-                    if new_selection > 0:
-                        self.NodeList.CurrentSelected = slaveids[new_selection - 1]
-                self.RefreshBufferState()
-            except Exception as exc:  # pylint: disable=broad-except
-                display_exception_dialog(self.Frame)
-        dialog.Destroy()
+
+        try:
+            self.NodeList.RemoveSlaveNode(slaveids[choice])
+            slaveids.pop(choice)
+            current = self.NetworkNodes.GetSelection()
+            self.NetworkNodes.DeletePage(choice + 1)
+            if self.NetworkNodes.GetPageCount() > 0:
+                new_selection = min(current, self.NetworkNodes.GetPageCount() - 1)
+                self.NetworkNodes.SetSelection(new_selection)
+                if new_selection > 0:
+                    self.NodeList.CurrentSelected = slaveids[new_selection - 1]
+            self.RefreshBufferState()
+        except Exception:  # pylint: disable=broad-except
+            display_exception_dialog(self.Frame)
 
     def OpenMasterDCFDialog(self, node_id):
         self.NetworkNodes.SetSelection(0)

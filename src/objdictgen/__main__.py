@@ -1,4 +1,4 @@
-"""Main entry point for objdictgen"""
+"""Main entry point for objdictgen / odg."""
 #
 # Copyright (C) 2022-2024  Svein Seldal, Laerdal Medical AS
 #
@@ -45,6 +45,7 @@ class DebugOpts:
     show_debug: bool = field(default=False)
 
     def set_debug(self, dbg):
+        """Set debug level"""
         self.show_debug = dbg
 
         log.setLevel(logging.DEBUG)
@@ -85,6 +86,7 @@ def open_od(fname, validate=True, fix=False):
 
 
 def print_diffs(diffs, show=False):
+    """ Print the differences between two object dictionaries"""
 
     def _pprint(text):
         for line in pformat(text).splitlines():
@@ -154,15 +156,20 @@ def main(debugopts, args=None):
     """, aliases=['gen', 'conv'])
     subp.add_argument('od', **opt_od)
     subp.add_argument('out', default=None, help="Output file")
-    subp.add_argument('-i', '--index', action="append", help="OD Index to include. Filter out the rest.")
+    subp.add_argument('-i', '--index', action="append",
+                        help="OD Index to include. Filter out the rest.")
     subp.add_argument('-x', '--exclude', action="append", help="OD Index to exclude.")
     subp.add_argument('-f', '--fix', action="store_true",
-                      help="Fix any inconsistency errors in OD before generate output")
-    subp.add_argument('-t', '--type', choices=['od', 'eds', 'json', 'c'], help="Select output file type")
+                        help="Fix any inconsistency errors in OD before generate output")
+    subp.add_argument('-t', '--type', choices=['od', 'eds', 'json', 'c'],
+                        help="Select output file type")
     subp.add_argument('--drop-unused', action="store_true", help="Remove unused parameters")
-    subp.add_argument('--internal', action="store_true", help="Store in internal format (json only)")
-    subp.add_argument('--nosort', action="store_true", help="Don't order of parameters in output OD")
-    subp.add_argument('--novalidate', action="store_true", help="Don't validate files before conversion")
+    subp.add_argument('--internal', action="store_true",
+                        help="Store in internal format (json only)")
+    subp.add_argument('--nosort', action="store_true",
+                        help="Don't order of parameters in output OD")
+    subp.add_argument('--novalidate', action="store_true",
+                        help="Don't validate files before conversion")
     subp.add_argument('-D', '--debug', **opt_debug)
 
     # -- DIFF --
@@ -172,7 +179,8 @@ def main(debugopts, args=None):
     subp.add_argument('od1', **opt_od)
     subp.add_argument('od2', **opt_od)
     subp.add_argument('--internal', action="store_true", help="Diff internal object")
-    subp.add_argument('--novalidate', action="store_true", help="Don't validate input files before diff")
+    subp.add_argument('--novalidate', action="store_true",
+                        help="Don't validate input files before diff")
     subp.add_argument('--show', action="store_true", help="Show difference data")
     subp.add_argument('-D', '--debug', **opt_debug)
 
@@ -189,7 +197,8 @@ def main(debugopts, args=None):
     """)
     subp.add_argument('od', nargs="+", help="Object dictionary")
     subp.add_argument('-i', '--index', action="append", help="Specify parameter index to show")
-    subp.add_argument('--all', action="store_true", help="Show all subindexes, including subindex 0")
+    subp.add_argument('--all', action="store_true",
+                        help="Show all subindexes, including subindex 0")
     subp.add_argument('--asis', action="store_true", help="Do not sort output")
     subp.add_argument('--compact', action="store_true", help="Compact listing")
     subp.add_argument('--header', action="store_true", help="List header only")
@@ -228,8 +237,10 @@ def main(debugopts, args=None):
         parser.print_help()
         print()
 
-        for subparsers_action in (a for a in parser._actions
-                                  if isinstance(a, argparse._SubParsersAction)):
+        for subparsers_action in (
+                a for a in parser._actions  # pylint: disable=protected-access
+                if isinstance(a, argparse._SubParsersAction)  # pylint: disable=protected-access
+        ):
             for choice, subparser in subparsers_action.choices.items():
                 print(f"command '{choice}'")
                 for info in subparser.format_help().split('\n'):

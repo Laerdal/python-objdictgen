@@ -43,12 +43,14 @@ RE_NODEDCFNAME = re.compile(r'NODE([0-9]{1,3})DCFNAME$')
 BOOL_TRANSLATE = {True: "1", False: "0"}
 
 # Dictionary for quickly translate eds access value into canfestival access value
-ACCESS_TRANSLATE = {"RO": "ro", "WO": "wo", "RW": "rw", "RWR": "rw", "RWW": "rw", "CONST": "ro"}
+ACCESS_TRANSLATE = {
+    "RO": "ro", "WO": "wo", "RW": "rw", "RWR": "rw", "RWW": "rw", "CONST": "ro"
+}
 
 # Function for verifying data values
-is_integer = lambda x: isinstance(x, int)  # noqa: E731
-is_string = lambda x: isinstance(x, str)  # noqa: E731
-is_boolean = lambda x: x in (0, 1)  # noqa: E731
+is_integer = lambda x: isinstance(x, int)  # pylint: disable=unnecessary-lambda-assignment  # noqa: E731
+is_string = lambda x: isinstance(x, str)  # pylint: disable=unnecessary-lambda-assignment  # noqa: E731
+is_boolean = lambda x: x in (0, 1)  # pylint: disable=unnecessary-lambda-assignment  # noqa: E731
 
 # Define checking of value for each attribute
 ENTRY_ATTRIBUTES = {
@@ -75,7 +77,7 @@ ENTRY_TYPES = {
     7: {"name": " VAR",
         "require": ["PARAMETERNAME", "DATATYPE", "ACCESSTYPE"],
         "optional": ["OBJECTTYPE", "DEFAULTVALUE", "PDOMAPPING", "LOWLIMIT",
-                     "HIGHLIMIT", "OBJFLAGS", "PARAMETERVALUE"]},
+                    "HIGHLIMIT", "OBJFLAGS", "PARAMETERVALUE"]},
     8: {"name": "n ARRAY",
         "require": ["PARAMETERNAME", "OBJECTTYPE", "SUBNUMBER"],
         "optional": ["OBJFLAGS"]},
@@ -85,9 +87,9 @@ ENTRY_TYPES = {
 }
 
 
-# Function that search into Node Mappings the informations about an index or a subindex
-# and return the default value
 def get_default_value(node, index, subindex=None):
+    """Function that search into Node Mappings the informations about an index
+    or a subindex and return the default value."""
     infos = node.GetEntryInfos(index)
     if infos["struct"] & OD.MultipleSubindexes:
         # First case entry is a array
@@ -123,27 +125,29 @@ SECTION_KEYNAMES = ["FILEINFO", "DEVICEINFO", "DUMMYUSAGE", "COMMENTS",
                     "STANDARDDATATYPES", "SUPPORTEDMODULES"]
 
 
-# Function that extract sections from a file and returns a dictionary of the informations
-def extract_sections(file):
+def extract_sections(data):
+    """Extract sections from a file and returns a dictionary of the informations"""
     return [
-        (blocktuple[0],                   # EntryName : Assignements dict
-         blocktuple[-1].splitlines())     # all the lines
+        (
+            blocktuple[0],                # EntryName : Assignements dict
+            blocktuple[-1].splitlines(),  # all the lines
+        )
         for blocktuple in [               # Split the eds files into
             block.split("]", 1)           # (EntryName,Assignements) tuple
             for block in                  # for each blocks staring with '['
-            ("\n" + file).split("\n[")]
+            ("\n" + data).split("\n[")]
         if blocktuple[0].isalnum()]       # if EntryName exists
 
 
-# Function that parse an CPJ file and returns a dictionary of the informations
 def parse_cpj_file(filepath):
+    """Parse a CPJ file and return a list of dictionaries of the informations"""
     networks = []
 
     # Read file text
     with open(filepath, "r") as f:
-        cpj_file = f.read()
+        cpj_data = f.read()
 
-    sections = extract_sections(cpj_file)
+    sections = extract_sections(cpj_data)
     # Parse assignments for each section
     for section_name, assignments in sections:
 
@@ -173,7 +177,10 @@ def parse_cpj_file(filepath):
                             try:
                                 computed_value = int(value, 16)
                             except ValueError:
-                                raise ValueError(f"'{value}' is not a valid value for attribute '{keyname}' of section '[{section_name}]'") from None
+                                raise ValueError(
+                                    f"'{value}' is not a valid value for attribute '{keyname}' "
+                                    f"of section '[{section_name}]'"
+                                ) from None
                         elif value.isdigit() or value.startswith("-") and value[1:].isdigit():
                             # Second case, value is a number and starts with "0" or "-0", then it's an octal value
                             if value.startswith("0") or value.startswith("-0"):
@@ -192,33 +199,51 @@ def parse_cpj_file(filepath):
 
                         if keyname.upper() == "NETNAME":
                             if not is_string(computed_value):
-                                raise ValueError(f"Invalid value '{value}' for keyname '{keyname}' of section '[{section_name}]'")
+                                raise ValueError(
+                                    f"Invalid value '{value}' for keyname '{keyname}' "
+                                    f"of section '[{section_name}]'"
+                                )
                             topology["Name"] = computed_value
                         elif keyname.upper() == "NODES":
                             if not is_integer(computed_value):
-                                raise ValueError(f"Invalid value '{value}' for keyname '{keyname}' of section '[{section_name}]'")
+                                raise ValueError(
+                                    f"Invalid value '{value}' for keyname '{keyname}' "
+                                    f"of section '[{section_name}]'"
+                                )
                             topology["Number"] = computed_value
                         elif keyname.upper() == "EDSBASENAME":
                             if not is_string(computed_value):
-                                raise ValueError(f"Invalid value '{value}' for keyname '{keyname}' of section '[{section_name}]'")
+                                raise ValueError(
+                                    f"Invalid value '{value}' for keyname '{keyname}' "
+                                    f"of section '[{section_name}]'"
+                                )
                             topology["Path"] = computed_value
                         elif nodepresent_result:
                             if not is_boolean(computed_value):
-                                raise ValueError(f"Invalid value '{value}' for keyname '{keyname}' of section '[{section_name}]'")
+                                raise ValueError(
+                                    f"Invalid value '{value}' for keyname '{keyname}' "
+                                    "of section '[{section_name}]'"
+                                )
                             nodeid = int(nodepresent_result.groups()[0])
                             if nodeid not in topology["Nodes"]:
                                 topology["Nodes"][nodeid] = {}
                             topology["Nodes"][nodeid]["Present"] = computed_value
                         elif nodename_result:
                             if not is_string(value):
-                                raise ValueError(f"Invalid value '{value}' for keyname '{keyname}' of section '[{section_name}]'")
+                                raise ValueError(
+                                    f"Invalid value '{value}' for keyname '{keyname}' "
+                                    f"of section '[{section_name}]'"
+                                )
                             nodeid = int(nodename_result.groups()[0])
                             if nodeid not in topology["Nodes"]:
                                 topology["Nodes"][nodeid] = {}
                             topology["Nodes"][nodeid]["Name"] = computed_value
                         elif nodedcfname_result:
                             if not is_string(computed_value):
-                                raise ValueError(f"Invalid value '{value}' for keyname '{keyname}' of section '[{section_name}]'")
+                                raise ValueError(
+                                    f"Invalid value '{value}' for keyname '{keyname}' "
+                                    f"of section '[{section_name}]'"
+                                )
                             nodeid = int(nodedcfname_result.groups()[0])
                             if nodeid not in topology["Nodes"]:
                                 topology["Nodes"][nodeid] = {}
@@ -249,8 +274,8 @@ def parse_cpj_file(filepath):
     return networks
 
 
-# Function that parse an EDS file and returns a dictionary of the informations
 def parse_eds_file(filepath):
+    """Parse an EDS file and returns a dictionary of the informations"""
     eds_dict = {}
 
     # Read file text
@@ -333,13 +358,19 @@ def parse_eds_file(filepath):
                             _ = int(value.upper().replace("$NODEID+", ""), 16)
                             computed_value = f'"{value}"'
                         except ValueError:
-                            raise ValueError(f"'{value}' is not a valid formula for attribute '{keyname}' of section '[{section_name}]'") from None
+                            raise ValueError(
+                                f"'{value}' is not a valid formula for attribute '{keyname}' "
+                                f"of section '[{section_name}]'"
+                            ) from None
                     # Second case, value starts with "0x", then it's an hexadecimal value
                     elif value.startswith("0x") or value.startswith("-0x"):
                         try:
                             computed_value = int(value, 16)
                         except ValueError:
-                            raise ValueError(f"'{value}' is not a valid value for attribute '{keyname}' of section '[{section_name}]'") from None
+                            raise ValueError(
+                                f"'{value}' is not a valid value for attribute '{keyname}' "
+                                f"of section '[{section_name}]'"
+                            ) from None
                     elif value.isdigit() or value.startswith("-") and value[1:].isdigit():
                         # Third case, value is a number and starts with "0", then it's an octal value
                         if value.startswith("0") or value.startswith("-0"):
@@ -358,10 +389,14 @@ def parse_eds_file(filepath):
                         if is_entry:
                             # Verify that keyname is a possible attribute
                             if keyname.upper() not in ENTRY_ATTRIBUTES:
-                                raise ValueError(f"Keyname '{keyname}' not recognised for section '[{section_name}]'")
+                                raise ValueError(
+                                    f"Keyname '{keyname}' not recognised for section '[{section_name}]'"
+                                )
                             # Verify that value is valid
                             if not ENTRY_ATTRIBUTES[keyname.upper()](computed_value):
-                                raise ValueError(f"Invalid value '{value}' for keyname '{keyname}' of section '[{section_name}]'")
+                                raise ValueError(
+                                    f"Invalid value '{value}' for keyname '{keyname}' of section '[{section_name}]'"
+                                )
                             values[keyname.upper()] = computed_value
                         else:
                             values[keyname.upper()] = computed_value
@@ -377,8 +412,10 @@ def parse_eds_file(filepath):
             keys = set(values)
             keys.discard("subindexes")
             # Extract possible parameters and parameters required
-            possible = set(ENTRY_TYPES[values["OBJECTTYPE"]]["require"]
-                           + ENTRY_TYPES[values["OBJECTTYPE"]]["optional"])
+            possible = set(
+                ENTRY_TYPES[values["OBJECTTYPE"]]["require"]
+                + ENTRY_TYPES[values["OBJECTTYPE"]]["optional"]
+            )
             required = set(ENTRY_TYPES[values["OBJECTTYPE"]]["require"])
             # Verify that parameters defined contains all the parameters required
             if not keys.issuperset(required):
@@ -388,7 +425,10 @@ def parse_eds_file(filepath):
                     attributes = f"Attributes {tp} are"
                 else:
                     attributes = f"Attribute '{missing.pop()}' is"
-                raise ValueError(f"Error on section '[{section_name}]': '{attributes}' required for a '{ENTRY_TYPES[values['OBJECTTYPE']]['name']}' entry")
+                raise ValueError(
+                    f"Error on section '[{section_name}]': '{attributes}' required "
+                    f"for a '{ENTRY_TYPES[values['OBJECTTYPE']]['name']}' entry"
+                )
             # Verify that parameters defined are all in the possible parameters
             if not keys.issubset(possible):
                 unsupported = keys.difference(possible)
@@ -397,7 +437,10 @@ def parse_eds_file(filepath):
                     attributes = f"Attributes {tp} are"
                 else:
                     attributes = f"Attribute '{unsupported.pop()}' is"
-                raise ValueError(f"Error on section '[{section_name}]': '{attributes}' unsupported for a '{ENTRY_TYPES[values['OBJECTTYPE']]['name']}' entry")
+                raise ValueError(
+                    f"Error on section '[{section_name}]': '{attributes}' unsupported "
+                    f"for a '{ENTRY_TYPES[values['OBJECTTYPE']]['name']}' entry"
+                )
 
             verify_value(values, section_name, "ParameterValue")
             verify_value(values, section_name, "DefaultValue")
@@ -406,6 +449,7 @@ def parse_eds_file(filepath):
 
 
 def verify_value(values, section_name, param):
+    """Verify that a value is compatible with the DataType of the entry"""
     uparam = param.upper()
     if uparam in values:
         try:
@@ -421,8 +465,8 @@ def verify_value(values, section_name, param):
             raise ValueError(f"Error on section '[{section_name}]': '{param}' incompatible with DataType") from None
 
 
-# Function that generate the EDS file content for the current node in the manager
 def generate_eds_content(node, filepath):
+    """Generate the EDS file content for the current node in the manager."""
     # Dictionary of each index contents
     indexcontents = {}
 
@@ -591,52 +635,28 @@ def generate_eds_content(node, filepath):
         # Save text of the entry in the dictiionary of contents
         indexcontents[entry] = text
 
-    # Before generate File Content we sort the entry list
-    manufacturers.sort()
-    mandatories.sort()
-    optionals.sort()
+    def generate_index_contents(name, entries):
+        """Generate the index section for the index and the subindexes."""
+        nonlocal fileContent
+        fileContent += f"\n[{name}]\n"
+        fileContent += f"SupportedObjects={len(entries)}\n"
+        entries.sort()
+        for idx, entry in enumerate(entries):
+            fileContent += f"{idx + 1}=0x{entry:04X}\n"
+        # Write entries
+        for entry in entries:
+            fileContent += indexcontents[entry]
 
-    # Generate Definition of mandatory objects
-    fileContent += "\n[MandatoryObjects]\n"
-    fileContent += f"SupportedObjects={len(mandatories)}\n"
-    for idx, entry in enumerate(mandatories):
-        fileContent += f"{idx + 1}=0x{entry:04X}\n"
-    # Write mandatory entries
-    for entry in mandatories:
-        fileContent += indexcontents[entry]
-
-    # Generate Definition of optional objects
-    fileContent += "\n[OptionalObjects]\n"
-    fileContent += f"SupportedObjects={len(optionals)}\n"
-    for idx, entry in enumerate(optionals):
-        fileContent += f"{idx + 1}=0x{entry:04X}\n"
-    # Write optional entries
-    for entry in optionals:
-        fileContent += indexcontents[entry]
-
-    # Generate Definition of manufacturer objects
-    fileContent += "\n[ManufacturerObjects]\n"
-    fileContent += f"SupportedObjects={len(manufacturers)}\n"
-    for idx, entry in enumerate(manufacturers):
-        fileContent += f"{idx + 1}=0x{entry:04X}\n"
-    # Write manufacturer entries
-    for entry in manufacturers:
-        fileContent += indexcontents[entry]
+    generate_index_contents("MandatoryObjects", mandatories)
+    generate_index_contents("OptionalObjects", optionals)
+    generate_index_contents("ManufacturerObjects", manufacturers)
 
     # Return File Content
     return fileContent
 
 
-# Function that generates EDS file from current node edited
-def generate_eds_file(filepath, node):
-    content = generate_eds_content(node, filepath)
-
-    with open(filepath, "w") as f:
-        f.write(content)
-
-
-# Function that generate the CPJ file content for the nodelist
 def generate_cpj_content(nodelist):
+    """Generate the CPJ file content for the nodelist."""
     nodes = nodelist.SlaveNodes
 
     filecontent = "[TOPOLOGY]\n"
@@ -652,8 +672,8 @@ def generate_cpj_content(nodelist):
     return filecontent
 
 
-# Function that generates Node from an EDS file
 def generate_node(filepath, nodeid=0):
+    """Generate a Node from an EDS file."""
     # Create a new node
     node = nodelib.Node(id=nodeid)
 
@@ -688,117 +708,124 @@ def generate_node(filepath, nodeid=0):
     for entry, values in eds_dict.items():
         # All sections with a name in keynames are escaped
         if entry in SECTION_KEYNAMES:
-            pass
-        else:
-            # Extract informations for the entry
-            entry_infos = node.GetEntryInfos(entry)
+            continue
 
-            # If no informations are available, then we write them
-            if not entry_infos:
-                # First case, entry is a DOMAIN or VAR
-                if values["OBJECTTYPE"] in [2, 7]:
-                    if values["OBJECTTYPE"] == 2:
-                        values["DATATYPE"] = values.get("DATATYPE", 0xF)
-                        if values["DATATYPE"] != 0xF:
-                            raise ValueError(f"Domain entry 0x{entry:04X} DataType must be 0xF(DOMAIN) if defined")
-                    # Add mapping for entry
-                    node.AddMappingEntry(entry, name=values["PARAMETERNAME"], struct=OD.VAR)
-                    # Add mapping for first subindex
-                    node.AddMappingEntry(entry, 0, values={
-                        "name": values["PARAMETERNAME"],
-                        "type": values["DATATYPE"],
-                        "access": ACCESS_TRANSLATE[values["ACCESSTYPE"].upper()],
-                        "pdo": values.get("PDOMAPPING", 0) == 1,
-                    })
-                # Second case, entry is an ARRAY or RECORD
-                elif values["OBJECTTYPE"] in [8, 9]:
-                    # Extract maximum subindex number defined
-                    max_subindex = max(values["subindexes"])
-                    # Add mapping for entry
-                    node.AddMappingEntry(entry, name=values["PARAMETERNAME"], struct=OD.RECORD)
-                    # Add mapping for first subindex
-                    node.AddMappingEntry(entry, 0, values={
-                        "name": "Number of Entries",
-                        "type": 0x05,
-                        "access": "ro",
-                        "pdo": False,
-                    })
-                    # Add mapping for other subindexes
-                    for subindex in range(1, int(max_subindex) + 1):
-                        # if subindex is defined
-                        if subindex in values["subindexes"]:
-                            node.AddMappingEntry(entry, subindex, values={
-                                "name": values["subindexes"][subindex]["PARAMETERNAME"],
-                                "type": values["subindexes"][subindex]["DATATYPE"],
-                                "access": ACCESS_TRANSLATE[values["subindexes"][subindex]["ACCESSTYPE"].upper()],
-                                "pdo": values["subindexes"][subindex].get("PDOMAPPING", 0) == 1,
-                            })
-                        # if not, we add a mapping for compatibility
-                        else:
-                            node.AddMappingEntry(entry, subindex, values={
-                                "name": "Compatibility Entry",
-                                "type": 0x05,
-                                "access": "rw",
-                                "pdo": False,
-                            })
+        # Extract informations for the entry
+        entry_infos = node.GetEntryInfos(entry)
 
-                # # Third case, entry is an RECORD
-                # elif values["OBJECTTYPE"] == 9:
-                #     # Verify that the first subindex is defined
-                #     if 0 not in values["subindexes"]:
-                #         raise ValueError(f"Error on entry 0x{entry:04X}: Subindex 0 must be defined for a RECORD entry")
-                #     # Add mapping for entry
-                #     node.AddMappingEntry(entry, name=values["PARAMETERNAME"], struct=OD.ARRAY)
-                #     # Add mapping for first subindex
-                #     node.AddMappingEntry(entry, 0, values={
-                #         "name": "Number of Entries",
-                #         "type": 0x05,
-                #         "access": "ro",
-                #         "pdo": False,
-                #     })
-                #     # Verify that second subindex is defined
-                #     if 1 in values["subindexes"]:
-                #         node.AddMappingEntry(entry, 1, values={
-                #             "name": values["PARAMETERNAME"] + " %d[(sub)]",
-                #             "type": values["subindexes"][1]["DATATYPE"],
-                #             "access": ACCESS_TRANSLATE[values["subindexes"][1]["ACCESSTYPE"].upper()],
-                #             "pdo": values["subindexes"][1].get("PDOMAPPING", 0) == 1,
-                #             "nbmax": 0xFE,
-                #         })
-                #     else:
-                #         raise ValueError(f"Error on entry 0x{entry:04X}: A RECORD entry must have at least 2 subindexes")
-
-            # Define entry for the new node
-
+        # If no informations are available, then we write them
+        if not entry_infos:
             # First case, entry is a DOMAIN or VAR
             if values["OBJECTTYPE"] in [2, 7]:
-                # Take default value if it is defined
-                if "PARAMETERVALUE" in values:
-                    value = values["PARAMETERVALUE"]
-                elif "DEFAULTVALUE" in values:
-                    value = values["DEFAULTVALUE"]
-                # Find default value for value type of the entry
-                else:
-                    value = get_default_value(node, entry)
-                node.AddEntry(entry, 0, value)
-            # Second case, entry is an ARRAY or a RECORD
+                if values["OBJECTTYPE"] == 2:
+                    values["DATATYPE"] = values.get("DATATYPE", 0xF)
+                    if values["DATATYPE"] != 0xF:
+                        raise ValueError(f"Domain entry 0x{entry:04X} DataType must be 0xF(DOMAIN) if defined")
+                # Add mapping for entry
+                node.AddMappingEntry(entry, name=values["PARAMETERNAME"], struct=OD.VAR)
+                # Add mapping for first subindex
+                node.AddMappingEntry(entry, 0, values={
+                    "name": values["PARAMETERNAME"],
+                    "type": values["DATATYPE"],
+                    "access": ACCESS_TRANSLATE[values["ACCESSTYPE"].upper()],
+                    "pdo": values.get("PDOMAPPING", 0) == 1,
+                })
+
+            # Second case, entry is an ARRAY or RECORD
             elif values["OBJECTTYPE"] in [8, 9]:
-                # Verify that "Subnumber" attribute is defined and has a valid value
-                if "SUBNUMBER" in values and values["SUBNUMBER"] > 0:
-                    # Extract maximum subindex number defined
-                    max_subindex = max(values["subindexes"])
-                    node.AddEntry(entry, value=[])
-                    # Define value for all subindexes except the first
-                    for subindex in range(1, int(max_subindex) + 1):
-                        # Take default value if it is defined and entry is defined
-                        if subindex in values["subindexes"] and "PARAMETERVALUE" in values["subindexes"][subindex]:
-                            value = values["subindexes"][subindex]["PARAMETERVALUE"]
-                        elif subindex in values["subindexes"] and "DEFAULTVALUE" in values["subindexes"][subindex]:
-                            value = values["subindexes"][subindex]["DEFAULTVALUE"]
-                        # Find default value for value type of the subindex
-                        else:
-                            value = get_default_value(node, entry, subindex)
-                        node.AddEntry(entry, subindex, value)
-                else:
-                    raise ValueError(f"Array or Record entry 0x{entry:04X} must have a 'SubNumber' attribute")
+                # Extract maximum subindex number defined
+                max_subindex = max(values["subindexes"])
+                # Add mapping for entry
+                node.AddMappingEntry(entry, name=values["PARAMETERNAME"], struct=OD.RECORD)
+                # Add mapping for first subindex
+                node.AddMappingEntry(entry, 0, values={
+                    "name": "Number of Entries",
+                    "type": 0x05,
+                    "access": "ro",
+                    "pdo": False,
+                })
+                # Add mapping for other subindexes
+                for subindex in range(1, int(max_subindex) + 1):
+                    # if subindex is defined
+                    if subindex in values["subindexes"]:
+                        node.AddMappingEntry(entry, subindex, values={
+                            "name": values["subindexes"][subindex]["PARAMETERNAME"],
+                            "type": values["subindexes"][subindex]["DATATYPE"],
+                            "access": ACCESS_TRANSLATE[values["subindexes"][subindex]["ACCESSTYPE"].upper()],
+                            "pdo": values["subindexes"][subindex].get("PDOMAPPING", 0) == 1,
+                        })
+                    # if not, we add a mapping for compatibility
+                    else:
+                        node.AddMappingEntry(entry, subindex, values={
+                            "name": "Compatibility Entry",
+                            "type": 0x05,
+                            "access": "rw",
+                            "pdo": False,
+                        })
+
+            # # Third case, entry is an RECORD
+            # elif values["OBJECTTYPE"] == 9:
+            #     # Verify that the first subindex is defined
+            #     if 0 not in values["subindexes"]:
+            #         raise ValueError(
+            #             f"Error on entry 0x{entry:04X}: Subindex 0 must be defined for a RECORD entry"
+            #         )
+            #     # Add mapping for entry
+            #     node.AddMappingEntry(entry, name=values["PARAMETERNAME"], struct=OD.ARRAY)
+            #     # Add mapping for first subindex
+            #     node.AddMappingEntry(entry, 0, values={
+            #         "name": "Number of Entries",
+            #         "type": 0x05,
+            #         "access": "ro",
+            #         "pdo": False,
+            #     })
+            #     # Verify that second subindex is defined
+            #     if 1 in values["subindexes"]:
+            #         node.AddMappingEntry(entry, 1, values={
+            #             "name": values["PARAMETERNAME"] + " %d[(sub)]",
+            #             "type": values["subindexes"][1]["DATATYPE"],
+            #             "access": ACCESS_TRANSLATE[values["subindexes"][1]["ACCESSTYPE"].upper()],
+            #             "pdo": values["subindexes"][1].get("PDOMAPPING", 0) == 1,
+            #             "nbmax": 0xFE,
+            #         })
+            #     else:
+            #         raise ValueError(
+            #             f"Error on entry 0x{entry:04X}: A RECORD entry must have at least 2 subindexes"
+            #         )
+
+        # Define entry for the new node
+
+        # First case, entry is a DOMAIN or VAR
+        if values["OBJECTTYPE"] in [2, 7]:
+            # Take default value if it is defined
+            if "PARAMETERVALUE" in values:
+                value = values["PARAMETERVALUE"]
+            elif "DEFAULTVALUE" in values:
+                value = values["DEFAULTVALUE"]
+            # Find default value for value type of the entry
+            else:
+                value = get_default_value(node, entry)
+            node.AddEntry(entry, 0, value)
+
+        # Second case, entry is an ARRAY or a RECORD
+        elif values["OBJECTTYPE"] in [8, 9]:
+            # Verify that "Subnumber" attribute is defined and has a valid value
+            if "SUBNUMBER" in values and values["SUBNUMBER"] > 0:
+                # Extract maximum subindex number defined
+                max_subindex = max(values["subindexes"])
+                node.AddEntry(entry, value=[])
+                # Define value for all subindexes except the first
+                for subindex in range(1, int(max_subindex) + 1):
+                    # Take default value if it is defined and entry is defined
+                    if subindex in values["subindexes"] and "PARAMETERVALUE" in values["subindexes"][subindex]:
+                        value = values["subindexes"][subindex]["PARAMETERVALUE"]
+                    elif subindex in values["subindexes"] and "DEFAULTVALUE" in values["subindexes"][subindex]:
+                        value = values["subindexes"][subindex]["DEFAULTVALUE"]
+                    # Find default value for value type of the subindex
+                    else:
+                        value = get_default_value(node, entry, subindex)
+                    node.AddEntry(entry, subindex, value)
+            else:
+                raise ValueError(f"Array or Record entry 0x{entry:04X} must have a 'SubNumber' attribute")
+
     return node

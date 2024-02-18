@@ -1,4 +1,4 @@
-""" Object mappings """
+"""Object mappings."""
 #
 # Copyright (C) 2022-2024  Svein Seldal, Laerdal Medical AS
 # Copyright (C): Edouard TISSERANT, Francis DUPIN and Laurent BESSARD
@@ -37,6 +37,7 @@ DEFAULT_PARAMS = {"comment": None, "save": False, "buffer_size": None}
 # ------------------------------------------------------------------------------
 
 class ODStructTypes:
+    """Object Dictionary Structure Types"""
     #
     # Properties of entry structure in the Object Dictionary
     #
@@ -73,11 +74,13 @@ class ODStructTypes:
 
     @classmethod
     def to_string(cls, val, default=''):
+        """Return the string representation of the structure value."""
         # type: (type[ODStructTypes], int, str) -> str
         return cls.STRINGS.get(val, default)
 
     @classmethod
     def from_string(cls, val, default=None):
+        """Return the structure value from the string representation."""
         # type: (type[ODStructTypes], str, int|None) -> int|None
         try:
             return next(k for k, v in cls.STRINGS.items() if v == val)

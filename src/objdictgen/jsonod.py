@@ -1,4 +1,4 @@
-""" OD dict/json serialization and deserialization functions """
+"""OD dict/json serialization and deserialization functions."""
 #
 # Copyright (C) 2022-2024  Svein Seldal, Laerdal Medical AS
 #
@@ -298,6 +298,7 @@ def get_object_types(node=None, dictionary=None):
 
 
 def compare_profile(profilename, params, menu=None):
+    """Compare a profile with a set of parameters and menu."""
     try:
         dsmap, menumap = nodelib.Node.ImportProfile(profilename)
         identical = all(
@@ -389,7 +390,7 @@ def generate_node(contents):
     #        validator is better.
     global SCHEMA  # pylint: disable=global-statement
     if not SCHEMA:
-        with open(os.path.join(objdictgen.JSON_SCHEMA), 'r') as f:
+        with open(objdictgen.JSON_SCHEMA, 'r') as f:
             SCHEMA = json.loads(remove_jasonc(f.read()))
 
     if SCHEMA:
@@ -544,7 +545,7 @@ def node_todict(node, sort=False, rich=True, internal=False, validate=True):
     # Cleanup of unwanted members
     # - NOTE: SpecificMenu is not used in dict representation
     for k in ('Dictionary', 'ParamsDictionary', 'Profile', 'SpecificMenu',
-              'DS302', 'UserMapping', 'IndexOrder'):
+                'DS302', 'UserMapping', 'IndexOrder'):
         jd.pop(k, None)
 
     # Cross check verification to see if we later can import the generated dict
@@ -903,7 +904,10 @@ def node_fromdict(jd, internal=False):
                 log.debug("Index 0x%04x (%s) Difference between built-in object and imported:", index, index)
                 for line in diff.pretty().splitlines():
                     log.debug('  %s', line)
-                raise ValidationError(f"Built-in parameter index 0x{index:04x} ({index}) does not match against system parameters")
+                raise ValidationError(
+                    f"Built-in parameter index 0x{index:04x} ({index}) "
+                    "does not match against system parameters"
+                )
 
     # There is a weakness to the Node implementation: There is no store
     # of the order of the incoming parameters, instead the data is spread over
@@ -915,6 +919,7 @@ def node_fromdict(jd, internal=False):
 
 
 def node_fromdict_parameter(obj, objtypes_s2i):
+    """ Convert a dict obj into a Node parameter """
 
     # -- STEP 1a) --
     # Move 'definition' into individual mapping type category
@@ -1048,11 +1053,15 @@ def validate_fromdict(jsonobj, objtypes_i2s=None, objtypes_s2i=None):
 
     # Validate "$id" (must)
     if jd.get('$id') != JSON_ID:
-        raise ValidationError(f"Unknown file format, expected '$id' to be '{JSON_ID}', found '{jd.get('$id')}'")
+        raise ValidationError(
+            f"Unknown file format, expected '$id' to be '{JSON_ID}', found '{jd.get('$id')}'"
+        )
 
     # Validate "$version" (must)
     if jd.get('$version') not in (JSON_INTERNAL_VERSION, JSON_VERSION):
-        raise ValidationError(f"Unknown file version, expected '$version' to be '{JSON_VERSION}', found '{jd.get('$version')}'")
+        raise ValidationError(
+            f"Unknown file version, expected '$version' to be '{JSON_VERSION}', found '{jd.get('$version')}'"
+        )
 
     # Don't validate the internal format any further
     if jd['$version'] == JSON_INTERNAL_VERSION:
@@ -1298,6 +1307,7 @@ def validate_fromdict(jsonobj, objtypes_i2s=None, objtypes_s2i=None):
 
 
 def diff_nodes(node1, node2, as_dict=True, validate=True):
+    """Compare two nodes and return the differences."""
 
     diffs = {}
 

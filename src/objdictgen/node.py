@@ -1,3 +1,4 @@
+"""Objectdict Node class containting the object dictionary."""
 #
 # Copyright (C) 2022-2024  Svein Seldal, Laerdal Medical AS
 # Copyright (C): Edouard TISSERANT, Francis DUPIN and Laurent BESSARD
@@ -35,8 +36,8 @@ log = logging.getLogger('objdictgen')
 Fore = colorama.Fore
 Style = colorama.Style
 
-#Used to match strings such as 'Additional Server SDO %d Parameter[(idx)]'
-#The above example matches to two groups ['Additional Server SDO %d Parameter', 'idx']
+# Used to match strings such as 'Additional Server SDO %d Parameter[(idx)]'
+# The above example matches to two groups ['Additional Server SDO %d Parameter', 'idx']
 RE_NAME = re.compile(r'(.*)\[[(](.*)[)]\]')
 
 
@@ -52,7 +53,8 @@ class Node:
 
     DefaultStringSize = 10
 
-    def __init__(self, name="", type="slave", id=0, description="", profilename="DS-301", profile=None, specificmenu=None):  # pylint: disable=redefined-builtin, invalid-name
+    def __init__(self, name="", type="slave", id=0, description="", profilename="DS-301",
+                 profile=None, specificmenu=None):  # pylint: disable=redefined-builtin, invalid-name
         self.Name = name
         self.Type = type
         self.ID = id
@@ -72,12 +74,14 @@ class Node:
 
     @staticmethod
     def isXml(filepath):
+        """Check if the file is an XML file"""
         with open(filepath, 'r') as f:
             header = f.read(5)
             return header == "<?xml"
 
     @staticmethod
     def isEds(filepath):
+        """Check if the file is an EDS file"""
         with open(filepath, 'r') as f:
             header = f.readline().rstrip()
             return header == "[FileInfo]"
@@ -114,7 +118,9 @@ class Node:
 
         if filetype == 'eds':
             log.debug("Writing EDS '%s'", filepath)
-            eds_utils.generate_eds_file(filepath, self)
+            content = eds_utils.generate_eds_content(self, filepath)
+            with open(filepath, "w") as f:
+                f.write(content)
             return
 
         if filetype == 'json':
@@ -160,7 +166,8 @@ class Node:
             if subindex == 1:
                 self.Dictionary[index] = [value]
                 return True
-        elif subindex and isinstance(self.Dictionary[index], list) and subindex == len(self.Dictionary[index]) + 1:
+        elif (subindex and isinstance(self.Dictionary[index], list)
+                and subindex == len(self.Dictionary[index]) + 1):
             self.Dictionary[index].append(value)
             return True
         return False
@@ -184,7 +191,9 @@ class Node:
     def SetParamsEntry(self, index, subindex=None, comment=None, buffer_size=None, save=None, callback=None):
         if index not in self.Dictionary:
             return False
-        if (comment is not None or save is not None or callback is not None or buffer_size is not None) and index not in self.ParamsDictionary:
+        if ((comment is not None or save is not None or callback is not None or buffer_size is not None)
+            and index not in self.ParamsDictionary
+        ):
             self.ParamsDictionary[index] = {}
         if subindex is None or not isinstance(self.Dictionary[index], list) and subindex == 0:
             if comment is not None:
@@ -197,7 +206,9 @@ class Node:
                 self.ParamsDictionary[index]["callback"] = callback
             return True
         if isinstance(self.Dictionary[index], list) and 0 <= subindex <= len(self.Dictionary[index]):
-            if (comment is not None or save is not None or callback is not None or buffer_size is not None) and subindex not in self.ParamsDictionary[index]:
+            if ((comment is not None or save is not None or callback is not None or buffer_size is not None)
+                and subindex not in self.ParamsDictionary[index]
+            ):
                 self.ParamsDictionary[index][subindex] = {}
             if comment is not None:
                 self.ParamsDictionary[index][subindex]["comment"] = comment
@@ -322,7 +333,8 @@ class Node:
         """
         return index in self.UserMapping
 
-    def AddMappingEntry(self, index, subindex=None, name="Undefined", struct=0, size=None, nbmax=None, default=None, values=None):
+    def AddMappingEntry(self, index, subindex=None, name="Undefined", struct=0, size=None, nbmax=None,
+                        default=None, values=None):
         """
         Add a new entry in the User Mapping Dictionary
         """
@@ -345,7 +357,8 @@ class Node:
             return True
         return False
 
-    def SetMappingEntry(self, index, subindex=None, name=None, struct=None, size=None, nbmax=None, default=None, values=None):
+    def SetMappingEntry(self, index, subindex=None, name=None, struct=None, size=None, nbmax=None,
+                        default=None, values=None):
         """
         Warning ! Modifies an existing entry in the User Mapping Dictionary. Can't add a new one.
         """
@@ -716,22 +729,29 @@ class Node:
         list_ = self.GetMapVariableList()
         for index, subindex, size, name in list_:
             if mapname == self.GenerateMapName(name, index, subindex):
-                if self.UserMapping[index]["struct"] == OD.ARRAY:  # array type, only look at subindex 1 in UserMapping
+                # array type, only look at subindex 1 in UserMapping
+                if self.UserMapping[index]["struct"] == OD.ARRAY:
                     if self.IsStringType(self.UserMapping[index]["values"][1]["type"]):
                         try:
                             if int(self.ParamsDictionary[index][subindex]["buffer_size"]) <= 8:
-                                return (index << 16) + (subindex << 8) + size * int(self.ParamsDictionary[index][subindex]["buffer_size"])
+                                return ((index << 16) + (subindex << 8)
+                                        + size * int(self.ParamsDictionary[index][subindex]["buffer_size"]))
                             raise ValueError("String size too big to fit in a PDO")
                         except KeyError:
-                            raise ValueError("No string length found and default string size too big to fit in a PDO") from None
+                            raise ValueError(
+                                "No string length found and default string size too big to fit in a PDO"
+                            ) from None
                 else:
                     if self.IsStringType(self.UserMapping[index]["values"][subindex]["type"]):
                         try:
                             if int(self.ParamsDictionary[index][subindex]["buffer_size"]) <= 8:
-                                return (index << 16) + (subindex << 8) + size * int(self.ParamsDictionary[index][subindex]["buffer_size"])
+                                return ((index << 16) + (subindex << 8) +
+                                        size * int(self.ParamsDictionary[index][subindex]["buffer_size"]))
                             raise ValueError("String size too big to fit in a PDO")
                         except KeyError:
-                            raise ValueError("No string length found and default string size too big to fit in a PDO") from None
+                            raise ValueError(
+                                "No string length found and default string size too big to fit in a PDO"
+                            ) from None
                 return (index << 16) + (subindex << 8) + size
         return None
 
@@ -755,19 +775,22 @@ class Node:
         """
         Return the list of variables that can be mapped for the current node
         """
-        list_ = ["None"] + [self.GenerateMapName(name, index, subindex) for index, subindex, size, name in self.GetMapVariableList()]
+        list_ = ["None"] + [
+            self.GenerateMapName(name, index, subindex)
+            for index, subindex, size, name in self.GetMapVariableList()
+        ]
         return list_
 
     def GetAllParameters(self, sort=False):
         """ Get a list of all the parameters """
 
-        order = list(self.UserMapping.keys())
-        order += [k for k in self.Dictionary.keys() if k not in order]
-        order += [k for k in self.ParamsDictionary.keys() if k not in order]
+        order = list(self.UserMapping)
+        order += [k for k in self.Dictionary if k not in order]
+        order += [k for k in self.ParamsDictionary if k not in order]
         if self.Profile:
-            order += [k for k in self.Profile.keys() if k not in order]
+            order += [k for k in self.Profile if k not in order]
         if self.DS302:
-            order += [k for k in self.DS302.keys() if k not in order]
+            order += [k for k in self.DS302 if k not in order]
 
         if sort:
             order = sorted(order)
@@ -815,8 +838,8 @@ class Node:
             log.warning("WARNING: 0x%04x (%d) '%s': %s", index, index, name, text)
 
         # Iterate over all the values and user parameters
-        params = set(self.Dictionary.keys())
-        params.update(self.ParamsDictionary.keys())
+        params = set(self.Dictionary)
+        params.update(self.ParamsDictionary)
         for index in params:
 
             #
@@ -845,7 +868,10 @@ class Node:
             excessive_params = {k for k in params if k > dictlen}
             if excessive_params:
                 log.debug("Excessive params: %s", excessive_params)
-                _warn(f"Excessive user parameters ({len(excessive_params)}) or too few dictionary values ({dictlen})")
+                _warn(
+                    f"Excessive user parameters ({len(excessive_params)}) "
+                    f"or too few dictionary values ({dictlen})"
+                )
 
                 if index in self.Dictionary:
                     for idx in excessive_params:
@@ -860,7 +886,7 @@ class Node:
                         _warn("FIX: Deleting ParamDictionary entry")
 
         # Iterate over all user mappings
-        params = set(self.UserMapping.keys())
+        params = set(self.UserMapping)
         for index in params:
             for idx, subvals in enumerate(self.UserMapping[index]['values']):
 
@@ -964,7 +990,10 @@ class Node:
                     comment = f"{Fore.LIGHTBLACK_EX}/* {info.get('comment')} */{Style.RESET_ALL}"
 
                 # Omit printing this subindex if:
-                if not verbose and i == 0 and fmt['struct'] in ('RECORD', 'NRECORD', 'ARRAY', 'NARRAY') and not comment:
+                if (not verbose and i == 0
+                    and fmt['struct'] in ('RECORD', 'NRECORD', 'ARRAY', 'NARRAY')
+                    and not comment
+                ):
                     continue
 
                 # Print formatting
@@ -1021,7 +1050,9 @@ class Node:
                     if os.path.exists(os.path.join(base, fname))
                 )
             except StopIteration:
-                raise ValueError(f"Unable to load profile '{profilename}': '{fname}': No such file or directory") from None
+                raise ValueError(
+                    f"Unable to load profile '{profilename}': '{fname}': No such file or directory"
+                ) from None
 
         # Mapping and AddMenuEntries are expected to be defined by the execfile
         # The profiles requires some vars to be set
@@ -1059,8 +1090,11 @@ class Node:
                 #       and cannot be removed currently
                 if len(args) == 1:
                     return fmt[0] % (Node.evaluate_expression(args[0].strip()))
-                elif len(args) == 2:
-                    return fmt[0] % (Node.evaluate_expression(args[0].strip()), Node.evaluate_expression(args[1].strip()))
+                if len(args) == 2:
+                    return fmt[0] % (
+                        Node.evaluate_expression(args[0].strip()),
+                        Node.evaluate_expression(args[1].strip()),
+                    )
 
                 return fmt[0]
             except Exception as exc:
@@ -1076,7 +1110,8 @@ class Node:
             - Addition (i.e. "3+4")
             - Subraction (i.e. "7-4")
             - Constants (i.e. "5")
-        This function will handle chained arithmatic i.e. "1+2+3" although operating order is not neccesarily preserved
+        This function will handle chained arithmatic i.e. "1+2+3" although
+        operating order is not neccesarily preserved
 
         Parameters:
             expression (str): string to parse
@@ -1092,19 +1127,16 @@ class Node:
         if isinstance(node, ast.BinOp):
             if isinstance(node.op, ast.Add):
                 return Node.evaluate_node(node.left) + Node.evaluate_node(node.right)
-            elif isinstance(node.op, ast.Sub):
+            if isinstance(node.op, ast.Sub):
                 return Node.evaluate_node(node.left) - Node.evaluate_node(node.right)
-            else:
-                raise SyntaxError(f"Unhandled arithmatic operation {type(node.op)}")
-        elif isinstance(node, ast.Constant):
+            raise SyntaxError(f"Unhandled arithmatic operation {type(node.op)}")
+        if isinstance(node, ast.Constant):
             if isinstance(node.value, int | float | complex):
                 return node.value
-            else:
-                raise TypeError(f"Cannot parse str type constant '{node.value}'")
-        elif isinstance(node, ast.AST):
+            raise TypeError(f"Cannot parse str type constant '{node.value}'")
+        if isinstance(node, ast.AST):
             raise TypeError(f"Unhandled ast node class {type(node)}")
-        else:
-            raise TypeError(f"Invalid argument type {type(node)}")
+        raise TypeError(f"Invalid argument type {type(node)}")
 
     @staticmethod
     def get_index_range(index):

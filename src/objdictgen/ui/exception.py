@@ -1,3 +1,4 @@
+"""UI Exception module."""
 #
 # Copyright (C) 2022-2024  Svein Seldal, Laerdal Medical AS
 # Copyright (C): Edouard TISSERANT, Francis DUPIN and Laurent BESSARD
@@ -22,6 +23,7 @@ import platform
 import sys
 import time
 import traceback
+from pathlib import Path
 
 import wx
 
@@ -54,8 +56,9 @@ def _display_exception_dialog(e_type, e_value, e_tb, parent=None):
         """
         + str(e_type) + " : " + str(e_value)),
         "Error",
-        trcbck_lst) as dlg:
-        res = (dlg.ShowModal() == wx.ID_OK)
+        trcbck_lst
+    ) as dlg:
+        res = dlg.ShowModal() == wx.ID_OK
 
     return res
 
@@ -66,9 +69,8 @@ def display_exception_dialog(parent):
 
 
 def display_error_dialog(parent, message, caption="Error"):
-    message = wx.MessageDialog(parent, message, caption, wx.OK | wx.ICON_ERROR)
-    message.ShowModal()
-    message.Destroy()
+    with wx.MessageDialog(parent, message, caption, wx.OK | wx.ICON_ERROR) as dialog:
+        return dialog.ShowModal()
 
 
 def get_last_traceback(tb):
@@ -81,7 +83,8 @@ def format_namespace(dic, indent='    '):
     return '\n'.join(f"{indent}{k}: {repr(v)[:10000]}" for k, v in dic.items())
 
 
-IGNORED_EXCEPTIONS = []  # a problem with a line in a module is only reported once per session
+# a problem with a line in a module is only reported once per session
+IGNORED_EXCEPTIONS = []
 
 
 def handle_exception(e_type, e_value, e_traceback, parent=None):
@@ -89,7 +92,8 @@ def handle_exception(e_type, e_value, e_traceback, parent=None):
     # Import here to prevent circular import
     from objdictgen import __version__  # pylint: disable=import-outside-toplevel
 
-    traceback.print_exception(e_type, e_value, e_traceback)  # this is very helpful when there's an exception in the rest of this func
+    # this is very helpful when there's an exception in the rest of this func
+    traceback.print_exception(e_type, e_value, e_traceback)
     last_tb = get_last_traceback(e_traceback)
     ex = (last_tb.tb_frame.f_code.co_filename, last_tb.tb_frame.f_lineno)
     if str(e_value).startswith("!!!"):  # FIXME: Special exception handling
@@ -113,12 +117,14 @@ def handle_exception(e_type, e_value, e_traceback, parent=None):
         }
         if e_traceback:
             info['traceback'] = ''.join(traceback.format_tb(e_traceback)) + f'{e_type}: {e_value}'
-            exception_locals = last_tb.tb_frame.f_locals  # the locals at the level of the stack trace where the exception actually occurred
+            # the locals at the level of the stack trace where the exception actually occurred
+            exception_locals = last_tb.tb_frame.f_locals
             info['locals'] = format_namespace(exception_locals)
             if 'self' in exception_locals:
                 info['self'] = format_namespace(exception_locals['self'].__dict__)
 
-        with open(os.path.join(os.getcwd(), "bug_report_" + info['date'].replace(':', '-').replace(' ', '_') + ".txt"), 'w') as fp:
+        f_date = info['date'].replace(':', '-').replace(' ', '_')
+        with open(Path.cwd() / f"bug_report_{f_date}.txt", 'w') as fp:
             for a, t in info.items():
                 fp.write(f"{a}:\n{t}\n\n")
 
