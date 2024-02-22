@@ -1,4 +1,3 @@
-import os
 
 import objdictgen.__main__
 
@@ -16,13 +15,13 @@ def test_objdictgen(wd, mocker, odfile, fn):
 
     mocker.patch("sys.argv", [
         "objdictgen",
-        odfile + '.od',
+        str(odfile + '.od'),
         od + '.c',
     ])
 
     objdictgen.__main__.main_objdictgen()
 
-    if os.path.exists(odfile + '.c'):
+    if (odfile + '.c').exists():
         assert fn.diff(odfile + '.c', od + '.c', n=0)
         assert fn.diff(odfile + '.h', od + '.h', n=0)
         assert fn.diff(odfile + '_objectdefines.h', od + '_objectdefines.h', n=0)

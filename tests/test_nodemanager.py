@@ -1,4 +1,3 @@
-import os
 
 from objdictgen.nodemanager import NodeManager
 
@@ -17,7 +16,7 @@ def test_create_slave():
     m1.CloseCurrent()
 
 
-def test_load(basepath):
+def test_load(odpath):
 
     m1 = NodeManager()
-    m1.OpenFileInCurrent(os.path.join(basepath, 'tests', 'od', 'master.od'))
+    m1.OpenFileInCurrent(odpath / 'master.od')

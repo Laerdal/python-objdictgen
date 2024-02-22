@@ -67,12 +67,13 @@ def test_load_compare(odfile, suffix):
         L(od) == L(od)
     '''
 
-    if not os.path.exists(odfile + '.' + suffix):
+    fname = odfile + '.' + suffix
+    if not fname.exists():
         pytest.skip("File not found")
 
     # Load the OD
-    m1 = Node.LoadFile(odfile + '.' + suffix)
-    m2 = Node.LoadFile(odfile + '.' + suffix)
+    m1 = Node.LoadFile(fname)
+    m2 = Node.LoadFile(fname)
 
     assert m1.__dict__ == m2.__dict__
 
@@ -166,7 +167,7 @@ def test_cexport(wd, odfile, fn):
     assert m0.__dict__ == m1.__dict__
 
     # FIXME: If files doesn't exist, this leaves this test half-done. Better way?
-    if os.path.exists(odfile + '.c'):
+    if (odfile + '.c').exists():
         assert fn.diff(odfile + '.c', od + '.c', n=0)
         assert fn.diff(odfile + '.h', od + '.h', n=0)
         assert fn.diff(odfile + '_objectdefines.h', od + '_objectdefines.h', n=0)
@@ -197,7 +198,7 @@ def test_edsexport(wd, odfile, fn):
         return True
 
     # FIXME: If file doesn't exist, this leaves this test half-done. Better way?
-    if os.path.exists(odfile + '.eds'):
+    if (odfile + '.eds').exists():
         assert fn.diff(odfile + '.eds', od + '.eds', predicate=predicate)
 
 
@@ -255,8 +256,8 @@ def test_od_json_compare(odfile):
         L(od) == L(json)
     '''
 
-    if not os.path.exists(odfile + '.json'):
-        raise pytest.skip("No .json file for '%s'" %(odfile + '.od'))
+    if not (odfile + '.json').exists():
+        raise pytest.skip(f"No .json file for '{odfile + '.od'}'")
 
     m1 = Node.LoadFile(odfile + '.od')
     m2 = Node.LoadFile(odfile + '.json')
@@ -294,41 +295,44 @@ PROFILE_ODS = [
 
 @pytest.mark.parametrize("oddut", PROFILE_ODS)
 @pytest.mark.parametrize("suffix", ['od', 'json'])
-def test_save_wo_profile(oddir, oddut, suffix, wd):
+def test_save_wo_profile(odpath, oddut, suffix, wd):
     ''' Test that saving a od that contains a profile creates identical
         results as the original. This test has no access to the profile dir
     '''
 
-    fa = os.path.join(oddir, oddut)
+    fa = odpath / oddut
+    fb = oddut + '.' + suffix
 
     m1 = Node.LoadFile(fa + '.od')
-    m1.DumpFile(oddut + '.' + suffix, filetype=suffix)
+    m1.DumpFile(fb, filetype=suffix)
 
-    m2 = Node.LoadFile(oddut + '.' + suffix)
+    m2 = Node.LoadFile(fb)
 
     a, b = shave_equal(m1, m2, ignore=('IndexOrder',))
+
     assert a == b
 
 
 @pytest.mark.parametrize("oddut", PROFILE_ODS)
 @pytest.mark.parametrize("suffix", ['od', 'json'])
-def test_save_with_profile(oddir, oddut, suffix, wd, profile):
+def test_save_with_profile(odpath, oddut, suffix, wd, profile):
     ''' Test that saving a od that contains a profile creates identical
         results as the original. This test have access to the profile dir
     '''
 
-    fa = os.path.join(oddir, oddut)
+    fa = odpath / oddut
+    fb = oddut + '.' + suffix
 
     m1 = Node.LoadFile(fa + '.od')
-    m1.DumpFile(oddut + '.' + suffix, filetype=suffix)
+    m1.DumpFile(fb, filetype=suffix)
 
-    m2 = Node.LoadFile(oddut + '.' + suffix)
+    m2 = Node.LoadFile(fb)
 
     a, b = shave_equal(m1, m2, ignore=('IndexOrder',))
     assert a == b
 
 
-@pytest.mark.parametrize("equivs", [
+EQUIVS = [
     ('minimal.od',              'legacy-minimal.od'),
     ('minimal.json',            'legacy-minimal.od'),
     ('master.od',               'legacy-master.od'),
@@ -347,16 +351,16 @@ def test_save_with_profile(oddir, oddut, suffix, wd, profile):
     #('master-ds401.json',       'legacy-master-ds401.od'),
     ('master-ds302-ds401.od',   'legacy-master-ds302-ds401.od'),
     #('master-ds302-ds401.json', 'legacy-master-ds302-ds401.od'),
-])
-def test_legacy_compare(oddir, equivs):
+]
+
+@pytest.mark.parametrize("equivs", EQUIVS, ids=(e[0] for e in EQUIVS))
+def test_legacy_compare(odpath, equivs):
     ''' Test reading the od and compare it with the corresponding json file
     '''
     a, b = equivs
-    fa = os.path.join(oddir, a)
-    fb = os.path.join(oddir, b)
 
-    m1 = Node.LoadFile(fa)
-    m2 = Node.LoadFile(fb)
+    m1 = Node.LoadFile(odpath / a)
+    m2 = Node.LoadFile(odpath / b)
 
     a, b = shave_equal(m1, m2, ignore=('Description', 'IndexOrder'))
     assert a == b
