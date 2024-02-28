@@ -43,20 +43,22 @@ TYPE_IN_BODY = {
     str: 1,
 }
 
-# pylint: disable=invalid-name
-pat_fl = r'[-+]?(((((\d+)?[.]\d+|\d+[.])|\d+)[eE][+-]?\d+)|((\d+)?[.]\d+|\d+[.]))'
-re_float = re.compile(pat_fl + r'$')
-re_zero = r'[+-]?0$'
-pat_int = r'[-+]?[1-9]\d*'
-re_int = re.compile(pat_int + r'$')
-pat_flint = f'({pat_fl}|{pat_int})'    # float or int
-re_long = re.compile(r'[-+]?\d+[lL]' + r'$')
-re_hex = re.compile(r'([-+]?)(0[xX])([0-9a-fA-F]+)' + r'$')
-re_oct = re.compile(r'([-+]?)(0)([0-7]+)' + r'$')
-pat_complex = f'({pat_flint})?[-+]{pat_flint}[jJ]'
-re_complex = re.compile(pat_complex + r'$')
-pat_complex2 = f'({pat_flint}):({pat_flint})'
-re_complex2 = re.compile(pat_complex2 + r'$')
+# Regexp patterns
+PAT_FL = r'[-+]?(((((\d+)?[.]\d+|\d+[.])|\d+)[eE][+-]?\d+)|((\d+)?[.]\d+|\d+[.]))'
+PAT_INT = r'[-+]?[1-9]\d*'
+PAT_FLINT = f'({PAT_FL}|{PAT_INT})'    # float or int
+PAT_COMPLEX = f'({PAT_FLINT})?[-+]{PAT_FLINT}[jJ]'
+PAT_COMPLEX2 = f'({PAT_FLINT}):({PAT_FLINT})'
+
+# Regexps for parsing numbers
+RE_FLOAT = re.compile(PAT_FL + r'$')
+RE_ZERO = re.compile(r'[+-]?0$')
+RE_INT = re.compile(PAT_INT + r'$')
+RE_LONG = re.compile(r'[-+]?\d+[lL]$')
+RE_HEX = re.compile(r'([-+]?)(0[xX])([0-9a-fA-F]+)$')
+RE_OCT = re.compile(r'([-+]?)(0)([0-7]+)$')
+RE_COMPLEX = re.compile(PAT_COMPLEX + r'$')
+RE_COMPLEX2 = re.compile(PAT_COMPLEX2 + r'$')
 
 
 def aton(s):
@@ -66,19 +68,19 @@ def aton(s):
         s = s[1:-1]
 
     # -- test for cases
-    if re.match(re_zero, s):
+    if RE_ZERO.match(s):
         return 0
 
-    if re.match(re_float, s):
+    if RE_FLOAT.match(s):
         return float(s)
 
-    if re.match(re_long, s):
+    if RE_LONG.match(s):
         return int(s.rstrip('lL'))
 
-    if re.match(re_int, s):
+    if RE_INT.match(s):
         return int(s)
 
-    m = re.match(re_hex, s)
+    m = RE_HEX.match(s)
     if m:
         n = int(m.group(3), 16)
         if n < sys.maxsize:
@@ -87,7 +89,7 @@ def aton(s):
             n = n * (-1)
         return n
 
-    m = re.match(re_oct, s)
+    m = RE_OCT.match(s)
     if m:
         n = int(m.group(3), 8)
         if n < sys.maxsize:
@@ -96,10 +98,10 @@ def aton(s):
             n = n * (-1)
         return n
 
-    if re.match(re_complex, s):
+    if RE_COMPLEX.match(s):
         return complex(s)
 
-    if re.match(re_complex2, s):
+    if RE_COMPLEX2.match(s):
         r, i = s.split(':')
         return complex(float(r), float(i))
 
@@ -207,20 +209,9 @@ CLASS_STORE = {}
 
 
 def add_class_to_store(classname='', klass=None):
-    """Put the class in the store (as 'classname'), return CLASS_STORE"""
+    """Put the class in the store (as 'classname')"""
     if classname and klass:
         CLASS_STORE[classname] = klass
-    return CLASS_STORE
-
-
-def get_class_from_name(classname):
-    """Given a classname, optional module name, return a ClassType,
-    of type module.classname, obeying the PARANOIA rules."""
-
-    klass = CLASS_STORE.get(classname, None)
-    if klass:
-        return klass
-    raise ValueError(f"Cannot create class '{classname}'")
 
 
 def obj_from_node(node):
@@ -232,7 +223,9 @@ def obj_from_node(node):
     # allow <PyObject> nodes w/out module name
     # (possibly handwritten XML, XML containing "from-air" classes,
     # or classes placed in the CLASS_STORE)
-    klass = get_class_from_name(classname)
+    klass = CLASS_STORE.get(classname)
+    if klass is None:
+        raise ValueError(f"Cannot create class '{classname}'")
     return klass.__new__(klass)
 
 
@@ -324,12 +317,10 @@ def StreamReader(stream):
     return stream
 
 
-def xmldump(iohandle=None, obj=None, binary=0, deepcopy=None, omit=None):
+def xmldump(iohandle=None, obj=None, binary=0, omit=None):
     """Create the XML representation as a string."""
-    if deepcopy is None:
-        deepcopy = 0
     return _pickle_toplevel_obj(
-        StreamWriter(iohandle, binary), obj, deepcopy, omit,
+        StreamWriter(iohandle, binary), obj, omit,
     )
 
 
@@ -341,15 +332,15 @@ def xmlload(filehandle):
 # -- support functions
 
 
-def _pickle_toplevel_obj(xml_list, py_obj, deepcopy, omit=None):
+def _pickle_toplevel_obj(xml_list, py_obj, omit=None):
     """handle the top object -- add XML header, etc."""
 
     # Store the ref id to the pickling object (if not deepcopying)
     global VISITED  # pylint: disable=global-statement
-    VISITED = {}
-    if not deepcopy:
-        id_ = id(py_obj)
-        VISITED[id_] = py_obj
+    id_ = id(py_obj)
+    VISITED = {
+        id_: py_obj
+    }
 
     # note -- setting family="obj" lets us know that a mutator was used on
     # the object. Otherwise, it's tricky to unpickle both <PyObject ...>
@@ -376,14 +367,12 @@ def _pickle_toplevel_obj(xml_list, py_obj, deepcopy, omit=None):
     xml_list.append('<?xml version="1.0"?>\n'
                     + '<!DOCTYPE PyObject SYSTEM "PyObjects.dtd">\n')
 
-    if deepcopy:
-        xml_list.append(f'<PyObject {extra}>\n')
-    elif id_ is not None:
+    if id_ is not None:
         xml_list.append(f'<PyObject {extra} id="{id_}">\n')
     else:
         xml_list.append(f'<PyObject {extra}>\n')
 
-    pickle_instance(py_obj, xml_list, level=0, deepcopy=deepcopy, omit=omit)
+    pickle_instance(py_obj, xml_list, level=0, omit=omit)
     xml_list.append('</PyObject>\n')
 
     # returns None if xml_list is a fileobj, but caller should
@@ -391,7 +380,7 @@ def _pickle_toplevel_obj(xml_list, py_obj, deepcopy, omit=None):
     return xml_list.getvalue()
 
 
-def pickle_instance(obj, list_, level=0, deepcopy=0, omit=None):
+def pickle_instance(obj, list_, level=0, omit=None):
     """Pickle the given object into a <PyObject>
 
     Add XML tags to list. Level is indentation (for aesthetic reasons)
@@ -415,7 +404,7 @@ def pickle_instance(obj, list_, level=0, deepcopy=0, omit=None):
         for key, val in stuff.items():
             if omit and key in omit:
                 continue
-            list_.append(_attr_tag(key, val, level, deepcopy))
+            list_.append(_attr_tag(key, val, level))
     else:
         raise ValueError(f"'{obj}.__dict__' is not a dict")
 
@@ -431,9 +420,6 @@ def unpickle_instance(node):
 
     # slurp raw thing into a an empty object
     raw = _thing_from_dom(node, _EmptyClass())
-
-    # code below has same ordering as pickle.py
-
     stuff = raw.__dict__
 
     # finally, decide how to get the stuff into pyobj
@@ -450,40 +436,35 @@ def unpickle_instance(node):
 
 
 # --- Functions to create XML output tags ---
-def _attr_tag(name, thing, level=0, deepcopy=0):
-    start_tag = '  ' * level + (f'<attr name="{name}" ')
+def _attr_tag(name, thing, level=0):
+    start_tag = '  ' * level + f'<attr name="{name}" '
     close_tag = '  ' * level + '</attr>\n'
-    return _tag_completer(start_tag, thing, close_tag, level, deepcopy)
+    return _tag_completer(start_tag, thing, close_tag, level)
 
 
-def _item_tag(thing, level=0, deepcopy=0):
+def _item_tag(thing, level=0):
     start_tag = '  ' * level + '<item '
     close_tag = '  ' * level + '</item>\n'
-    return _tag_completer(start_tag, thing, close_tag, level, deepcopy)
+    return _tag_completer(start_tag, thing, close_tag, level)
 
 
-def _entry_tag(key, val, level=0, deepcopy=0):
+def _entry_tag(key, val, level=0):
     start_tag = '  ' * level + '<entry>\n'
     close_tag = '  ' * level + '</entry>\n'
     start_key = '  ' * level + '  <key '
     close_key = '  ' * level + '  </key>\n'
-    key_block = _tag_completer(start_key, key, close_key, level + 1, deepcopy)
+    key_block = _tag_completer(start_key, key, close_key, level + 1)
     start_val = '  ' * level + '  <val '
     close_val = '  ' * level + '  </val>\n'
-    val_block = _tag_completer(start_val, val, close_val, level + 1, deepcopy)
+    val_block = _tag_completer(start_val, val, close_val, level + 1)
     return start_tag + key_block + val_block + close_tag
 
 
-def _tag_compound(start_tag, family_type, thing, deepcopy, extra=''):
-    """Make a start tag for a compound object, handling deepcopy & refs.
+def _tag_compound(start_tag, family_type, thing, extra=''):
+    """Make a start tag for a compound object, handling refs.
     Returns (start_tag,do_copy), with do_copy indicating whether a
     copy of the data is needed.
     """
-    if deepcopy:
-        # don't need ids in a deepcopied file (looks neater)
-        start_tag = f'{start_tag}{family_type} {extra}>\n'
-        return (start_tag, 1)
-
     idt = id(thing)
     if VISITED.get(idt):
         start_tag = f'{start_tag}{family_type} refid="{idt}" />\n'
@@ -567,7 +548,7 @@ def _fix_family(family, typename):
     raise ValueError(f"family= must be given for unknown type '{typename}'")
 
 
-def _tag_completer(start_tag, orig_thing, close_tag, level, deepcopy):
+def _tag_completer(start_tag, orig_thing, close_tag, level):
     tag_body = []
 
     mtag = None
@@ -579,6 +560,7 @@ def _tag_completer(start_tag, orig_thing, close_tag, level, deepcopy):
         ft = _family_type('none', 'None', None, None)
         start_tag = f"{start_tag}{ft} />\n"
         close_tag = ''
+
     # bool cannot be used as a base class (see sanity check above) so if thing
     # is a bool it will always be BooleanType, and either True or False
     elif isinstance(thing, bool):
@@ -594,6 +576,7 @@ def _tag_completer(start_tag, orig_thing, close_tag, level, deepcopy):
         else:
             start_tag = f'{start_tag}{ft} value="" />\n'
             close_tag = ''
+
     elif isinstance(thing, (int, float, complex)):
         # thing_str = repr(thing)
         thing_str = ntoa(thing)
@@ -609,6 +592,7 @@ def _tag_completer(start_tag, orig_thing, close_tag, level, deepcopy):
         else:
             start_tag = f'{start_tag}{ft} value="{thing_str}" />\n'
             close_tag = ''
+
     elif isinstance(thing, str):
         ft = _family_type("atom", "string", mtag, mextra)
         if in_body:
@@ -617,6 +601,7 @@ def _tag_completer(start_tag, orig_thing, close_tag, level, deepcopy):
         else:
             start_tag = f'{start_tag}{ft} value="{safe_string(thing)}" />\n'
             close_tag = ''
+
     # General notes:
     #   1. When we make references, set type to referenced object
     #      type -- we don't need type when unpickling, but it may be useful
@@ -628,45 +613,44 @@ def _tag_completer(start_tag, orig_thing, close_tag, level, deepcopy):
     elif isinstance(thing, tuple):
         start_tag, do_copy = _tag_compound(
             start_tag, _family_type('seq', 'tuple', mtag, mextra),
-            orig_thing, deepcopy)
+            orig_thing)
         if do_copy:
             for item in thing:
-                tag_body.append(_item_tag(item, level + 1, deepcopy))
+                tag_body.append(_item_tag(item, level + 1))
         else:
             close_tag = ''
+
     elif isinstance(thing, list):
         start_tag, do_copy = _tag_compound(
             start_tag, _family_type('seq', 'list', mtag, mextra),
-            orig_thing, deepcopy)
+            orig_thing)
         # need to remember we've seen container before pickling subitems
         VISITED[id(orig_thing)] = orig_thing
         if do_copy:
             for item in thing:
-                tag_body.append(_item_tag(item, level + 1, deepcopy))
+                tag_body.append(_item_tag(item, level + 1))
         else:
             close_tag = ''
+
     elif isinstance(thing, dict):
         start_tag, do_copy = _tag_compound(
             start_tag, _family_type('map', 'dict', mtag, mextra),
-            orig_thing, deepcopy)
+            orig_thing)
         # need to remember we've seen container before pickling subitems
         VISITED[id(orig_thing)] = orig_thing
         if do_copy:
             for key, val in thing.items():
-                tag_body.append(_entry_tag(key, val, level + 1, deepcopy))
+                tag_body.append(_entry_tag(key, val, level + 1))
         else:
             close_tag = ''
+
     else:
         raise ValueError(f"Non-handled type {type(thing)}")
 
     # need to keep a ref to the object for two reasons -
     #  1. we can ref it later instead of copying it into the XML stream
     #  2. need to keep temporary objects around so their ids don't get reused
-
-    # if DEEPCOPY, we can skip this -- reusing ids is not an issue if we
-    # never look at them
-    if not deepcopy:
-        VISITED[id(orig_thing)] = orig_thing
+    VISITED[id(orig_thing)] = orig_thing
 
     return start_tag + ''.join(tag_body) + close_tag
 

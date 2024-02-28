@@ -3,9 +3,9 @@
   "$version": "1",
   "$description": "Canfestival object dictionary data",
   "$tool": "odg 3.4",
-  "$date": "2024-02-27T00:53:43.165540",
-  "name": "slave",
-  "description": "Default slave OD",
+  "$date": "2024-02-28T00:45:42.455357",
+  "name": "Slave",
+  "description": "",
   "type": "slave",
   "id": 0,
   "profile": "None",
@@ -82,6 +82,23 @@
           "access": "ro",
           "pdo": false,
           "value": 0
+        }
+      ]
+    },
+    {
+      "index": "0x1014",  // 4116
+      "name": "Emergency COB ID",
+      "struct": "var",
+      "group": "built-in",
+      "mandatory": false,
+      "sub": [
+        {
+          "name": "Emergency COB ID",
+          "type": "UNSIGNED32",  // 7
+          "access": "rw",
+          "pdo": false,
+          "default": "\"$NODEID+0x80\"",
+          "value": "\"$NODEID+0x80\""
         }
       ]
     },

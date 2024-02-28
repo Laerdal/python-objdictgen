@@ -225,7 +225,7 @@ class NetworkEdit(wx.Frame, NetworkEditorTemplate):
         # self.HtmlFrameOpened = []
 
         icon = wx.Icon(
-            os.path.join(objdictgen.SCRIPT_DIRECTORY, "img", "networkedit.ico"),
+            str(objdictgen.SCRIPT_DIRECTORY / "img" / "networkedit.ico"),
             wx.BITMAP_TYPE_ICO,
         )
         self.SetIcon(icon)

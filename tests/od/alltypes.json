@@ -2,86 +2,42 @@
   "$id": "od data",
   "$version": "1",
   "$description": "Canfestival object dictionary data",
-  "$tool": "odg 3.2",
-  "$date": "2022-08-08T21:02:03.703619",
+  "$tool": "odg 3.4",
+  "$date": "2024-02-23T16:02:27.420347",
   "name": "Alltypes",
-  "description": "All types",
+  "description": "OD that implements all available object types",
   "type": "master",
   "id": 0,
   "profile": "None",
+  "default_string_size": 10,
   "dictionary": [
     {
-      "index": "0x1000",  // 4096
-      "name": "Device Type",
+      "index": "0x2008",  // 8200
+      "name": "REAL32",
       "struct": "var",
-      "group": "built-in",
-      "mandatory": true,
+      "mandatory": false,
       "sub": [
         {
-          "name": "Device Type",
-          "type": "UNSIGNED32",  // 7
-          "access": "ro",
-          "pdo": false,
-          "value": 0
-        }
-      ]
-    },
-    {
-      "index": "0x1001",  // 4097
-      "name": "Error Register",
-      "struct": "var",
-      "group": "built-in",
-      "mandatory": true,
-      "sub": [
-        {
-          "name": "Error Register",
-          "type": "UNSIGNED8",  // 5
-          "access": "ro",
+          "name": "REAL32",
+          "type": "REAL32",  // 8
+          "access": "rw",
           "pdo": true,
-          "value": 0
+          "value": 1.2
         }
       ]
     },
     {
-      "index": "0x1018",  // 4120
-      "name": "Identity",
-      "struct": "record",
-      "group": "built-in",
-      "mandatory": true,
+      "index": "0x2009",  // 8201
+      "name": "VISIBLE_STRING",
+      "struct": "var",
+      "mandatory": false,
       "sub": [
         {
-          "name": "Number of Entries",
-          "type": "UNSIGNED8",  // 5
-          "access": "ro",
-          "pdo": false
-        },
-        {
-          "name": "Vendor ID",
-          "type": "UNSIGNED32",  // 7
-          "access": "ro",
-          "pdo": false,
-          "value": 0
-        },
-        {
-          "name": "Product Code",
-          "type": "UNSIGNED32",  // 7
-          "access": "ro",
-          "pdo": false,
-          "value": 0
-        },
-        {
-          "name": "Revision Number",
-          "type": "UNSIGNED32",  // 7
-          "access": "ro",
-          "pdo": false,
-          "value": 0
-        },
-        {
-          "name": "Serial Number",
-          "type": "UNSIGNED32",  // 7
-          "access": "ro",
-          "pdo": false,
-          "value": 0
+          "name": "VISIBLE_STRING",
+          "type": "VISIBLE_STRING",  // 9
+          "access": "rw",
+          "pdo": true,
+          "value": "ABCD"
         }
       ]
     },
@@ -111,7 +67,7 @@
           "type": "INTEGER8",  // 2
           "access": "rw",
           "pdo": true,
-          "value": 0
+          "value": 12
         }
       ]
     },
@@ -126,7 +82,7 @@
           "type": "INTEGER16",  // 3
           "access": "rw",
           "pdo": true,
-          "value": 0
+          "value": 34
         }
       ]
     },
@@ -141,7 +97,7 @@
           "type": "INTEGER32",  // 4
           "access": "rw",
           "pdo": true,
-          "value": 0
+          "value": 45
         }
       ]
     },
@@ -156,7 +112,7 @@
           "type": "UNSIGNED8",  // 5
           "access": "rw",
           "pdo": true,
-          "value": 0
+          "value": 56
         }
       ]
     },
@@ -171,7 +127,7 @@
           "type": "UNSIGNED16",  // 6
           "access": "rw",
           "pdo": true,
-          "value": 0
+          "value": 8198
         }
       ]
     },
@@ -186,37 +142,172 @@
           "type": "UNSIGNED32",  // 7
           "access": "rw",
           "pdo": true,
-          "value": 0
+          "value": 537337864
         }
       ]
     },
     {
-      "index": "0x2008",  // 8200
-      "name": "REAL32",
+      "index": "0x201B",  // 8219
+      "name": "UNSIGNED64",
       "struct": "var",
       "mandatory": false,
       "sub": [
         {
-          "name": "REAL32",
-          "type": "REAL32",  // 8
+          "name": "UNSIGNED64",
+          "type": "UNSIGNED64",  // 27
           "access": "rw",
           "pdo": true,
-          "value": 0
+          "value": 64
         }
       ]
     },
     {
-      "index": "0x2009",  // 8201
-      "name": "VISIBLE_STRING",
+      "index": "0x201A",  // 8218
+      "name": "UNSIGNED56",
       "struct": "var",
       "mandatory": false,
       "sub": [
         {
-          "name": "VISIBLE_STRING",
-          "type": "VISIBLE_STRING",  // 9
+          "name": "UNSIGNED56",
+          "type": "UNSIGNED56",  // 26
           "access": "rw",
           "pdo": true,
-          "value": ""
+          "value": 56
+        }
+      ]
+    },
+    {
+      "index": "0x2016",  // 8214
+      "name": "UNSIGNED24",
+      "struct": "var",
+      "mandatory": false,
+      "sub": [
+        {
+          "name": "UNSIGNED24",
+          "type": "UNSIGNED24",  // 22
+          "access": "rw",
+          "pdo": true,
+          "value": 24
+        }
+      ]
+    },
+    {
+      "index": "0x2015",  // 8213
+      "name": "INTEGER64",
+      "struct": "var",
+      "mandatory": false,
+      "sub": [
+        {
+          "name": "INTEGER64",
+          "type": "INTEGER64",  // 21
+          "access": "rw",
+          "pdo": true,
+          "value": -64
+        }
+      ]
+    },
+    {
+      "index": "0x2014",  // 8212
+      "name": "INTEGER56",
+      "struct": "var",
+      "mandatory": false,
+      "sub": [
+        {
+          "name": "INTEGER56",
+          "type": "INTEGER56",  // 20
+          "access": "rw",
+          "pdo": true,
+          "value": -56
+        }
+      ]
+    },
+    {
+      "index": "0x2013",  // 8211
+      "name": "INTEGER48",
+      "struct": "var",
+      "mandatory": false,
+      "sub": [
+        {
+          "name": "INTEGER48",
+          "type": "INTEGER48",  // 19
+          "access": "rw",
+          "pdo": true,
+          "value": -48
+        }
+      ]
+    },
+    {
+      "index": "0x2012",  // 8210
+      "name": "INTEGER40",
+      "struct": "var",
+      "mandatory": false,
+      "sub": [
+        {
+          "name": "INTEGER40",
+          "type": "INTEGER40",  // 18
+          "access": "rw",
+          "pdo": true,
+          "value": -40
+        }
+      ]
+    },
+    {
+      "index": "0x2011",  // 8209
+      "name": "REAL64",
+      "struct": "var",
+      "mandatory": false,
+      "sub": [
+        {
+          "name": "REAL64",
+          "type": "REAL64",  // 17
+          "access": "rw",
+          "pdo": true,
+          "value": 1.6
+        }
+      ]
+    },
+    {
+      "index": "0x2010",  // 8208
+      "name": "INTEGER24",
+      "struct": "var",
+      "mandatory": false,
+      "sub": [
+        {
+          "name": "INTEGER24",
+          "type": "INTEGER24",  // 16
+          "access": "rw",
+          "pdo": true,
+          "value": -1
+        }
+      ]
+    },
+    {
+      "index": "0x2019",  // 8217
+      "name": "UNSIGNED48",
+      "struct": "var",
+      "mandatory": false,
+      "sub": [
+        {
+          "name": "UNSIGNED48",
+          "type": "UNSIGNED48",  // 25
+          "access": "rw",
+          "pdo": true,
+          "value": 48
+        }
+      ]
+    },
+    {
+      "index": "0x2018",  // 8216
+      "name": "UNSIGNED40",
+      "struct": "var",
+      "mandatory": false,
+      "sub": [
+        {
+          "name": "UNSIGNED40",
+          "type": "UNSIGNED40",  // 24
+          "access": "rw",
+          "pdo": true,
+          "value": 40
         }
       ]
     },
@@ -231,7 +322,7 @@
           "type": "OCTET_STRING",  // 10
           "access": "rw",
           "pdo": true,
-          "value": ""
+          "value": "ABCD"
         }
       ]
     },
@@ -247,171 +338,6 @@
           "access": "rw",
           "pdo": true,
           "value": "@ABCD"
-        }
-      ]
-    },
-    {
-      "index": "0x2010",  // 8208
-      "name": "INTEGER24",
-      "struct": "var",
-      "mandatory": false,
-      "sub": [
-        {
-          "name": "INTEGER24",
-          "type": "INTEGER24",  // 16
-          "access": "rw",
-          "pdo": true,
-          "value": 0
-        }
-      ]
-    },
-    {
-      "index": "0x2011",  // 8209
-      "name": "REAL64",
-      "struct": "var",
-      "mandatory": false,
-      "sub": [
-        {
-          "name": "REAL64",
-          "type": "REAL64",  // 17
-          "access": "rw",
-          "pdo": true,
-          "value": 0
-        }
-      ]
-    },
-    {
-      "index": "0x2012",  // 8210
-      "name": "INTEGER40",
-      "struct": "var",
-      "mandatory": false,
-      "sub": [
-        {
-          "name": "INTEGER40",
-          "type": "INTEGER40",  // 18
-          "access": "rw",
-          "pdo": true,
-          "value": 0
-        }
-      ]
-    },
-    {
-      "index": "0x2013",  // 8211
-      "name": "INTEGER48",
-      "struct": "var",
-      "mandatory": false,
-      "sub": [
-        {
-          "name": "INTEGER48",
-          "type": "INTEGER48",  // 19
-          "access": "rw",
-          "pdo": true,
-          "value": 0
-        }
-      ]
-    },
-    {
-      "index": "0x2014",  // 8212
-      "name": "INTEGER56",
-      "struct": "var",
-      "mandatory": false,
-      "sub": [
-        {
-          "name": "INTEGER56",
-          "type": "INTEGER56",  // 20
-          "access": "rw",
-          "pdo": true,
-          "value": 0
-        }
-      ]
-    },
-    {
-      "index": "0x2015",  // 8213
-      "name": "INTEGER64",
-      "struct": "var",
-      "mandatory": false,
-      "sub": [
-        {
-          "name": "INTEGER64",
-          "type": "INTEGER64",  // 21
-          "access": "rw",
-          "pdo": true,
-          "value": 0
-        }
-      ]
-    },
-    {
-      "index": "0x2016",  // 8214
-      "name": "UNSIGNED24",
-      "struct": "var",
-      "mandatory": false,
-      "sub": [
-        {
-          "name": "UNSIGNED24",
-          "type": "UNSIGNED24",  // 22
-          "access": "rw",
-          "pdo": true,
-          "value": 0
-        }
-      ]
-    },
-    {
-      "index": "0x2018",  // 8216
-      "name": "UNSIGNED40",
-      "struct": "var",
-      "mandatory": false,
-      "sub": [
-        {
-          "name": "UNSIGNED40",
-          "type": "UNSIGNED40",  // 24
-          "access": "rw",
-          "pdo": true,
-          "value": 0
-        }
-      ]
-    },
-    {
-      "index": "0x2019",  // 8217
-      "name": "UNSIGNED48",
-      "struct": "var",
-      "mandatory": false,
-      "sub": [
-        {
-          "name": "UNSIGNED48",
-          "type": "UNSIGNED48",  // 25
-          "access": "rw",
-          "pdo": true,
-          "value": 0
-        }
-      ]
-    },
-    {
-      "index": "0x201A",  // 8218
-      "name": "UNSIGNED56",
-      "struct": "var",
-      "mandatory": false,
-      "sub": [
-        {
-          "name": "UNSIGNED56",
-          "type": "UNSIGNED56",  // 26
-          "access": "rw",
-          "pdo": true,
-          "value": 0
-        }
-      ]
-    },
-    {
-      "index": "0x201B",  // 8219
-      "name": "UNSIGNED64",
-      "struct": "var",
-      "mandatory": false,
-      "sub": [
-        {
-          "name": "UNSIGNED64",
-          "type": "UNSIGNED64",  // 27
-          "access": "rw",
-          "pdo": true,
-          "value": 0
         }
       ]
     }

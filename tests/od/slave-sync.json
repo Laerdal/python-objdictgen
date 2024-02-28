@@ -2,10 +2,10 @@
   "$id": "od data",
   "$version": "1",
   "$description": "Canfestival object dictionary data",
-  "$tool": "odg 3.2",
-  "$date": "2022-11-11T21:47:10.137423",
+  "$tool": "odg 3.4",
+  "$date": "2024-02-28T00:47:25.014478",
   "name": "Slave",
-  "description": "Slave created with objdictedit",
+  "description": "",
   "type": "slave",
   "id": 0,
   "profile": "None",
@@ -80,6 +80,40 @@
           "name": "Serial Number",
           "type": "UNSIGNED32",  // 7
           "access": "ro",
+          "pdo": false,
+          "value": 0
+        }
+      ]
+    },
+    {
+      "index": "0x1005",  // 4101
+      "name": "SYNC COB ID",
+      "struct": "var",
+      "group": "built-in",
+      "mandatory": false,
+      "profile_callback": true,
+      "sub": [
+        {
+          "name": "SYNC COB ID",
+          "type": "UNSIGNED32",  // 7
+          "access": "rw",
+          "pdo": false,
+          "value": 0
+        }
+      ]
+    },
+    {
+      "index": "0x1006",  // 4102
+      "name": "Communication / Cycle Period",
+      "struct": "var",
+      "group": "built-in",
+      "mandatory": false,
+      "profile_callback": true,
+      "sub": [
+        {
+          "name": "Communication Cycle Period",
+          "type": "UNSIGNED32",  // 7
+          "access": "rw",
           "pdo": false,
           "value": 0
         }

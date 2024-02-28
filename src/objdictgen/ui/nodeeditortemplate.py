@@ -22,7 +22,8 @@ import wx
 
 from objdictgen.maps import OD
 from objdictgen.ui import commondialogs as cdia
-from objdictgen.ui.exception import display_error_dialog, display_exception_dialog
+from objdictgen.ui.exception import (display_error_dialog,
+                                     display_exception_dialog)
 
 
 class NodeEditorTemplate:

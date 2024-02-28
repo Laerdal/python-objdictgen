@@ -30,7 +30,8 @@ from objdictgen import nodemanager
 from objdictgen.ui import commondialogs as cdia
 from objdictgen.ui import nodeeditortemplate as net
 from objdictgen.ui import subindextable as sit
-from objdictgen.ui.exception import add_except_hook, display_error_dialog, display_exception_dialog
+from objdictgen.ui.exception import (add_except_hook, display_error_dialog,
+                                     display_exception_dialog)
 
 log = logging.getLogger('objdictgen')
 
@@ -232,7 +233,7 @@ class ObjdictEdit(wx.Frame, net.NodeEditorTemplate):
         self._init_ctrls(parent)
 
         icon = wx.Icon(
-            os.path.join(objdictgen.SCRIPT_DIRECTORY, "img", "networkedit.ico"),
+            str(objdictgen.SCRIPT_DIRECTORY / "img" / "networkedit.ico"),
             wx.BITMAP_TYPE_ICO,
         )
         self.SetIcon(icon)
@@ -385,7 +386,6 @@ class ObjdictEdit(wx.Frame, net.NodeEditorTemplate):
 # ------------------------------------------------------------------------------
 
     def OnNewMenu(self, event):  # pylint: disable=unused-argument
-        # FIXME: Unused. Delete this?
         # self.FilePath = ""
         with cdia.CreateNodeDialog(self) as dialog:
             if dialog.ShowModal() != wx.ID_OK:
@@ -397,7 +397,8 @@ class ObjdictEdit(wx.Frame, net.NodeEditorTemplate):
 
         try:
             index = self.Manager.CreateNewNode(
-                name, id_, nodetype, description, profile, filepath, nmt, options,
+                name=name, id=id_, type=nodetype, description=description,
+                profile=profile, filepath=filepath, nmt=nmt, options=options,
             )
             new_editingpanel = sit.EditingPanel(self.FileOpened, self, self.Manager)
             new_editingpanel.SetIndex(index)

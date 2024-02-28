@@ -3,9 +3,9 @@
   "$version": "1",
   "$description": "Canfestival object dictionary data",
   "$tool": "odg 3.4",
-  "$date": "2024-02-27T00:53:43.165540",
-  "name": "slave",
-  "description": "Default slave OD",
+  "$date": "2024-02-28T00:46:53.202929",
+  "name": "Slave",
+  "description": "",
   "type": "slave",
   "id": 0,
   "profile": "None",
@@ -80,6 +80,38 @@
           "name": "Serial Number",
           "type": "UNSIGNED32",  // 7
           "access": "ro",
+          "pdo": false,
+          "value": 0
+        }
+      ]
+    },
+    {
+      "index": "0x100C",  // 4108
+      "name": "Guard Time",
+      "struct": "var",
+      "group": "built-in",
+      "mandatory": false,
+      "sub": [
+        {
+          "name": "Guard Time",
+          "type": "UNSIGNED16",  // 6
+          "access": "rw",
+          "pdo": false,
+          "value": 0
+        }
+      ]
+    },
+    {
+      "index": "0x100D",  // 4109
+      "name": "Life Time Factor",
+      "struct": "var",
+      "group": "built-in",
+      "mandatory": false,
+      "sub": [
+        {
+          "name": "Life Time Factor",
+          "type": "UNSIGNED8",  // 5
+          "access": "rw",
           "pdo": false,
           "value": 0
         }

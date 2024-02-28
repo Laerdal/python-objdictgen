@@ -25,7 +25,8 @@ import re
 
 import colorama
 
-from objdictgen import maps, node as nodelib
+from objdictgen import maps
+from objdictgen import node as nodelib
 from objdictgen.maps import OD
 
 log = logging.getLogger('objdictgen')

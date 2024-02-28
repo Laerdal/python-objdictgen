@@ -311,7 +311,8 @@ def main(debugopts, args=None):
     elif opts.command == "edit":
 
         # Import here to prevent including optional UI components for cmd-line use
-        from .ui.objdictedit import uimain  # pylint: disable=import-outside-toplevel
+        from .ui.objdictedit import \
+            uimain  # pylint: disable=import-outside-toplevel
         uimain(opts.od)
 
 
@@ -382,7 +383,8 @@ def main(debugopts, args=None):
     elif opts.command == "network":
 
         # Import here to prevent including optional UI components for cmd-line use
-        from .ui.networkedit import uimain  # pylint: disable=import-outside-toplevel
+        from .ui.networkedit import \
+            uimain  # pylint: disable=import-outside-toplevel
         uimain(opts.dir)
 
 
@@ -390,7 +392,8 @@ def main(debugopts, args=None):
     elif opts.command == "nodelist":
 
         # Import here to prevent including optional UI components for cmd-line use
-        from .nodelist import main as _main  # pylint: disable=import-outside-toplevel
+        from .nodelist import \
+            main as _main  # pylint: disable=import-outside-toplevel
         _main(opts.dir)
 
 
@@ -438,7 +441,8 @@ def main_objdictedit():
     """ Legacy objdictedit command """
 
     # Import here to prevent including optional UI components for cmd-line use
-    from .ui.objdictedit import main as _main  # pylint: disable=import-outside-toplevel
+    from .ui.objdictedit import \
+        main as _main  # pylint: disable=import-outside-toplevel
     _main()
 
 

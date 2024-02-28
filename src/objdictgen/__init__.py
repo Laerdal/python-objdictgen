@@ -18,6 +18,7 @@
 # USA
 
 import os
+from pathlib import Path
 
 from objdictgen.node import Node
 from objdictgen.nodemanager import NodeManager
@@ -30,14 +31,25 @@ LoadJson = Node.LoadJson
 
 ODG_PROGRAM = "odg"
 
-SCRIPT_DIRECTORY = os.path.split(__file__)[0]
+SCRIPT_DIRECTORY = Path(__file__).parent
 
-PROFILE_DIRECTORIES = [os.path.join(SCRIPT_DIRECTORY, 'config')]
-odgdir = os.environ.get('ODG_PROFILE_DIR')
-if odgdir:
-    PROFILE_DIRECTORIES.append(odgdir)
+PROFILE_DIRECTORIES: list[Path] = [
+    SCRIPT_DIRECTORY / 'config'
+]
 
-JSON_SCHEMA = os.path.join(SCRIPT_DIRECTORY, 'schema', 'od.schema.json')
+# Append the ODG_PROFILE_PATH to the PROFILE_DIRECTORIES
+odgdir = os.environ.get('ODG_PROFILE_PATH', '')
+for d in odgdir.split(";" if os.name == "nt" else ":;"):
+    if d:
+        PROFILE_DIRECTORIES.append(Path(d))
+
+# Make list of all discoverable profiles
+PROFILES: list[Path] = []
+for p in PROFILE_DIRECTORIES:
+    if p.is_dir():
+        PROFILES.extend(p.glob('*.prf'))
+
+JSON_SCHEMA = SCRIPT_DIRECTORY / 'schema' / 'od.schema.json'
 
 __all__ = [
     "LoadFile",

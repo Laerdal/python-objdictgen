@@ -18,12 +18,16 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 # USA
 
-import os
+import logging
 import re
+from pathlib import Path
 from time import localtime, strftime
+import logging
 
 from objdictgen import node as nodelib
 from objdictgen.maps import OD
+
+log = logging.getLogger('objdictgen')
 
 # Regular expression for finding index section names
 RE_INDEX = re.compile(r'([0-9A-F]{1,4}$)')
@@ -467,6 +471,9 @@ def verify_value(values, section_name, param):
 
 def generate_eds_content(node, filepath):
     """Generate the EDS file content for the current node in the manager."""
+
+    filepath = Path(filepath)
+
     # Dictionary of each index contents
     indexcontents = {}
 
@@ -486,7 +493,7 @@ def generate_eds_content(node, filepath):
 
     # Generate FileInfo section
     fileContent = "[FileInfo]\n"
-    fileContent += f"FileName={os.path.split(filepath)[-1]}\n"
+    fileContent += f"FileName={filepath.name}\n"
     fileContent += "FileVersion=1\n"
     fileContent += "FileRevision=1\n"
     fileContent += "EDSVersion=4.0\n"
@@ -680,6 +687,17 @@ def generate_node(filepath, nodeid=0):
     # Parse file and extract dictionary of EDS entry
     eds_dict = parse_eds_file(filepath)
 
+    # Extract the common informations for the node
+    fileinfo = eds_dict.get("FILEINFO", {})
+    node.Description = fileinfo.get("DESCRIPTION", "")
+
+    deviceinfo = eds_dict.get("DEVICEINFO", {})
+    node.Name = deviceinfo.get("PRODUCTNAME", "")
+    if deviceinfo.get("SIMPLEBOOTUPSLAVE") == 1:
+        node.Type = "slave"
+    if deviceinfo.get("SIMPLEBOOTUPMASTER") == 1:
+        node.Type = "master"
+
     # Ensure we have the ODs we need
     missing = [f"0x{i:04X}" for i in (
         0x1000,
@@ -689,8 +707,9 @@ def generate_node(filepath, nodeid=0):
         raise ValueError(f"EDS file is missing parameter index {tp}")
 
     # Extract Profile Number from Device Type entry
+    # NOTE: Objdictgen does not export the profile number as default value
+    #       in index 0x1000, so we can't rely on it to detect the profile.
     profilenb = eds_dict[0x1000].get("DEFAULTVALUE", 0) & 0x0000ffff
-    # If profile is not DS-301 or DS-302
     if profilenb not in [0, 301, 302]:
         # Compile Profile name and path to .prf file
         try:
@@ -700,9 +719,8 @@ def generate_node(filepath, nodeid=0):
             node.ProfileName = profilename
             node.Profile = mapping
             node.SpecificMenu = menuentries
-        except ValueError:
-            # Loading profile failed and it will be silently ignored
-            pass
+        except ValueError as exc:
+            log.warning("WARNING: Loading profile '%s' failed: %s", profilename, exc)
 
     # Read all entries in the EDS dictionary
     for entry, values in eds_dict.items():
@@ -762,38 +780,6 @@ def generate_node(filepath, nodeid=0):
                             "access": "rw",
                             "pdo": False,
                         })
-
-            # # Third case, entry is an RECORD
-            # elif values["OBJECTTYPE"] == 9:
-            #     # Verify that the first subindex is defined
-            #     if 0 not in values["subindexes"]:
-            #         raise ValueError(
-            #             f"Error on entry 0x{entry:04X}: Subindex 0 must be defined for a RECORD entry"
-            #         )
-            #     # Add mapping for entry
-            #     node.AddMappingEntry(entry, name=values["PARAMETERNAME"], struct=OD.ARRAY)
-            #     # Add mapping for first subindex
-            #     node.AddMappingEntry(entry, 0, values={
-            #         "name": "Number of Entries",
-            #         "type": 0x05,
-            #         "access": "ro",
-            #         "pdo": False,
-            #     })
-            #     # Verify that second subindex is defined
-            #     if 1 in values["subindexes"]:
-            #         node.AddMappingEntry(entry, 1, values={
-            #             "name": values["PARAMETERNAME"] + " %d[(sub)]",
-            #             "type": values["subindexes"][1]["DATATYPE"],
-            #             "access": ACCESS_TRANSLATE[values["subindexes"][1]["ACCESSTYPE"].upper()],
-            #             "pdo": values["subindexes"][1].get("PDOMAPPING", 0) == 1,
-            #             "nbmax": 0xFE,
-            #         })
-            #     else:
-            #         raise ValueError(
-            #             f"Error on entry 0x{entry:04X}: A RECORD entry must have at least 2 subindexes"
-            #         )
-
-        # Define entry for the new node
 
         # First case, entry is a DOMAIN or VAR
         if values["OBJECTTYPE"] in [2, 7]:

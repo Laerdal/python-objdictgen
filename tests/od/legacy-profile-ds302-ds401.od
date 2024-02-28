@@ -1,18 +1,18 @@
 <?xml version="1.0"?>
 <!DOCTYPE PyObject SYSTEM "PyObjects.dtd">
-<PyObject module="node" class="Node" id="92608712">
-<attr name="Profile" type="dict" id="92621000" >
+<PyObject module="node" class="Node" id="90132680">
+<attr name="Profile" type="dict" id="90153576" >
   <entry>
     <key type="numeric" value="24576" />
-    <val type="dict" id="92621272" >
+    <val type="dict" id="90153848" >
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92606536" >
-          <item type="dict" id="92621544" >
+        <val type="list" id="90103112" >
+          <item type="dict" id="90154120" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -30,7 +30,7 @@
               <val type="string" value="Number of Input 8 bit" />
             </entry>
           </item>
-          <item type="dict" id="92621816" >
+          <item type="dict" id="90154392" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -66,15 +66,15 @@
   </entry>
   <entry>
     <key type="numeric" value="24832" />
-    <val type="dict" id="92622088" >
+    <val type="dict" id="90154664" >
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92724616" >
-          <item type="dict" id="92622360" >
+        <val type="list" id="90103432" >
+          <item type="dict" id="90154936" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -92,7 +92,7 @@
               <val type="string" value="Number of Input 16 bit" />
             </entry>
           </item>
-          <item type="dict" id="92631112" >
+          <item type="dict" id="90155208" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -128,15 +128,15 @@
   </entry>
   <entry>
     <key type="numeric" value="24578" />
-    <val type="dict" id="92631384" >
+    <val type="dict" id="90155480" >
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="90711432" >
-          <item type="dict" id="92631656" >
+        <val type="list" id="90133128" >
+          <item type="dict" id="90155752" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -154,7 +154,7 @@
               <val type="string" value="Number of Input 8 bit" />
             </entry>
           </item>
-          <item type="dict" id="92631928" >
+          <item type="dict" id="90156024" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -190,15 +190,15 @@
   </entry>
   <entry>
     <key type="numeric" value="24579" />
-    <val type="dict" id="92632200" >
+    <val type="dict" id="90156296" >
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92724040" >
-          <item type="dict" id="92632472" >
+        <val type="list" id="90133256" >
+          <item type="dict" id="90156568" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -216,7 +216,7 @@
               <val type="string" value="Number of Input 8 bit" />
             </entry>
           </item>
-          <item type="dict" id="92632744" >
+          <item type="dict" id="90140744" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -252,15 +252,15 @@
   </entry>
   <entry>
     <key type="numeric" value="25604" />
-    <val type="dict" id="92633016" >
+    <val type="dict" id="90141016" >
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92724104" >
-          <item type="dict" id="92633288" >
+        <val type="list" id="90133384" >
+          <item type="dict" id="90141288" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -278,7 +278,7 @@
               <val type="string" value="Number of Analogue Input" />
             </entry>
           </item>
-          <item type="dict" id="92633560" >
+          <item type="dict" id="90141560" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -314,15 +314,15 @@
   </entry>
   <entry>
     <key type="numeric" value="24581" />
-    <val type="dict" id="92633832" >
+    <val type="dict" id="90141832" >
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92724168" >
-          <item type="dict" id="92634104" >
+        <val type="list" id="90133576" >
+          <item type="dict" id="90142104" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -354,15 +354,15 @@
   </entry>
   <entry>
     <key type="numeric" value="24582" />
-    <val type="dict" id="92634376" >
+    <val type="dict" id="90142376" >
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92723976" >
-          <item type="dict" id="92634648" >
+        <val type="list" id="90133768" >
+          <item type="dict" id="90142648" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -380,7 +380,7 @@
               <val type="string" value="Number of Input 8 bit" />
             </entry>
           </item>
-          <item type="dict" id="92639304" >
+          <item type="dict" id="90142920" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -416,15 +416,15 @@
   </entry>
   <entry>
     <key type="numeric" value="24583" />
-    <val type="dict" id="92639576" >
+    <val type="dict" id="90143192" >
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92724232" >
-          <item type="dict" id="92639848" >
+        <val type="list" id="90133832" >
+          <item type="dict" id="90143464" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -442,7 +442,7 @@
               <val type="string" value="Number of Input 8 bit" />
             </entry>
           </item>
-          <item type="dict" id="92640120" >
+          <item type="dict" id="90143736" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -478,15 +478,15 @@
   </entry>
   <entry>
     <key type="numeric" value="24584" />
-    <val type="dict" id="92640392" >
+    <val type="dict" id="90144008" >
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92724488" >
-          <item type="dict" id="92640664" >
+        <val type="list" id="90133960" >
+          <item type="dict" id="90144280" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -504,7 +504,7 @@
               <val type="string" value="Number of Input 8 bit" />
             </entry>
           </item>
-          <item type="dict" id="92640936" >
+          <item type="dict" id="90144840" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -540,15 +540,15 @@
   </entry>
   <entry>
     <key type="numeric" value="24834" />
-    <val type="dict" id="92641208" >
+    <val type="dict" id="90145112" >
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92606984" >
-          <item type="dict" id="92641480" >
+        <val type="list" id="90134024" >
+          <item type="dict" id="90145384" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -566,7 +566,7 @@
               <val type="string" value="Number of Input 16 bit" />
             </entry>
           </item>
-          <item type="dict" id="92641752" >
+          <item type="dict" id="90145656" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -602,15 +602,15 @@
   </entry>
   <entry>
     <key type="numeric" value="25616" />
-    <val type="dict" id="92642840" >
+    <val type="dict" id="90146744" >
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92724680" >
-          <item type="dict" id="92643400" >
+        <val type="list" id="90134280" >
+          <item type="dict" id="90147016" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -628,7 +628,7 @@
               <val type="string" value="Number of Analogue Input 8 Bit" />
             </entry>
           </item>
-          <item type="dict" id="92643672" >
+          <item type="dict" id="90147288" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -664,15 +664,15 @@
   </entry>
   <entry>
     <key type="numeric" value="25617" />
-    <val type="dict" id="92643944" >
+    <val type="dict" id="90147560" >
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92724808" >
-          <item type="dict" id="92644216" >
+        <val type="list" id="90134472" >
+          <item type="dict" id="90147832" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -690,7 +690,7 @@
               <val type="string" value="Number of Analogue Input 16 Bit" />
             </entry>
           </item>
-          <item type="dict" id="92644488" >
+          <item type="dict" id="90148104" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -726,15 +726,15 @@
   </entry>
   <entry>
     <key type="numeric" value="25618" />
-    <val type="dict" id="92644760" >
+    <val type="dict" id="90148376" >
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92607240" >
-          <item type="dict" id="92645032" >
+        <val type="list" id="90134664" >
+          <item type="dict" id="90136648" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -752,7 +752,7 @@
               <val type="string" value="Number of Analogue Outputs 32 Bit" />
             </entry>
           </item>
-          <item type="dict" id="92645304" >
+          <item type="dict" id="90136920" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -788,15 +788,15 @@
   </entry>
   <entry>
     <key type="numeric" value="24835" />
-    <val type="dict" id="92645576" >
+    <val type="dict" id="90137192" >
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92609480" >
-          <item type="dict" id="92645848" >
+        <val type="list" id="90134856" >
+          <item type="dict" id="90137464" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -814,7 +814,7 @@
               <val type="string" value="Number of Input 16 bit" />
             </entry>
           </item>
-          <item type="dict" id="92646120" >
+          <item type="dict" id="90137736" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -850,15 +850,15 @@
   </entry>
   <entry>
     <key type="numeric" value="25620" />
-    <val type="dict" id="92646392" >
+    <val type="dict" id="90138008" >
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92609544" >
-          <item type="dict" id="92646664" >
+        <val type="list" id="90134984" >
+          <item type="dict" id="90138280" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -876,7 +876,7 @@
               <val type="string" value="Number of Analogue Outputs" />
             </entry>
           </item>
-          <item type="dict" id="92646936" >
+          <item type="dict" id="90138552" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -912,15 +912,15 @@
   </entry>
   <entry>
     <key type="numeric" value="25088" />
-    <val type="dict" id="92651592" >
+    <val type="dict" id="90138824" >
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92609608" >
-          <item type="dict" id="92651864" >
+        <val type="list" id="90135176" >
+          <item type="dict" id="90139096" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -938,7 +938,7 @@
               <val type="string" value="Number of Output 8 Bit" />
             </entry>
           </item>
-          <item type="dict" id="92652136" >
+          <item type="dict" id="90139368" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -974,15 +974,15 @@
   </entry>
   <entry>
     <key type="numeric" value="25603" />
-    <val type="dict" id="92652408" >
+    <val type="dict" id="90139640" >
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92609672" >
-          <item type="dict" id="92652680" >
+        <val type="list" id="90135304" >
+          <item type="dict" id="90139912" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -1000,7 +1000,7 @@
               <val type="string" value="Number of Analogue Input Float" />
             </entry>
           </item>
-          <item type="dict" id="92652952" >
+          <item type="dict" id="90140184" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -1036,15 +1036,15 @@
   </entry>
   <entry>
     <key type="numeric" value="25344" />
-    <val type="dict" id="92653224" >
+    <val type="dict" id="90165320" >
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92609736" >
-          <item type="dict" id="92653496" >
+        <val type="list" id="90135496" >
+          <item type="dict" id="90165592" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -1062,7 +1062,7 @@
               <val type="string" value="Number of Output 16 Bit" />
             </entry>
           </item>
-          <item type="dict" id="92653768" >
+          <item type="dict" id="90165864" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -1098,7 +1098,7 @@
   </entry>
   <entry>
     <key type="numeric" value="24608" />
-    <val type="dict" id="92654856" >
+    <val type="dict" id="90166952" >
       <entry>
         <key type="string" value="incr" />
         <val type="numeric" value="1" />
@@ -1113,8 +1113,8 @@
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92609864" >
-          <item type="dict" id="92655128" >
+        <val type="list" id="90135880" >
+          <item type="dict" id="90167224" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -1132,7 +1132,7 @@
               <val type="string" value="Number of Input 1 bit" />
             </entry>
           </item>
-          <item type="dict" id="92655688" >
+          <item type="dict" id="90167496" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -1168,15 +1168,15 @@
   </entry>
   <entry>
     <key type="numeric" value="25633" />
-    <val type="dict" id="92655960" >
+    <val type="dict" id="90167768" >
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92609928" >
-          <item type="dict" id="92656232" >
+        <val type="list" id="90135944" >
+          <item type="dict" id="90168040" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -1194,7 +1194,7 @@
               <val type="string" value="Number of Analogue Inputs" />
             </entry>
           </item>
-          <item type="dict" id="92656504" >
+          <item type="dict" id="90168312" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -1230,15 +1230,15 @@
   </entry>
   <entry>
     <key type="numeric" value="24866" />
-    <val type="dict" id="92656776" >
+    <val type="dict" id="90168584" >
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92609992" >
-          <item type="dict" id="92657048" >
+        <val type="list" id="90136072" >
+          <item type="dict" id="90168856" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -1256,7 +1256,7 @@
               <val type="string" value="Number of Input 32 bit" />
             </entry>
           </item>
-          <item type="dict" id="92657320" >
+          <item type="dict" id="90169416" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -1292,15 +1292,15 @@
   </entry>
   <entry>
     <key type="numeric" value="24867" />
-    <val type="dict" id="92657592" >
+    <val type="dict" id="90169688" >
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92610056" >
-          <item type="dict" id="92657864" >
+        <val type="list" id="90136328" >
+          <item type="dict" id="90169960" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -1318,7 +1318,7 @@
               <val type="string" value="Number of Input 32 bit" />
             </entry>
           </item>
-          <item type="dict" id="92658136" >
+          <item type="dict" id="90170232" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -1354,15 +1354,15 @@
   </entry>
   <entry>
     <key type="numeric" value="25636" />
-    <val type="dict" id="92658408" >
+    <val type="dict" id="90170504" >
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92610120" >
-          <item type="dict" id="92658680" >
+        <val type="list" id="90136456" >
+          <item type="dict" id="90170776" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -1380,7 +1380,7 @@
               <val type="string" value="Number of Analogue Inputs" />
             </entry>
           </item>
-          <item type="dict" id="92658952" >
+          <item type="dict" id="90171048" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -1416,15 +1416,15 @@
   </entry>
   <entry>
     <key type="numeric" value="24838" />
-    <val type="dict" id="92659224" >
+    <val type="dict" id="90171320" >
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92610184" >
-          <item type="dict" id="92659784" >
+        <val type="list" id="90173512" >
+          <item type="dict" id="90171592" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -1442,7 +1442,7 @@
               <val type="string" value="Number of Input 16 bit" />
             </entry>
           </item>
-          <item type="dict" id="92660056" >
+          <item type="dict" id="90171864" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -1478,15 +1478,15 @@
   </entry>
   <entry>
     <key type="numeric" value="25638" />
-    <val type="dict" id="92660328" >
+    <val type="dict" id="90172136" >
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92610248" >
-          <item type="dict" id="92660600" >
+        <val type="list" id="90173576" >
+          <item type="dict" id="90172408" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -1504,7 +1504,7 @@
               <val type="string" value="Number of Analogue Inputs" />
             </entry>
           </item>
-          <item type="dict" id="92660872" >
+          <item type="dict" id="90172680" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -1540,15 +1540,15 @@
   </entry>
   <entry>
     <key type="numeric" value="25383" />
-    <val type="dict" id="92642024" >
+    <val type="dict" id="90145928" >
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92724296" >
-          <item type="dict" id="92642296" >
+        <val type="list" id="90134088" >
+          <item type="dict" id="90146200" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -1566,7 +1566,7 @@
               <val type="string" value="Number of Output 32 Bit" />
             </entry>
           </item>
-          <item type="dict" id="92642568" >
+          <item type="dict" id="90146472" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -1602,15 +1602,15 @@
   </entry>
   <entry>
     <key type="numeric" value="25640" />
-    <val type="dict" id="92661960" >
+    <val type="dict" id="90178152" >
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92610376" >
-          <item type="dict" id="92662232" >
+        <val type="list" id="90173704" >
+          <item type="dict" id="90178424" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -1628,7 +1628,7 @@
               <val type="string" value="Number of Analogue Inputs" />
             </entry>
           </item>
-          <item type="dict" id="92662504" >
+          <item type="dict" id="90178696" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -1664,15 +1664,15 @@
   </entry>
   <entry>
     <key type="numeric" value="25641" />
-    <val type="dict" id="92662776" >
+    <val type="dict" id="90178968" >
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92610440" >
-          <item type="dict" id="92663048" >
+        <val type="list" id="90173768" >
+          <item type="dict" id="90179240" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -1690,7 +1690,7 @@
               <val type="string" value="Number of Analogue Inputs" />
             </entry>
           </item>
-          <item type="dict" id="92663320" >
+          <item type="dict" id="90179512" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -1726,15 +1726,15 @@
   </entry>
   <entry>
     <key type="numeric" value="25642" />
-    <val type="dict" id="92667976" >
+    <val type="dict" id="90179784" >
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92610504" >
-          <item type="dict" id="92668248" >
+        <val type="list" id="90173832" >
+          <item type="dict" id="90180056" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -1752,7 +1752,7 @@
               <val type="string" value="Number of Analogue Inputs" />
             </entry>
           </item>
-          <item type="dict" id="92668520" >
+          <item type="dict" id="90180328" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -1788,15 +1788,15 @@
   </entry>
   <entry>
     <key type="numeric" value="25643" />
-    <val type="dict" id="92668792" >
+    <val type="dict" id="90180600" >
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92672072" >
-          <item type="dict" id="92669064" >
+        <val type="list" id="90173896" >
+          <item type="dict" id="90180872" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -1814,7 +1814,7 @@
               <val type="string" value="Number of Analogue Inputs" />
             </entry>
           </item>
-          <item type="dict" id="92669336" >
+          <item type="dict" id="90181144" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -1850,15 +1850,15 @@
   </entry>
   <entry>
     <key type="numeric" value="25644" />
-    <val type="dict" id="92669608" >
+    <val type="dict" id="90181704" >
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92672136" >
-          <item type="dict" id="92669880" >
+        <val type="list" id="90173960" >
+          <item type="dict" id="90181976" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -1876,7 +1876,7 @@
               <val type="string" value="Number of Analogue Inputs" />
             </entry>
           </item>
-          <item type="dict" id="92670152" >
+          <item type="dict" id="90182248" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -1912,15 +1912,15 @@
   </entry>
   <entry>
     <key type="numeric" value="25645" />
-    <val type="dict" id="92670424" >
+    <val type="dict" id="90182520" >
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92672200" >
-          <item type="dict" id="92670696" >
+        <val type="list" id="90174024" >
+          <item type="dict" id="90182792" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -1938,7 +1938,7 @@
               <val type="string" value="Number of Analogue Inputs" />
             </entry>
           </item>
-          <item type="dict" id="92670968" >
+          <item type="dict" id="90183064" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -1974,15 +1974,15 @@
   </entry>
   <entry>
     <key type="numeric" value="25646" />
-    <val type="dict" id="92671240" >
+    <val type="dict" id="90183336" >
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92672264" >
-          <item type="dict" id="92671512" >
+        <val type="list" id="90174088" >
+          <item type="dict" id="90183608" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -2000,7 +2000,7 @@
               <val type="string" value="Number of Analogue Inputs" />
             </entry>
           </item>
-          <item type="dict" id="92676168" >
+          <item type="dict" id="90183880" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -2036,15 +2036,15 @@
   </entry>
   <entry>
     <key type="numeric" value="25647" />
-    <val type="dict" id="92676440" >
+    <val type="dict" id="90184152" >
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92672328" >
-          <item type="dict" id="92676712" >
+        <val type="list" id="90174152" >
+          <item type="dict" id="90184424" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -2062,7 +2062,7 @@
               <val type="string" value="Number of Analogue Inputs" />
             </entry>
           </item>
-          <item type="dict" id="92676984" >
+          <item type="dict" id="90184696" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -2098,7 +2098,7 @@
   </entry>
   <entry>
     <key type="numeric" value="24624" />
-    <val type="dict" id="92677256" >
+    <val type="dict" id="90184968" >
       <entry>
         <key type="string" value="incr" />
         <val type="numeric" value="1" />
@@ -2113,8 +2113,8 @@
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92672392" >
-          <item type="dict" id="92677528" >
+        <val type="list" id="90174280" >
+          <item type="dict" id="90185240" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -2132,7 +2132,7 @@
               <val type="string" value="Number of Input 1 bit" />
             </entry>
           </item>
-          <item type="dict" id="92677800" >
+          <item type="dict" id="90185800" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -2168,15 +2168,15 @@
   </entry>
   <entry>
     <key type="numeric" value="25352" />
-    <val type="dict" id="92678072" >
+    <val type="dict" id="90186072" >
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92672456" >
-          <item type="dict" id="92678344" >
+        <val type="list" id="90174408" >
+          <item type="dict" id="90186344" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -2194,7 +2194,7 @@
               <val type="string" value="Number of Output 16 Bit" />
             </entry>
           </item>
-          <item type="dict" id="92678616" >
+          <item type="dict" id="90186616" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -2230,15 +2230,15 @@
   </entry>
   <entry>
     <key type="numeric" value="25650" />
-    <val type="dict" id="92678888" >
+    <val type="dict" id="90186888" >
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92672520" >
-          <item type="dict" id="92679160" >
+        <val type="list" id="90174472" >
+          <item type="dict" id="90187160" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -2256,7 +2256,7 @@
               <val type="string" value="Number of Analogue Inputs" />
             </entry>
           </item>
-          <item type="dict" id="92679432" >
+          <item type="dict" id="90187432" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -2292,15 +2292,15 @@
   </entry>
   <entry>
     <key type="numeric" value="25350" />
-    <val type="dict" id="92776648" >
+    <val type="dict" id="87618152" >
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92673672" >
-          <item type="dict" id="92776920" >
+        <val type="list" id="90176584" >
+          <item type="dict" id="87618424" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -2318,7 +2318,7 @@
               <val type="string" value="Number of Output 16 Bit" />
             </entry>
           </item>
-          <item type="dict" id="92777192" >
+          <item type="dict" id="87618696" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -2354,7 +2354,7 @@
   </entry>
   <entry>
     <key type="numeric" value="25200" />
-    <val type="dict" id="92795496" >
+    <val type="dict" id="87636712" >
       <entry>
         <key type="string" value="incr" />
         <val type="numeric" value="1" />
@@ -2369,8 +2369,8 @@
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92674760" >
-          <item type="dict" id="92795768" >
+        <val type="list" id="87626696" >
+          <item type="dict" id="87636984" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -2388,7 +2388,7 @@
               <val type="string" value="Number of Output 1 Bit" />
             </entry>
           </item>
-          <item type="dict" id="92796040" >
+          <item type="dict" id="87637256" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -2424,15 +2424,15 @@
   </entry>
   <entry>
     <key type="numeric" value="25096" />
-    <val type="dict" id="92680808" >
+    <val type="dict" id="90188520" >
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92672648" >
-          <item type="dict" id="92681080" >
+        <val type="list" id="90174728" >
+          <item type="dict" id="90188792" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -2450,7 +2450,7 @@
               <val type="string" value="Number of Output 8 Bit" />
             </entry>
           </item>
-          <item type="dict" id="92681352" >
+          <item type="dict" id="90189064" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -2486,7 +2486,7 @@
   </entry>
   <entry>
     <key type="numeric" value="24632" />
-    <val type="dict" id="92681624" >
+    <val type="dict" id="90189336" >
       <entry>
         <key type="string" value="incr" />
         <val type="numeric" value="1" />
@@ -2501,8 +2501,8 @@
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92672712" >
-          <item type="dict" id="92681896" >
+        <val type="list" id="90174856" >
+          <item type="dict" id="87605320" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -2520,7 +2520,7 @@
               <val type="string" value="Number of Input 1 bit" />
             </entry>
           </item>
-          <item type="dict" id="92682168" >
+          <item type="dict" id="87605592" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -2556,15 +2556,15 @@
   </entry>
   <entry>
     <key type="numeric" value="25639" />
-    <val type="dict" id="92793576" >
+    <val type="dict" id="87635080" >
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92674632" >
-          <item type="dict" id="92793848" >
+        <val type="list" id="87626504" >
+          <item type="dict" id="87635352" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -2582,7 +2582,7 @@
               <val type="string" value="Number of Analogue Inputs" />
             </entry>
           </item>
-          <item type="dict" id="92794120" >
+          <item type="dict" id="87635624" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -2618,15 +2618,15 @@
   </entry>
   <entry>
     <key type="numeric" value="24872" />
-    <val type="dict" id="92796312" >
+    <val type="dict" id="87637528" >
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92674824" >
-          <item type="dict" id="92796584" >
+        <val type="list" id="87626824" >
+          <item type="dict" id="87638088" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -2644,7 +2644,7 @@
               <val type="string" value="Number of Input 32 bit" />
             </entry>
           </item>
-          <item type="dict" id="92796856" >
+          <item type="dict" id="87638360" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -2680,7 +2680,7 @@
   </entry>
   <entry>
     <key type="numeric" value="25152" />
-    <val type="dict" id="92683256" >
+    <val type="dict" id="87606680" >
       <entry>
         <key type="string" value="incr" />
         <val type="numeric" value="1" />
@@ -2695,8 +2695,8 @@
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92672840" >
-          <item type="dict" id="92683528" >
+        <val type="list" id="90175048" >
+          <item type="dict" id="87606952" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -2714,7 +2714,7 @@
               <val type="string" value="Number of Output 1 Bit" />
             </entry>
           </item>
-          <item type="dict" id="92683800" >
+          <item type="dict" id="87607224" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -2750,15 +2750,15 @@
   </entry>
   <entry>
     <key type="numeric" value="24864" />
-    <val type="dict" id="92684360" >
+    <val type="dict" id="87607496" >
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92672904" >
-          <item type="dict" id="92684632" >
+        <val type="list" id="90175240" >
+          <item type="dict" id="87607768" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -2776,7 +2776,7 @@
               <val type="string" value="Number of Input 32 bit" />
             </entry>
           </item>
-          <item type="dict" id="92684904" >
+          <item type="dict" id="87608040" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -2812,15 +2812,15 @@
   </entry>
   <entry>
     <key type="numeric" value="25666" />
-    <val type="dict" id="92685176" >
+    <val type="dict" id="87608312" >
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92672968" >
-          <item type="dict" id="92685448" >
+        <val type="list" id="90175304" >
+          <item type="dict" id="87608584" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -2838,7 +2838,7 @@
               <val type="string" value="Number of Analogue Outputs" />
             </entry>
           </item>
-          <item type="dict" id="92685720" >
+          <item type="dict" id="87608856" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -2874,15 +2874,15 @@
   </entry>
   <entry>
     <key type="numeric" value="25667" />
-    <val type="dict" id="92685992" >
+    <val type="dict" id="87609416" >
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92673032" >
-          <item type="dict" id="92686264" >
+        <val type="list" id="90175432" >
+          <item type="dict" id="87609688" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -2900,7 +2900,7 @@
               <val type="string" value="Number of Analogue Outputs" />
             </entry>
           </item>
-          <item type="dict" id="92686536" >
+          <item type="dict" id="87609960" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -2936,15 +2936,15 @@
   </entry>
   <entry>
     <key type="numeric" value="25668" />
-    <val type="dict" id="92686808" >
+    <val type="dict" id="87610232" >
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92673096" >
-          <item type="dict" id="92687080" >
+        <val type="list" id="90175560" >
+          <item type="dict" id="87610504" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -2962,7 +2962,7 @@
               <val type="string" value="Number of Analogue Outputs" />
             </entry>
           </item>
-          <item type="dict" id="92687352" >
+          <item type="dict" id="87610776" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -2998,15 +2998,15 @@
   </entry>
   <entry>
     <key type="numeric" value="25669" />
-    <val type="dict" id="92687624" >
+    <val type="dict" id="87611048" >
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92673160" >
-          <item type="dict" id="92687896" >
+        <val type="list" id="90175688" >
+          <item type="dict" id="87611320" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -3024,7 +3024,7 @@
               <val type="string" value="Number of Analogue Outputs" />
             </entry>
           </item>
-          <item type="dict" id="92770376" >
+          <item type="dict" id="87611592" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -3060,15 +3060,15 @@
   </entry>
   <entry>
     <key type="numeric" value="25665" />
-    <val type="dict" id="92770648" >
+    <val type="dict" id="87611864" >
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92673224" >
-          <item type="dict" id="92770920" >
+        <val type="list" id="90175752" >
+          <item type="dict" id="87612136" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -3086,7 +3086,7 @@
               <val type="string" value="Number of Analogue Outputs" />
             </entry>
           </item>
-          <item type="dict" id="92771192" >
+          <item type="dict" id="87612408" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -3122,15 +3122,15 @@
   </entry>
   <entry>
     <key type="numeric" value="25648" />
-    <val type="dict" id="92771464" >
+    <val type="dict" id="87612680" >
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92673288" >
-          <item type="dict" id="92771736" >
+        <val type="list" id="90175816" >
+          <item type="dict" id="87612952" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -3148,7 +3148,7 @@
               <val type="string" value="Number of Analogue Inputs" />
             </entry>
           </item>
-          <item type="dict" id="92772008" >
+          <item type="dict" id="87613512" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -3184,15 +3184,15 @@
   </entry>
   <entry>
     <key type="numeric" value="25634" />
-    <val type="dict" id="92778008" >
+    <val type="dict" id="87619512" >
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92673800" >
-          <item type="dict" id="92778568" >
+        <val type="list" id="90176840" >
+          <item type="dict" id="87619784" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -3210,7 +3210,7 @@
               <val type="string" value="Number of Interrupt Source Bank" />
             </entry>
           </item>
-          <item type="dict" id="92778840" >
+          <item type="dict" id="87620056" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -3246,15 +3246,15 @@
   </entry>
   <entry>
     <key type="numeric" value="25094" />
-    <val type="dict" id="92773096" >
+    <val type="dict" id="87614600" >
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92673416" >
-          <item type="dict" id="92773368" >
+        <val type="list" id="90176072" >
+          <item type="dict" id="87614872" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -3272,7 +3272,7 @@
               <val type="string" value="Number of Output 8 Bit" />
             </entry>
           </item>
-          <item type="dict" id="92773640" >
+          <item type="dict" id="87615144" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -3308,15 +3308,15 @@
   </entry>
   <entry>
     <key type="numeric" value="25378" />
-    <val type="dict" id="92773912" >
+    <val type="dict" id="87615416" >
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92673480" >
-          <item type="dict" id="92774472" >
+        <val type="list" id="90176200" >
+          <item type="dict" id="87615688" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -3334,7 +3334,7 @@
               <val type="string" value="Number of Output 32 Bit" />
             </entry>
           </item>
-          <item type="dict" id="92774744" >
+          <item type="dict" id="87615960" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -3370,15 +3370,15 @@
   </entry>
   <entry>
     <key type="numeric" value="25680" />
-    <val type="dict" id="92775832" >
+    <val type="dict" id="87617048" >
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92673608" >
-          <item type="dict" id="92776104" >
+        <val type="list" id="90176456" >
+          <item type="dict" id="87617608" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -3396,7 +3396,7 @@
               <val type="string" value="Number of Analogue Outputs" />
             </entry>
           </item>
-          <item type="dict" id="92776376" >
+          <item type="dict" id="87617880" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -3432,15 +3432,15 @@
   </entry>
   <entry>
     <key type="numeric" value="25090" />
-    <val type="dict" id="92679704" >
+    <val type="dict" id="90187704" >
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92672584" >
-          <item type="dict" id="92680264" >
+        <val type="list" id="90174600" >
+          <item type="dict" id="90187976" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -3458,7 +3458,7 @@
               <val type="string" value="Number of Output 8 Bit" />
             </entry>
           </item>
-          <item type="dict" id="92680536" >
+          <item type="dict" id="90188248" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -3494,15 +3494,15 @@
   </entry>
   <entry>
     <key type="numeric" value="25635" />
-    <val type="dict" id="92777464" >
+    <val type="dict" id="87618968" >
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92673736" >
-          <item type="dict" id="92777736" >
+        <val type="list" id="90176712" >
+          <item type="dict" id="87619240" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -3534,15 +3534,15 @@
   </entry>
   <entry>
     <key type="numeric" value="25601" />
-    <val type="dict" id="92794392" >
+    <val type="dict" id="87635896" >
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92674696" >
-          <item type="dict" id="92794952" >
+        <val type="list" id="87626632" >
+          <item type="dict" id="87636168" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -3560,7 +3560,7 @@
               <val type="string" value="Number of Analogue Input 16 Bit" />
             </entry>
           </item>
-          <item type="dict" id="92795224" >
+          <item type="dict" id="87636440" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -3596,7 +3596,7 @@
   </entry>
   <entry>
     <key type="numeric" value="25120" />
-    <val type="dict" id="92779112" >
+    <val type="dict" id="87620328" >
       <entry>
         <key type="string" value="incr" />
         <val type="numeric" value="1" />
@@ -3611,8 +3611,8 @@
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92673864" >
-          <item type="dict" id="92779384" >
+        <val type="list" id="90176968" >
+          <item type="dict" id="87620600" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -3630,7 +3630,7 @@
               <val type="string" value="Number of Output 1 Bit" />
             </entry>
           </item>
-          <item type="dict" id="92779656" >
+          <item type="dict" id="87620872" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -3666,15 +3666,15 @@
   </entry>
   <entry>
     <key type="numeric" value="25600" />
-    <val type="dict" id="92779928" >
+    <val type="dict" id="87621144" >
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92673928" >
-          <item type="dict" id="92780200" >
+        <val type="list" id="90177096" >
+          <item type="dict" id="87621704" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -3692,7 +3692,7 @@
               <val type="string" value="Number of Analogue Input 8 Bit" />
             </entry>
           </item>
-          <item type="dict" id="92780472" >
+          <item type="dict" id="87621976" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -3728,7 +3728,7 @@
   </entry>
   <entry>
     <key type="numeric" value="25184" />
-    <val type="dict" id="92780744" >
+    <val type="dict" id="87622248" >
       <entry>
         <key type="string" value="incr" />
         <val type="numeric" value="1" />
@@ -3743,8 +3743,8 @@
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92673992" >
-          <item type="dict" id="92781016" >
+        <val type="list" id="90177160" >
+          <item type="dict" id="87622520" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -3762,7 +3762,7 @@
               <val type="string" value="Number of Output 1 Bit" />
             </entry>
           </item>
-          <item type="dict" id="92781288" >
+          <item type="dict" id="87622792" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -3798,15 +3798,15 @@
   </entry>
   <entry>
     <key type="numeric" value="25346" />
-    <val type="dict" id="92781560" >
+    <val type="dict" id="87623064" >
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92674056" >
-          <item type="dict" id="92781832" >
+        <val type="list" id="90177288" >
+          <item type="dict" id="87623336" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -3824,7 +3824,7 @@
               <val type="string" value="Number of Output 16 Bit" />
             </entry>
           </item>
-          <item type="dict" id="92782104" >
+          <item type="dict" id="87623608" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -3860,15 +3860,15 @@
   </entry>
   <entry>
     <key type="numeric" value="25670" />
-    <val type="dict" id="92782664" >
+    <val type="dict" id="87623880" >
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92674120" >
-          <item type="dict" id="92782936" >
+        <val type="list" id="90177352" >
+          <item type="dict" id="87624152" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -3886,7 +3886,7 @@
               <val type="string" value="Number of Analogue Outputs" />
             </entry>
           </item>
-          <item type="dict" id="92783208" >
+          <item type="dict" id="87624424" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -3922,15 +3922,15 @@
   </entry>
   <entry>
     <key type="numeric" value="25376" />
-    <val type="dict" id="92783480" >
+    <val type="dict" id="87624696" >
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92674184" >
-          <item type="dict" id="92783752" >
+        <val type="list" id="90177480" >
+          <item type="dict" id="87624968" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -3948,7 +3948,7 @@
               <val type="string" value="Number of Output 32 Bit" />
             </entry>
           </item>
-          <item type="dict" id="92784024" >
+          <item type="dict" id="87625240" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -3984,7 +3984,7 @@
   </entry>
   <entry>
     <key type="numeric" value="24672" />
-    <val type="dict" id="92654040" >
+    <val type="dict" id="90166136" >
       <entry>
         <key type="string" value="incr" />
         <val type="numeric" value="1" />
@@ -3999,8 +3999,8 @@
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92609800" >
-          <item type="dict" id="92654312" >
+        <val type="list" id="90135688" >
+          <item type="dict" id="90166408" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -4018,7 +4018,7 @@
               <val type="string" value="Number of Input 1 bit" />
             </entry>
           </item>
-          <item type="dict" id="92654584" >
+          <item type="dict" id="90166680" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -4054,7 +4054,7 @@
   </entry>
   <entry>
     <key type="numeric" value="24656" />
-    <val type="dict" id="92785112" >
+    <val type="dict" id="87630712" >
       <entry>
         <key type="string" value="incr" />
         <val type="numeric" value="1" />
@@ -4069,8 +4069,8 @@
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92674312" >
-          <item type="dict" id="92785384" >
+        <val type="list" id="87625992" >
+          <item type="dict" id="87630984" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -4088,7 +4088,7 @@
               <val type="string" value="Number of Input 1 bit" />
             </entry>
           </item>
-          <item type="dict" id="92785656" >
+          <item type="dict" id="87631256" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -4124,15 +4124,15 @@
   </entry>
   <entry>
     <key type="numeric" value="25602" />
-    <val type="dict" id="92785928" >
+    <val type="dict" id="87631528" >
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92674376" >
-          <item type="dict" id="92786200" >
+        <val type="list" id="87626056" >
+          <item type="dict" id="87631800" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -4150,7 +4150,7 @@
               <val type="string" value="Number of Analogue Input 32 Bit" />
             </entry>
           </item>
-          <item type="dict" id="92790856" >
+          <item type="dict" id="87632072" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -4186,15 +4186,15 @@
   </entry>
   <entry>
     <key type="numeric" value="25382" />
-    <val type="dict" id="92682440" >
+    <val type="dict" id="87605864" >
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92672776" >
-          <item type="dict" id="92682712" >
+        <val type="list" id="90174984" >
+          <item type="dict" id="87606136" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -4212,7 +4212,7 @@
               <val type="string" value="Number of Output 32 Bit" />
             </entry>
           </item>
-          <item type="dict" id="92682984" >
+          <item type="dict" id="87606408" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -4248,15 +4248,15 @@
   </entry>
   <entry>
     <key type="numeric" value="25649" />
-    <val type="dict" id="92791944" >
+    <val type="dict" id="87633160" >
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92674504" >
-          <item type="dict" id="92792216" >
+        <val type="list" id="87626312" >
+          <item type="dict" id="87633432" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -4274,7 +4274,7 @@
               <val type="string" value="Number of Analogue Inputs" />
             </entry>
           </item>
-          <item type="dict" id="92792488" >
+          <item type="dict" id="87633992" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -4310,15 +4310,15 @@
   </entry>
   <entry>
     <key type="numeric" value="25095" />
-    <val type="dict" id="92792760" >
+    <val type="dict" id="87634264" >
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92674568" >
-          <item type="dict" id="92793032" >
+        <val type="list" id="87626376" >
+          <item type="dict" id="87634536" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -4336,7 +4336,7 @@
               <val type="string" value="Number of Output 8 Bit" />
             </entry>
           </item>
-          <item type="dict" id="92793304" >
+          <item type="dict" id="87634808" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -4372,15 +4372,15 @@
   </entry>
   <entry>
     <key type="numeric" value="24871" />
-    <val type="dict" id="92661144" >
+    <val type="dict" id="90172952" >
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92610312" >
-          <item type="dict" id="92661416" >
+        <val type="list" id="90173640" >
+          <item type="dict" id="90177608" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -4398,7 +4398,7 @@
               <val type="string" value="Number of Input 32 bit" />
             </entry>
           </item>
-          <item type="dict" id="92661688" >
+          <item type="dict" id="90177880" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -4434,15 +4434,15 @@
   </entry>
   <entry>
     <key type="numeric" value="24870" />
-    <val type="dict" id="92791128" >
+    <val type="dict" id="87632344" >
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92674440" >
-          <item type="dict" id="92791400" >
+        <val type="list" id="87626184" >
+          <item type="dict" id="87632616" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -4460,7 +4460,7 @@
               <val type="string" value="Number of Input 32 bit" />
             </entry>
           </item>
-          <item type="dict" id="92791672" >
+          <item type="dict" id="87632888" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -4496,15 +4496,15 @@
   </entry>
   <entry>
     <key type="numeric" value="25351" />
-    <val type="dict" id="92772280" >
+    <val type="dict" id="87613784" >
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92673352" >
-          <item type="dict" id="92772552" >
+        <val type="list" id="90175944" >
+          <item type="dict" id="87614056" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -4522,7 +4522,7 @@
               <val type="string" value="Number of Output 16 Bit" />
             </entry>
           </item>
-          <item type="dict" id="92772824" >
+          <item type="dict" id="87614328" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -4558,15 +4558,15 @@
   </entry>
   <entry>
     <key type="numeric" value="25384" />
-    <val type="dict" id="92775016" >
+    <val type="dict" id="87616232" >
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92673544" >
-          <item type="dict" id="92775288" >
+        <val type="list" id="90176328" >
+          <item type="dict" id="87616504" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -4584,7 +4584,7 @@
               <val type="string" value="Number of Output 32 Bit" />
             </entry>
           </item>
-          <item type="dict" id="92775560" >
+          <item type="dict" id="87616776" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -4620,15 +4620,15 @@
   </entry>
   <entry>
     <key type="numeric" value="25619" />
-    <val type="dict" id="92797128" >
+    <val type="dict" id="87638632" >
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92674888" >
-          <item type="dict" id="92797400" >
+        <val type="list" id="87626888" >
+          <item type="dict" id="87638904" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -4646,7 +4646,7 @@
               <val type="string" value="Number of Analogue Outputs Float" />
             </entry>
           </item>
-          <item type="dict" id="92797672" >
+          <item type="dict" id="87639176" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -4682,7 +4682,7 @@
   </entry>
   <entry>
     <key type="numeric" value="25168" />
-    <val type="dict" id="92797944" >
+    <val type="dict" id="87639448" >
       <entry>
         <key type="string" value="incr" />
         <val type="numeric" value="1" />
@@ -4697,8 +4697,8 @@
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92674952" >
-          <item type="dict" id="92798216" >
+        <val type="list" id="87626952" >
+          <item type="dict" id="87639720" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -4716,7 +4716,7 @@
               <val type="string" value="Number of Output 1 Bit" />
             </entry>
           </item>
-          <item type="dict" id="92798488" >
+          <item type="dict" id="87639992" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -4752,15 +4752,15 @@
   </entry>
   <entry>
     <key type="numeric" value="24839" />
-    <val type="dict" id="92784296" >
+    <val type="dict" id="87629896" >
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92674248" >
-          <item type="dict" id="92784568" >
+        <val type="list" id="87625864" >
+          <item type="dict" id="87630168" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -4778,7 +4778,7 @@
               <val type="string" value="Number of Input 16 bit" />
             </entry>
           </item>
-          <item type="dict" id="92784840" >
+          <item type="dict" id="87630440" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -4814,15 +4814,15 @@
   </entry>
   <entry>
     <key type="numeric" value="25671" />
-    <val type="dict" id="92799048" >
+    <val type="dict" id="87640264" >
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92675016" >
-          <item type="dict" id="92799320" >
+        <val type="list" id="87627080" >
+          <item type="dict" id="87640536" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -4840,7 +4840,7 @@
               <val type="string" value="Number of Analogue Outputs" />
             </entry>
           </item>
-          <item type="dict" id="92799592" >
+          <item type="dict" id="87640808" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -4876,15 +4876,15 @@
   </entry>
   <entry>
     <key type="numeric" value="25637" />
-    <val type="dict" id="92799864" >
+    <val type="dict" id="87641080" >
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92675080" >
-          <item type="dict" id="92800136" >
+        <val type="list" id="87627144" >
+          <item type="dict" id="87641352" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -4902,7 +4902,7 @@
               <val type="string" value="Number of Analogue Inputs" />
             </entry>
           </item>
-          <item type="dict" id="92800408" >
+          <item type="dict" id="87641624" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -4938,15 +4938,15 @@
   </entry>
   <entry>
     <key type="numeric" value="24840" />
-    <val type="dict" id="92800680" >
+    <val type="dict" id="87642184" >
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92675144" >
-          <item type="dict" id="92800952" >
+        <val type="list" id="87627272" >
+          <item type="dict" id="87642456" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -4964,7 +4964,7 @@
               <val type="string" value="Number of Input 16 bit" />
             </entry>
           </item>
-          <item type="dict" id="92801224" >
+          <item type="dict" id="87642728" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -5000,7 +5000,7 @@
   </entry>
   <entry>
     <key type="numeric" value="24688" />
-    <val type="dict" id="92801496" >
+    <val type="dict" id="87643000" >
       <entry>
         <key type="string" value="incr" />
         <val type="numeric" value="1" />
@@ -5015,8 +5015,8 @@
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="92675208" >
-          <item type="dict" id="92801768" >
+        <val type="list" id="87627336" >
+          <item type="dict" id="87643272" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -5034,7 +5034,7 @@
               <val type="string" value="Number of Input 1 bit" />
             </entry>
           </item>
-          <item type="dict" id="92802040" >
+          <item type="dict" id="87643544" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -5069,15 +5069,15 @@
     </val>
   </entry>
 </attr>
-<attr name="Description" type="string">Node generated with objdictedit. DS-401 Profile</attr>
-<attr name="Dictionary" type="dict" id="88235176" >
+<attr name="Description" type="string">Test DS-302 and DS-401 profile</attr>
+<attr name="Dictionary" type="dict" id="87643816" >
   <entry>
     <key type="numeric" value="4096" />
     <val type="numeric" value="0" />
   </entry>
   <entry>
     <key type="numeric" value="4120" />
-    <val type="list" id="92676040" >
+    <val type="list" id="87627400" >
       <item type="numeric" value="0" />
       <item type="numeric" value="0" />
       <item type="numeric" value="0" />
@@ -5089,16 +5089,526 @@
     <val type="numeric" value="0" />
   </entry>
 </attr>
-<attr name="SpecificMenu" type="list" id="92807304" >
+<attr name="SpecificMenu" type="list" id="87627528" >
 </attr>
-<attr name="ParamsDictionary" type="dict" id="88235464" >
+<attr name="ParamsDictionary" type="dict" id="87644088" >
 </attr>
-<attr name="UserMapping" type="dict" id="88235752" >
+<attr name="UserMapping" type="dict" id="87644360" >
 </attr>
-<attr name="DS302" type="dict" id="92811336" >
+<attr name="DS302" type="dict" id="87644632" >
+  <entry>
+    <key type="numeric" value="7968" />
+    <val type="dict" id="87644904" >
+      <entry>
+        <key type="string" value="need" />
+        <val type="False" value="" />
+      </entry>
+      <entry>
+        <key type="string" value="values" />
+        <val type="list" id="87627656" >
+          <item type="dict" id="87645176" >
+            <entry>
+              <key type="string" value="access" />
+              <val type="string" value="ro" />
+            </entry>
+            <entry>
+              <key type="string" value="pdo" />
+              <val type="False" value="" />
+            </entry>
+            <entry>
+              <key type="string" value="type" />
+              <val type="numeric" value="5" />
+            </entry>
+            <entry>
+              <key type="string" value="name" />
+              <val type="string" value="Number of Entries" />
+            </entry>
+          </item>
+          <item type="dict" id="87645448" >
+            <entry>
+              <key type="string" value="access" />
+              <val type="string" value="rw" />
+            </entry>
+            <entry>
+              <key type="string" value="pdo" />
+              <val type="False" value="" />
+            </entry>
+            <entry>
+              <key type="string" value="type" />
+              <val type="numeric" value="15" />
+            </entry>
+            <entry>
+              <key type="string" value="name" />
+              <val type="string" value="Store DCF for node %d[(sub)]" />
+            </entry>
+            <entry>
+              <key type="string" value="nbmax" />
+              <val type="numeric" value="127" />
+            </entry>
+          </item>
+        </val>
+      </entry>
+      <entry>
+        <key type="string" value="name" />
+        <val type="string" value="Store DCF" />
+      </entry>
+      <entry>
+        <key type="string" value="struct" />
+        <val type="numeric" value="7" />
+      </entry>
+    </val>
+  </entry>
+  <entry>
+    <key type="numeric" value="7969" />
+    <val type="dict" id="87645720" >
+      <entry>
+        <key type="string" value="need" />
+        <val type="False" value="" />
+      </entry>
+      <entry>
+        <key type="string" value="values" />
+        <val type="list" id="87627784" >
+          <item type="dict" id="87646280" >
+            <entry>
+              <key type="string" value="access" />
+              <val type="string" value="ro" />
+            </entry>
+            <entry>
+              <key type="string" value="pdo" />
+              <val type="False" value="" />
+            </entry>
+            <entry>
+              <key type="string" value="type" />
+              <val type="numeric" value="5" />
+            </entry>
+            <entry>
+              <key type="string" value="name" />
+              <val type="string" value="Number of Entries" />
+            </entry>
+          </item>
+          <item type="dict" id="87646552" >
+            <entry>
+              <key type="string" value="access" />
+              <val type="string" value="rw" />
+            </entry>
+            <entry>
+              <key type="string" value="pdo" />
+              <val type="False" value="" />
+            </entry>
+            <entry>
+              <key type="string" value="type" />
+              <val type="numeric" value="2" />
+            </entry>
+            <entry>
+              <key type="string" value="name" />
+              <val type="string" value="Storage Format for Node %d[(sub)]" />
+            </entry>
+            <entry>
+              <key type="string" value="nbmax" />
+              <val type="numeric" value="127" />
+            </entry>
+          </item>
+        </val>
+      </entry>
+      <entry>
+        <key type="string" value="name" />
+        <val type="string" value="Storage Format" />
+      </entry>
+      <entry>
+        <key type="string" value="struct" />
+        <val type="numeric" value="7" />
+      </entry>
+    </val>
+  </entry>
+  <entry>
+    <key type="numeric" value="7970" />
+    <val type="dict" id="87646824" >
+      <entry>
+        <key type="string" value="need" />
+        <val type="False" value="" />
+      </entry>
+      <entry>
+        <key type="string" value="values" />
+        <val type="list" id="87627912" >
+          <item type="dict" id="87647096" >
+            <entry>
+              <key type="string" value="access" />
+              <val type="string" value="ro" />
+            </entry>
+            <entry>
+              <key type="string" value="pdo" />
+              <val type="False" value="" />
+            </entry>
+            <entry>
+              <key type="string" value="type" />
+              <val type="numeric" value="5" />
+            </entry>
+            <entry>
+              <key type="string" value="name" />
+              <val type="string" value="Number of Entries" />
+            </entry>
+          </item>
+          <item type="dict" id="87647368" >
+            <entry>
+              <key type="string" value="access" />
+              <val type="string" value="rw" />
+            </entry>
+            <entry>
+              <key type="string" value="pdo" />
+              <val type="False" value="" />
+            </entry>
+            <entry>
+              <key type="string" value="type" />
+              <val type="numeric" value="15" />
+            </entry>
+            <entry>
+              <key type="string" value="name" />
+              <val type="string" value="Concise DCF for Node %d[(sub)]" />
+            </entry>
+            <entry>
+              <key type="string" value="nbmax" />
+              <val type="numeric" value="127" />
+            </entry>
+          </item>
+        </val>
+      </entry>
+      <entry>
+        <key type="string" value="name" />
+        <val type="string" value="Concise DCF" />
+      </entry>
+      <entry>
+        <key type="string" value="struct" />
+        <val type="numeric" value="7" />
+      </entry>
+    </val>
+  </entry>
+  <entry>
+    <key type="numeric" value="8016" />
+    <val type="dict" id="87647640" >
+      <entry>
+        <key type="string" value="need" />
+        <val type="False" value="" />
+      </entry>
+      <entry>
+        <key type="string" value="values" />
+        <val type="list" id="87627976" >
+          <item type="dict" id="87647912" >
+            <entry>
+              <key type="string" value="access" />
+              <val type="string" value="ro" />
+            </entry>
+            <entry>
+              <key type="string" value="pdo" />
+              <val type="False" value="" />
+            </entry>
+            <entry>
+              <key type="string" value="type" />
+              <val type="numeric" value="5" />
+            </entry>
+            <entry>
+              <key type="string" value="name" />
+              <val type="string" value="Number of different programs supported on the node" />
+            </entry>
+          </item>
+          <item type="dict" id="87648184" >
+            <entry>
+              <key type="string" value="access" />
+              <val type="string" value="rw" />
+            </entry>
+            <entry>
+              <key type="string" value="pdo" />
+              <val type="False" value="" />
+            </entry>
+            <entry>
+              <key type="string" value="type" />
+              <val type="numeric" value="15" />
+            </entry>
+            <entry>
+              <key type="string" value="name" />
+              <val type="string" value="Program Number %d[(sub)]" />
+            </entry>
+            <entry>
+              <key type="string" value="nbmax" />
+              <val type="numeric" value="127" />
+            </entry>
+          </item>
+        </val>
+      </entry>
+      <entry>
+        <key type="string" value="name" />
+        <val type="string" value="Download Program Data" />
+      </entry>
+      <entry>
+        <key type="string" value="struct" />
+        <val type="numeric" value="7" />
+      </entry>
+    </val>
+  </entry>
+  <entry>
+    <key type="numeric" value="8017" />
+    <val type="dict" id="87648456" >
+      <entry>
+        <key type="string" value="need" />
+        <val type="False" value="" />
+      </entry>
+      <entry>
+        <key type="string" value="values" />
+        <val type="list" id="87628104" >
+          <item type="dict" id="87648728" >
+            <entry>
+              <key type="string" value="access" />
+              <val type="string" value="ro" />
+            </entry>
+            <entry>
+              <key type="string" value="pdo" />
+              <val type="False" value="" />
+            </entry>
+            <entry>
+              <key type="string" value="type" />
+              <val type="numeric" value="5" />
+            </entry>
+            <entry>
+              <key type="string" value="name" />
+              <val type="string" value="Number of different programs on the node" />
+            </entry>
+          </item>
+          <item type="dict" id="87649000" >
+            <entry>
+              <key type="string" value="access" />
+              <val type="string" value="rw" />
+            </entry>
+            <entry>
+              <key type="string" value="pdo" />
+              <val type="False" value="" />
+            </entry>
+            <entry>
+              <key type="string" value="type" />
+              <val type="numeric" value="5" />
+            </entry>
+            <entry>
+              <key type="string" value="name" />
+              <val type="string" value="Program Number %d[(sub)]" />
+            </entry>
+            <entry>
+              <key type="string" value="nbmax" />
+              <val type="numeric" value="127" />
+            </entry>
+          </item>
+        </val>
+      </entry>
+      <entry>
+        <key type="string" value="name" />
+        <val type="string" value="Program Control" />
+      </entry>
+      <entry>
+        <key type="string" value="struct" />
+        <val type="numeric" value="7" />
+      </entry>
+    </val>
+  </entry>
+  <entry>
+    <key type="numeric" value="8018" />
+    <val type="dict" id="87649272" >
+      <entry>
+        <key type="string" value="need" />
+        <val type="False" value="" />
+      </entry>
+      <entry>
+        <key type="string" value="values" />
+        <val type="list" id="87628296" >
+          <item type="dict" id="87649544" >
+            <entry>
+              <key type="string" value="access" />
+              <val type="string" value="ro" />
+            </entry>
+            <entry>
+              <key type="string" value="pdo" />
+              <val type="False" value="" />
+            </entry>
+            <entry>
+              <key type="string" value="type" />
+              <val type="numeric" value="5" />
+            </entry>
+            <entry>
+              <key type="string" value="name" />
+              <val type="string" value="Number of Entries" />
+            </entry>
+          </item>
+          <item type="dict" id="87649816" >
+            <entry>
+              <key type="string" value="access" />
+              <val type="string" value="rw" />
+            </entry>
+            <entry>
+              <key type="string" value="pdo" />
+              <val type="False" value="" />
+            </entry>
+            <entry>
+              <key type="string" value="type" />
+              <val type="numeric" value="7" />
+            </entry>
+            <entry>
+              <key type="string" value="name" />
+              <val type="string" value="Application software date" />
+            </entry>
+          </item>
+          <item type="dict" id="87650376" >
+            <entry>
+              <key type="string" value="access" />
+              <val type="string" value="rw" />
+            </entry>
+            <entry>
+              <key type="string" value="pdo" />
+              <val type="False" value="" />
+            </entry>
+            <entry>
+              <key type="string" value="type" />
+              <val type="numeric" value="7" />
+            </entry>
+            <entry>
+              <key type="string" value="name" />
+              <val type="string" value="Application sofware time" />
+            </entry>
+          </item>
+        </val>
+      </entry>
+      <entry>
+        <key type="string" value="name" />
+        <val type="string" value="Verify Application Software" />
+      </entry>
+      <entry>
+        <key type="string" value="struct" />
+        <val type="numeric" value="3" />
+      </entry>
+    </val>
+  </entry>
+  <entry>
+    <key type="numeric" value="8019" />
+    <val type="dict" id="87650648" >
+      <entry>
+        <key type="string" value="need" />
+        <val type="False" value="" />
+      </entry>
+      <entry>
+        <key type="string" value="values" />
+        <val type="list" id="87628360" >
+          <item type="dict" id="87650920" >
+            <entry>
+              <key type="string" value="access" />
+              <val type="string" value="ro" />
+            </entry>
+            <entry>
+              <key type="string" value="pdo" />
+              <val type="False" value="" />
+            </entry>
+            <entry>
+              <key type="string" value="type" />
+              <val type="numeric" value="5" />
+            </entry>
+            <entry>
+              <key type="string" value="name" />
+              <val type="string" value="Number of different programs on the node" />
+            </entry>
+          </item>
+          <item type="dict" id="87651192" >
+            <entry>
+              <key type="string" value="access" />
+              <val type="string" value="rw" />
+            </entry>
+            <entry>
+              <key type="string" value="pdo" />
+              <val type="False" value="" />
+            </entry>
+            <entry>
+              <key type="string" value="type" />
+              <val type="numeric" value="7" />
+            </entry>
+            <entry>
+              <key type="string" value="name" />
+              <val type="string" value="Program number %d[(sub)]" />
+            </entry>
+            <entry>
+              <key type="string" value="nbmax" />
+              <val type="numeric" value="127" />
+            </entry>
+          </item>
+        </val>
+      </entry>
+      <entry>
+        <key type="string" value="name" />
+        <val type="string" value="Expected Application SW Date" />
+      </entry>
+      <entry>
+        <key type="string" value="struct" />
+        <val type="numeric" value="7" />
+      </entry>
+    </val>
+  </entry>
+  <entry>
+    <key type="numeric" value="8021" />
+    <val type="dict" id="87651464" >
+      <entry>
+        <key type="string" value="need" />
+        <val type="False" value="" />
+      </entry>
+      <entry>
+        <key type="string" value="values" />
+        <val type="list" id="87628616" >
+          <item type="dict" id="87651736" >
+            <entry>
+              <key type="string" value="access" />
+              <val type="string" value="ro" />
+            </entry>
+            <entry>
+              <key type="string" value="pdo" />
+              <val type="False" value="" />
+            </entry>
+            <entry>
+              <key type="string" value="type" />
+              <val type="numeric" value="5" />
+            </entry>
+            <entry>
+              <key type="string" value="name" />
+              <val type="string" value="Number of different programs on the node" />
+            </entry>
+          </item>
+          <item type="dict" id="87652008" >
+            <entry>
+              <key type="string" value="access" />
+              <val type="string" value="rw" />
+            </entry>
+            <entry>
+              <key type="string" value="pdo" />
+              <val type="False" value="" />
+            </entry>
+            <entry>
+              <key type="string" value="type" />
+              <val type="numeric" value="7" />
+            </entry>
+            <entry>
+              <key type="string" value="name" />
+              <val type="string" value="Program number %d[(sub)]" />
+            </entry>
+            <entry>
+              <key type="string" value="nbmax" />
+              <val type="numeric" value="127" />
+            </entry>
+          </item>
+        </val>
+      </entry>
+      <entry>
+        <key type="string" value="name" />
+        <val type="string" value="Expected Application SW Time" />
+      </entry>
+      <entry>
+        <key type="string" value="struct" />
+        <val type="numeric" value="7" />
+      </entry>
+    </val>
+  </entry>
 </attr>
 <attr name="ProfileName" type="string">DS-401</attr>
 <attr name="Type" type="string" value="master" />
 <attr name="ID" type="numeric" value="0" />
-<attr name="Name" type="string">Master</attr>
+<attr name="Name" type="string">profile_ds302_ds401</attr>
 </PyObject>

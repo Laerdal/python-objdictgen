@@ -21,9 +21,9 @@
 import ast
 import copy
 import logging
-import os
 import re
 import traceback
+from pathlib import Path
 
 import colorama
 
@@ -53,8 +53,11 @@ class Node:
 
     DefaultStringSize = 10
 
-    def __init__(self, name="", type="slave", id=0, description="", profilename="DS-301",
-                 profile=None, specificmenu=None):  # pylint: disable=redefined-builtin, invalid-name
+    def __init__(
+            self, name="", type="slave", id=0, description="",
+            profilename="None", profile=None,
+            specificmenu=None,
+    ):  # pylint: disable=redefined-builtin
         self.Name = name
         self.Type = type
         self.ID = id
@@ -1040,14 +1043,15 @@ class Node:
         # Test if the profilename is a filepath which can be used directly. If not
         # treat it as the name
         # The UI use full filenames, while all other uses use profile names
-        profilepath = profilename
-        if not os.path.exists(profilepath):
+        profilepath = Path(profilename)
+        if not profilepath.exists():
             fname = f"{profilename}.prf"
+
             try:
                 profilepath = next(
-                    os.path.join(base, fname)
+                    base / fname
                     for base in objdictgen.PROFILE_DIRECTORIES
-                    if os.path.exists(os.path.join(base, fname))
+                    if (base / fname).exists()
                 )
             except StopIteration:
                 raise ValueError(
@@ -1129,6 +1133,8 @@ class Node:
                 return Node.evaluate_node(node.left) + Node.evaluate_node(node.right)
             if isinstance(node.op, ast.Sub):
                 return Node.evaluate_node(node.left) - Node.evaluate_node(node.right)
+            if isinstance(node.op, ast.Mult):
+                return Node.evaluate_node(node.left) * Node.evaluate_node(node.right)
             raise SyntaxError(f"Unhandled arithmatic operation {type(node.op)}")
         if isinstance(node, ast.Constant):
             if isinstance(node.value, int | float | complex):

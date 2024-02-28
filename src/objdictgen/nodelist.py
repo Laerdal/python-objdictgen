@@ -130,7 +130,8 @@ class NodeList:
             index = self.Manager.OpenFileInCurrent(masterpath)
         else:
             index = self.Manager.CreateNewNode(
-                "MasterNode", 0x00, "master", "", "None", "", "Heartbeat", ["DS302"]
+                name="MasterNode", id=0x00, type="master", description="",
+                profile="None", filepath="", nmt="Heartbeat", options=["DS302"],
             )
         return index
 

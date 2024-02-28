@@ -19,7 +19,6 @@
 
 import json
 import logging
-import os
 import re
 from datetime import datetime
 
@@ -27,7 +26,8 @@ import deepdiff
 import jsonschema
 
 import objdictgen
-from objdictgen import maps, node as nodelib
+from objdictgen import maps
+from objdictgen import node as nodelib
 from objdictgen.maps import OD
 
 log = logging.getLogger('objdictgen')
@@ -310,10 +310,7 @@ def compare_profile(profilename, params, menu=None):
         return True, identical
 
     except ValueError as exc:
-        log.debug("Loading profile failed: %s", exc)
-        # FIXME: Is this an error?
-        # Test case test-profile.od -> test-profile.json without access to profile
-        log.warning("WARNING: %s", exc)
+        log.warning("WARNING: Loading profile '%s' failed: %s", profilename, exc)
         return False, False
 
 
@@ -912,7 +909,7 @@ def node_fromdict(jd, internal=False):
     # There is a weakness to the Node implementation: There is no store
     # of the order of the incoming parameters, instead the data is spread over
     # many dicts, e.g. Profile, DS302, UserMapping, Dictionary, ParamsDictionary
-    # Node.IndexOrder has been added to store this information.
+    # Node.IndexOrder has been added to store the order of the parameters.
     node.IndexOrder = [obj["index"] for obj in jd['dictionary']]
 
     return node

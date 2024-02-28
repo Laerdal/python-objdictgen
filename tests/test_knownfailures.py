@@ -5,10 +5,10 @@ from objdictgen import Node
 
 @pytest.mark.parametrize("suffix", ['od', 'json'])
 def test_edsfail_null(wd, odpath, suffix):
-    ''' EDS export of null.od fails because it contains no
+    """ EDS export of null.od fails because it contains no
         data. This is possibly a bug, or EDS does not support empty
         EDS.
-    '''
+    """
 
     fa = odpath / 'null'
 
@@ -21,7 +21,7 @@ def test_edsfail_null(wd, odpath, suffix):
 
 @pytest.mark.parametrize("suffix", ['od', 'json'])
 def test_cexportfail_unicode(wd, odpath, suffix):
-    ''' C-export does not support UNICODE yet. '''
+    """ C-export does not support UNICODE yet. """
 
     fa = odpath / 'unicode'
 

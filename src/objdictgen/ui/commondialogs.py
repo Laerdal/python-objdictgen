@@ -27,7 +27,8 @@ import wx.grid
 import objdictgen
 from objdictgen.maps import OD
 from objdictgen.node import Node
-from objdictgen.ui.exception import display_error_dialog, display_exception_dialog
+from objdictgen.ui.exception import (display_error_dialog,
+                                     display_exception_dialog)
 
 log = logging.getLogger('objdictgen')
 
@@ -1102,15 +1103,10 @@ class CreateNodeDialog(wx.Dialog):
         self.Description.SetValue("")
         self.ListProfile = {"None": ""}
         self.Profile.Append("None")
-        self.Directory = objdictgen.PROFILE_DIRECTORIES[-1]
-        for pdir in objdictgen.PROFILE_DIRECTORIES:
-            for item in sorted(os.listdir(pdir)):
-                name, extend = os.path.splitext(item)
-                if (os.path.isfile(os.path.join(self.Directory, item))
-                    and extend == ".prf" and name != "DS-302"
-                ):
-                    self.ListProfile[name] = os.path.join(self.Directory, item)
-                    self.Profile.Append(name)
+        self.Directory = str(objdictgen.PROFILE_DIRECTORIES[-1])
+        for p in objdictgen.PROFILES:
+            self.ListProfile[p.stem] = p
+            self.Profile.Append(p.stem)
         self.Profile.Append("Other")
         self.Profile.SetStringSelection("None")
         self.NodeName.SetFocus()

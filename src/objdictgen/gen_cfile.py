@@ -18,8 +18,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 # USA
 
-import os
 import re
+from pathlib import Path
 
 from objdictgen.maps import OD
 
@@ -117,7 +117,7 @@ def get_type_name(node, typenumber):
     return typename
 
 
-def generate_file_content(node, headerfilepath, pointers_dict=None):
+def generate_file_content(node, headerfile, pointers_dict=None):
     """
     pointers_dict = {(Idx,Sidx):"VariableName",...}
     """
@@ -565,7 +565,7 @@ def generate_file_content(node, headerfilepath, pointers_dict=None):
 # ------------------------------------------------------------------------------
 
     fileContent = FILE_HEADER + f"""
-#include "{headerfilepath}"
+#include "{headerfile}"
 """
 
     fileContent += """
@@ -664,7 +664,7 @@ CO_Data %(NodeName)s_Data = CANOPEN_NODE_DATA_INITIALIZER(%(NodeName)s);
 #                          Write Header File Content
 # ------------------------------------------------------------------------------
 
-    texts["file_include_name"] = headerfilepath.replace(".", "_").upper()
+    texts["file_include_name"] = headerfile.replace(".", "_").upper()
     headerFileContent = FILE_HEADER + """
 #ifndef %(file_include_name)s
 #define %(file_include_name)s
@@ -685,7 +685,7 @@ extern CO_Data %(NodeName)s_Data;
 # ------------------------------------------------------------------------------
 #                          Write Header Object Defintions Content
 # ------------------------------------------------------------------------------
-    texts["file_include_objdef_name"] = headerfilepath.replace(".", "_OBJECTDEFINES_").upper()
+    texts["file_include_objdef_name"] = headerfile.replace(".", "_OBJECTDEFINES_").upper()
     headerObjectDefinitionContent = FILE_HEADER + """
 #ifndef %(file_include_objdef_name)s
 #define %(file_include_objdef_name)s
@@ -711,10 +711,11 @@ extern CO_Data %(NodeName)s_Data;
 
 def generate_file(filepath, node, pointers_dict=None):
     """Main function to generate the C file from a object dictionary node."""
-    filebase = os.path.splitext(filepath)[0]
-    headerfilepath = filebase + ".h"
+    filepath = Path(filepath)
+    headerpath = filepath.with_suffix(".h")
+    headerdefspath = Path(headerpath.parent / (headerpath.stem + "_objectdefines.h"))
     content, header, header_defs = generate_file_content(
-        node, os.path.basename(headerfilepath), pointers_dict,
+        node, headerpath.name, pointers_dict,
     )
 
     # Write main .c contents
@@ -722,9 +723,9 @@ def generate_file(filepath, node, pointers_dict=None):
         f.write(content.encode('utf-8'))
 
     # Write header file
-    with open(headerfilepath, "wb") as f:
+    with open(headerpath, "wb") as f:
         f.write(header.encode('utf-8'))
 
     # Write object definitions header
-    with open(filebase + "_objectdefines.h", "wb") as f:
+    with open(headerdefspath, "wb") as f:
         f.write(header_defs.encode('utf-8'))
