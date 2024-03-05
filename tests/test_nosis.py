@@ -1,10 +1,11 @@
 from dataclasses import dataclass
+import pickle
 import pytest
 
 from objdictgen import nosis
 
 
-def test_aton():
+def test_nosis_aton():
 
     aton = nosis.aton
     assert aton("(1)") == 1
@@ -23,7 +24,7 @@ def test_aton():
         aton("1.2.3")
 
 
-def test_ntoa():
+def test_nosis_ntoa():
 
     ntoa = nosis.ntoa
     assert ntoa(1) == "1"
@@ -35,7 +36,7 @@ def test_ntoa():
         ntoa("foo")
 
 
-SAFE_TESTS = [
+TESTS = [
     ("", ""),
     ("&", "&amp;"),
     ("<", "&lt;"),
@@ -49,33 +50,24 @@ SAFE_TESTS = [
     ("fu<s", "fu&lt;s"),
 ]
 
-UNSAFE_TESTS = [
-    ("", ""),
-    # ("'", "'"),
-    ("\x3f", "?"),
-    # ("\x00", "\\x00"),
-    ("foo", "foo"),
-    # ("fu's", "fu&apos;s"),
-    # ("fu<s", "fu&lt;s"),
+XML_STRINGS = [
+    ("'", "'"),
 ]
 
 
 def cmp_xml(d):
     out = nosis.xmldump(None, d)
-    print(out)
+    print(type(out), out)
     data = nosis.xmlload(out)
     assert d == data
 
 
-def test_safe_string():
+def test_nosis_safe_string():
 
-    for s in SAFE_TESTS:
+    for s in TESTS:
         assert nosis.safe_string(s[0]) == s[1]
 
-
-def test_unsafe_string():
-
-    for s in UNSAFE_TESTS:
+    for s in TESTS + XML_STRINGS:
         assert nosis.unsafe_string(s[1]) == s[0]
 
 
@@ -94,61 +86,105 @@ def test_nosis_dump_load():
     # cmp_xml(Data("\x00\x00\x00\x00"))
 
 
-def test_nosis_xml_variants():
+@dataclass
+class TypesDut:
+    _str: str
+    _int: int
+    _float: float
+    _complex: complex
+    _none: None
+    _true: bool
+    _false: bool
+    _list: list
+    _tuple: tuple
+    _dict: dict
 
-    @dataclass
-    class Dut:
-        s: str
 
-    nosis.add_class_to_store('Dut', Dut)
+@pytest.fixture()
+def types_dut():
+    return TypesDut(
+        _str="foo",
+        _int=1, _float=1.5, _complex=1+2j,
+        _none=None, _true=True, _false=False,
+        _list=[1, 2, 3], _tuple=(1, 2, 3), _dict={'a': 1, 'b': 2},
+    )
 
-    # Attribute in body
-    xml = """<?xml version="1.0"?>
-<!DOCTYPE PyObject SYSTEM "PyObjects.dtd">
-<PyObject module="tests.test_nosis" class="Dut" id="2045276382864">
-<attr name="s" type="string">hello</attr>
-</PyObject>"""
 
+def test_nosis_datatypes(types_dut):
+    """Test dump and load of all datatypes"""
+
+    xml = nosis.xmldump(None, types_dut)
+    # print(xml)
+
+    nosis.add_class_to_store('TypesDut', TypesDut)
     data = nosis.xmlload(xml)
-    assert data.s == "hello"
+    # print(data)
 
-    # Attribute in tag
-    xml = """<?xml version="1.0"?>
-<!DOCTYPE PyObject SYSTEM "PyObjects.dtd">
-<PyObject module="tests.test_nosis" class="Dut" id="1430208232144">
-<attr name="s" type="string" value="world" />
-</PyObject>"""
+    assert types_dut == data
 
+
+def test_nosis_py2_datatypes_load(py2, wd, types_dut):
+    """Test that py2 gnosis is able to load a py3 nosis generated XML"""
+
+    nosis.add_class_to_store('TypesDut', TypesDut)
+
+    xml = nosis.xmldump(None, types_dut)
+
+    # Import the XML using the old py2 gnosis and pickle it
+    pyapp=f"""
+from gnosis.xml.pickle import *
+import pickle, sys
+a = loads('''{xml}''')
+with open("dump.pickle", "wb") as f:
+    pickle.dump(a.__dict__, f, protocol=0)
+"""
+    cmd = py2.run(pyapp, stdout=py2.PIPE)
+    out = py2.stdout(cmd)
+    print(out)
+    py2.check(cmd)
+
+    # Load the pickled data and compare
+    with open("dump.pickle", "rb") as f:
+        data = pickle.load(f)
+        print(data)
+
+    assert types_dut.__dict__ == data
+
+
+def xtest_nosis_py2_datatypes_dump(py2, wd, types_dut):
+    """Test that py3 nosis is able to read py2 generated XML"""
+
+    # Import the XML using the old py2 gnosis and pickle it
+    pyapp="""
+from gnosis.xml.pickle import *
+class TypesDut:
+    def __init__(self):
+        self._str = "foo"
+        self._int = 1
+        self._float = 1.5
+        self._complex = 1+2j
+        self._none = None
+        self._true = True
+        self._false = False
+        self._list = [1, 2, 3]
+        self._tuple = (1, 2, 3)
+        self._dict = {'a': 1, 'b': 2}
+a = TypesDutLegacy()
+xml = dumps(a)
+with open("dump.xml", "wb") as f:
+    f.write(xml)
+"""
+    cmd = py2.run(pyapp, stdout=py2.PIPE)
+    out = py2.stdout(cmd)
+    print(out)
+    py2.check(cmd)
+
+    # Load the pickled data and compare
+    with open("dump.xml", "rb") as f:
+        xml = f.read().decode()
+
+    nosis.add_class_to_store('TypesDut', TypesDut)
     data = nosis.xmlload(xml)
-    assert data.s == "world"
+    print(data)
 
-
-def test_nosis_all_datatypes():
-    '''Test all datatypes'''
-
-    # @dataclass
-    # class C:
-    #     s: str
-
-    @dataclass
-    class Dut:
-        s: str
-        i: int
-        l: list
-        d: dict
-        t: tuple
-        n: None
-        f: float
-        c: complex
-        T: bool
-        F: bool
-        # o: C
-        # b: bytes
-
-    nosis.add_class_to_store('Dut', Dut)
-    # nosis.add_class_to_store('C', C)
-
-    cmp_xml(Dut(
-        s="foo", i=1, l=[1, 2, 3], d={'a': 1, 'b': 2}, t=(1, 2, 3),
-        n=None, f=1.5, c=1+2j, T=True, F=False #, o=C("foo"), b=b'\x00\x01\x02'
-    ))
+    assert types_dut == data

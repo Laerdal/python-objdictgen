@@ -36,9 +36,13 @@ log = logging.getLogger('objdictgen')
 Fore = colorama.Fore
 Style = colorama.Style
 
-# Used to match strings such as 'Additional Server SDO %d Parameter[(idx)]'
-# The above example matches to two groups ['Additional Server SDO %d Parameter', 'idx']
-RE_NAME = re.compile(r'(.*)\[[(](.*)[)]\]')
+# Used to match strings such as 'Additional Server SDO %d Parameter %d[(idx, sub)]'
+# This example matches to two groups
+# ['Additional Server SDO %d Parameter %d', 'idx, sub']
+RE_NAME_SYNTAX = re.compile(r'(.*)\[[(](.*)[)]\]')
+
+# Regular expression to match $NODEID in a string
+RE_NODEID = re.compile(r'\$NODEID\b', re.IGNORECASE)
 
 
 # ------------------------------------------------------------------------------
@@ -266,13 +270,15 @@ class Node:
         """
         if index not in self.Dictionary:
             raise KeyError(f"Index 0x{index:04x} does not exist")
+        base = self.GetBaseIndexNumber(index)
+        nodeid = self.ID
         if subindex is None:
             if isinstance(self.Dictionary[index], list):
                 return [len(self.Dictionary[index])] + [
-                    self.CompileValue(value, index, compute)
+                    self.eval_value(value, base, nodeid, compute)
                     for value in self.Dictionary[index]
                 ]
-            result = self.CompileValue(self.Dictionary[index], index, compute)
+            result = self.eval_value(self.Dictionary[index], base, nodeid, compute)
             # This option ensures that the function consistently returns a list
             if aslist:
                 return [result]
@@ -280,9 +286,9 @@ class Node:
         if subindex == 0:
             if isinstance(self.Dictionary[index], list):
                 return len(self.Dictionary[index])
-            return self.CompileValue(self.Dictionary[index], index, compute)
+            return self.eval_value(self.Dictionary[index], base, nodeid, compute)
         if isinstance(self.Dictionary[index], list) and 0 < subindex <= len(self.Dictionary[index]):
-            return self.CompileValue(self.Dictionary[index][subindex - 1], index, compute)
+            return self.eval_value(self.Dictionary[index][subindex - 1], base, nodeid, compute)
         raise ValueError(f"Invalid subindex {subindex} for index 0x{index:04x}")
 
     def GetParamsEntry(self, index, subindex=None, aslist=False):
@@ -508,27 +514,6 @@ class Node:
         """
         return list(sorted(self.Dictionary))
 
-    def CompileValue(self, value, index, compute=True):
-        if isinstance(value, str) and '$NODEID' in value.upper():
-            # NOTE: Don't change base, as the eval() use this
-            base = self.GetBaseIndexNumber(index)  # noqa: F841  pylint: disable=unused-variable
-            try:
-                log.debug("EVAL CompileValue() #1: '%s'", value)
-                raw = eval(value)  # FIXME: Using eval is not safe
-                if compute and isinstance(raw, str):
-                    raw = raw.upper().replace("$NODEID", "self.ID")
-                    log.debug("EVAL CompileValue() #2: '%s'", raw)
-                    return eval(raw)  # FIXME: Using eval is not safe
-                # NOTE: This has a side effect: It will strip away # '"$NODEID"' into '$NODEID'
-                #       even if compute is False.
-                # if not compute and raw != value:
-                #     warning(f"CompileValue() changed '{value}' into '{raw}'")
-                return raw
-            except Exception as exc:  # pylint: disable=broad-except
-                log.debug("EVAL FAILED: %s", exc)
-                raise ValueError(f"CompileValue failed for '{value}'") from exc
-        else:
-            return value
 
     # --------------------------------------------------------------------------
     #                      Node Informations Functions
@@ -1078,71 +1063,125 @@ class Node:
     # --------------------------------------------------------------------------
 
     @staticmethod
-    def string_format(text, idx, sub):  # pylint: disable=unused-argument
+    def eval_value(value, base, nodeid, compute=True):
         """
-        Format the text given with the index and subindex defined
+        Evaluate the value. They can be strings that needs additional
+        parsing. Such as "'$NODEID+0x600'" and
+        "'{True:"$NODEID+0x%X00"%(base+2),False:0x80000000}[base<4]'".
         """
-        result = RE_NAME.match(text)
-        if result:
-            fmt = result.groups()
-            try:
-                args = fmt[1].split(',')
-                args = [a.replace('idx', str(idx)) for a in args]
-                args = [a.replace('sub', str(sub)) for a in args]
 
-                # NOTE: Legacy Python2 type evaluations are baked into the OD
-                #       and cannot be removed currently
-                if len(args) == 1:
-                    return fmt[0] % (Node.evaluate_expression(args[0].strip()))
-                if len(args) == 2:
-                    return fmt[0] % (
-                        Node.evaluate_expression(args[0].strip()),
-                        Node.evaluate_expression(args[1].strip()),
-                    )
+        # Non-string and strings that doens't contain $NODEID can return as-is
+        if not (isinstance(value, str) and RE_NODEID.search(value)):
+            return value
 
-                return fmt[0]
-            except Exception as exc:
-                log.debug("PARSING FAILED: %s", exc)
-                raise
-        else:
+        # This will remove any surrouning quotes on strings ('"$NODEID+0x20"')
+        # and will resolve "{True:"$NODEID..." expressions.
+        value = Node.evaluate_expression(value,
+            {   # These are the vars that can be used within the string
+                'base': base,
+            }
+        )
+
+        if compute and isinstance(value, str):
+            # Replace $NODEID with 'nodeid' so it can be evaluated.
+            value = RE_NODEID.sub("nodeid", value)
+
+            # This will resolve '$NODEID' expressions
+            value = Node.evaluate_expression(value,
+                {   # These are the vars that can be used within the string
+                    'nodeid': nodeid,
+                }
+            )
+
+        return value
+
+    @staticmethod
+    def eval_name(text, idx, sub):
+        """
+        Format the text given with the index and subindex defined.
+        Used to parse dynamic values such as
+        "Additional Server SDO %d Parameter[(idx)]"
+        """
+        result = RE_NAME_SYNTAX.match(text)
+        if not result:
             return text
 
+        # NOTE: Legacy Python2 format evaluations are baked
+        #       into the OD and must be supported for legacy
+        return result.group(1) % Node.evaluate_expression(
+            result.group(2).strip(),
+            {   # These are the vars that can be used in the string
+                'idx': idx,
+                'sub': sub,
+            }
+        )
+
     @staticmethod
-    def evaluate_expression(expression: str):
+    def evaluate_expression(expression: str, localvars: dict[str, Any]|None = None):
         """Parses a string expression and attempts to calculate the result
         Supports:
-            - Addition (i.e. "3+4")
-            - Subraction (i.e. "7-4")
-            - Constants (i.e. "5")
-        This function will handle chained arithmatic i.e. "1+2+3" although
-        operating order is not neccesarily preserved
-
+            - Binary operations: addition, subtraction, multiplication, modulo
+            - Comparisons: less than
+            - Subscripting: (i.e. "a[1]")
+            - Constants: int, float, complex, str, boolean
+            - Variable names: from the localvars dict
+            - Function calls: from the localvars dict
+            - Tuples: (i.e. "(1, 2, 3)")
+            - Dicts: (i.e. "{1: 2, 3: 4}")
         Parameters:
             expression (str): string to parse
+            localvars (dict): dictionary of local variables and functions to
+                access in the expression
         """
-        tree = ast.parse(expression, mode="eval")
-        return Node.evaluate_node(tree.body)
+        localvars = localvars or {}
 
-    @staticmethod
-    def evaluate_node(node: ast.AST):
-        """
-        Recursively parses ast.Node objects to evaluate arithmatic expressions
-        """
-        if isinstance(node, ast.BinOp):
-            if isinstance(node.op, ast.Add):
-                return Node.evaluate_node(node.left) + Node.evaluate_node(node.right)
-            if isinstance(node.op, ast.Sub):
-                return Node.evaluate_node(node.left) - Node.evaluate_node(node.right)
-            if isinstance(node.op, ast.Mult):
-                return Node.evaluate_node(node.left) * Node.evaluate_node(node.right)
-            raise SyntaxError(f"Unhandled arithmatic operation {type(node.op)}")
-        if isinstance(node, ast.Constant):
-            if isinstance(node.value, int | float | complex):
-                return node.value
-            raise TypeError(f"Cannot parse str type constant '{node.value}'")
-        if isinstance(node, ast.AST):
-            raise TypeError(f"Unhandled ast node class {type(node)}")
-        raise TypeError(f"Invalid argument type {type(node)}")
+        def _evnode(node: ast.AST):
+            """
+            Recursively parses ast.Node objects to evaluate arithmatic expressions
+            """
+            if isinstance(node, ast.BinOp):
+                if isinstance(node.op, ast.Add):
+                    return _evnode(node.left) + _evnode(node.right)
+                if isinstance(node.op, ast.Sub):
+                    return _evnode(node.left) - _evnode(node.right)
+                if isinstance(node.op, ast.Mult):
+                    return _evnode(node.left) * _evnode(node.right)
+                if isinstance(node.op, ast.Mod):
+                    return _evnode(node.left) % _evnode(node.right)
+                raise SyntaxError(f"Unsupported arithmetic operation {type(node.op)}")
+            if isinstance(node, ast.Compare):
+                if len(node.ops) != 1 or len(node.comparators) != 1:
+                    raise SyntaxError(f"Chained comparisons not supported")
+                if isinstance(node.ops[0], ast.Lt):
+                    return _evnode(node.left) < _evnode(node.comparators[0])
+                raise SyntaxError(f"Unsupported comparison operation {type(node.ops[0])}")
+            if isinstance(node, ast.Subscript):
+                return _evnode(node.value)[_evnode(node.slice)]
+            if isinstance(node, ast.Constant):
+                if isinstance(node.value, int | float | complex | str):
+                    return node.value
+                raise TypeError(f"Unsupported constant {node.value}")
+            if isinstance(node, ast.Name):
+                if node.id not in localvars:
+                    raise NameError(f"Name '{node.id}' is not defined")
+                return localvars[node.id]
+            if isinstance(node, ast.Call):
+                return _evnode(node.func)(
+                    *[_evnode(arg) for arg in node.args],
+                    **{k.arg: _evnode(k.value) for k in node.keywords}
+                )
+            if isinstance(node, ast.Tuple):
+                return tuple(_evnode(elt) for elt in node.elts)
+            if isinstance(node, ast.Dict):
+                return {_evnode(k): _evnode(v) for k, v in zip(node.keys, node.values)}
+            raise TypeError(f"Unsupported syntax of type {type(node)}")
+
+        try:
+            tree = ast.parse(expression, mode="eval")
+            return _evnode(tree.body)
+        except Exception as exc:
+            raise type(exc)(f"{exc.args[0]} in parsing of expression '{expression}'"
+                            ).with_traceback(exc.__traceback__) from None
 
     @staticmethod
     def get_index_range(index):
@@ -1244,7 +1283,9 @@ class Node:
         if base_index:
             infos = mappingdictionary[base_index]
             if infos["struct"] & OD.IdenticalIndexes and compute:
-                return Node.string_format(infos["name"], (index - base_index) // infos["incr"] + 1, 0)
+                return Node.eval_name(
+                    infos["name"], idx=(index - base_index) // infos["incr"] + 1, sub=0
+                )
             return infos["name"]
         return None
 
@@ -1257,7 +1298,9 @@ class Node:
         if base_index:
             obj = mappingdictionary[base_index].copy()
             if obj["struct"] & OD.IdenticalIndexes and compute:
-                obj["name"] = Node.string_format(obj["name"], (index - base_index) // obj["incr"] + 1, 0)
+                obj["name"] = Node.eval_name(
+                    obj["name"], idx=(index - base_index) // obj["incr"] + 1, sub=0
+                )
             obj.pop("values")
             return obj
         return None
@@ -1298,7 +1341,9 @@ class Node:
                         incr = mappingdictionary[base_index]["incr"]
                     else:
                         incr = 1
-                    infos["name"] = Node.string_format(infos["name"], (index - base_index) // incr + 1, subindex)
+                    infos["name"] = Node.eval_name(
+                        infos["name"], idx=(index - base_index) // incr + 1, sub=subindex
+                    )
 
                 return infos
         return None
@@ -1319,12 +1364,12 @@ class Node:
                             for i in range(len(values) - 1):
                                 computed_name = name
                                 if compute:
-                                    computed_name = Node.string_format(computed_name, 1, i + 1)
+                                    computed_name = Node.eval_name(computed_name, idx=1, sub=i + 1)
                                 yield (index, i + 1, infos["size"], computed_name)
                         else:
                             computed_name = name
                             if compute:
-                                computed_name = Node.string_format(computed_name, 1, subindex)
+                                computed_name = Node.eval_name(computed_name, idx=1, sub=subindex)
                             yield (index, subindex, infos["size"], computed_name)
 
     @staticmethod

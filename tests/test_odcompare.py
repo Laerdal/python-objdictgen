@@ -244,23 +244,25 @@ def test_edsimport(odjsoneds, wd):
         """
         def num(x):
             if isinstance(x, list):
-                def _p(y):
-                    if not isinstance(y, str) or '$NODEID' not in y:
-                        return y
-                    return '"' + y + '"'
-                return [_p(y) for y in x[1:]]
+                return x[1:]
             return x
         a['Dictionary'] = {
             i: num(m1.GetEntry(i, compute=False))
             for i in m1.GetIndexes()
         }
+        b['Dictionary'] = {
+            i: num(m2.GetEntry(i, compute=False))
+            for i in m2.GetIndexes()
+        }
 
-    # EDS files doesn't store any profile info in a way that can be compared,
-    # so these fields must be ignored
+    # EDS files are does not contain the complete information as OD and JSON
+    # files does.
     a, b = shave_equal(
         m1, m2, preprocess=accept_known_eds_limitation,
-        ignore=("IndexOrder", "Profile", "ProfileName", "DS302", "UserMapping",
-                "DefaultStringSize", "ParamsDictionary")
+        ignore=(
+            "IndexOrder", "Profile", "ProfileName", "DS302", "UserMapping",
+            "ParamsDictionary", "DefaultStringSize"
+        )
     )
     assert a == b
 

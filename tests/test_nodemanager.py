@@ -2,7 +2,7 @@
 from objdictgen.nodemanager import NodeManager
 
 
-def test_create_master():
+def test_nodemanager_create_master():
 
     m1 = NodeManager()
     m1.CreateNewNode(
@@ -13,7 +13,7 @@ def test_create_master():
     m1.CloseCurrent()
 
 
-def test_create_slave():
+def test_nodemanager_create_slave():
 
     m1 = NodeManager()
     m1.CreateNewNode(
@@ -24,7 +24,7 @@ def test_create_slave():
     m1.CloseCurrent()
 
 
-def test_load(odpath):
+def test_nodemanager_load(odpath):
 
     m1 = NodeManager()
     m1.OpenFileInCurrent(odpath / 'master.od')
