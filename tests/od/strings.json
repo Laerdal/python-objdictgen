@@ -1,0 +1,260 @@
+{
+  "$id": "od data",
+  "$version": "1",
+  "$description": "Canfestival object dictionary data",
+  "$tool": "odg 3.4",
+  "$date": "2024-02-28T01:14:57.869658",
+  "name": "a",
+  "description": "Complicated strings with unicode",
+  "type": "master",
+  "id": 0,
+  "profile": "None",
+  "default_string_size": 10,
+  "dictionary": [
+    {
+      "index": "0x2000",  // 8192
+      "name": "brod",
+      "struct": "var",
+      "mandatory": false,
+      "sub": [
+        {
+          "name": "brod",
+          "type": "UNSIGNED8",  // 5
+          "access": "rw",
+          "pdo": true,
+          "value": 1
+        }
+      ]
+    },
+    {
+      "index": "0x2001",  // 8193
+      "name": "br\u00f8d",
+      "struct": "var",
+      "mandatory": false,
+      "sub": [
+        {
+          "name": "br\u00f8d",
+          "type": "UNSIGNED8",  // 5
+          "access": "rw",
+          "pdo": true,
+          "value": 0
+        }
+      ]
+    },
+    {
+      "index": "0x2002",  // 8194
+      "name": "OCTET_STRING",
+      "struct": "record",
+      "mandatory": false,
+      "sub": [
+        {
+          "name": "Number of Entries",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        },
+        {
+          "name": "Plain",
+          "type": "OCTET_STRING",  // 10
+          "access": "rw",
+          "pdo": true,
+          "value": "abcd"
+        },
+        {
+          "name": "Latin1",
+          "type": "OCTET_STRING",  // 10
+          "access": "rw",
+          "pdo": true,
+          "value": "abc\u00f8"
+        },
+        {
+          "name": "Unicode",
+          "type": "OCTET_STRING",  // 10
+          "access": "rw",
+          "pdo": true,
+          "value": "abc\u2713"
+        }
+      ]
+    },
+    {
+      "index": "0x2003",  // 8195
+      "name": "DOMAIN",
+      "struct": "record",
+      "mandatory": false,
+      "sub": [
+        {
+          "name": "Number of Entries",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        },
+        {
+          "name": "Plain",
+          "type": "DOMAIN",  // 15
+          "access": "rw",
+          "pdo": true,
+          "value": "abcd"
+        },
+        {
+          "name": "Latin1",
+          "type": "DOMAIN",  // 15
+          "access": "rw",
+          "pdo": true,
+          "value": "abc\u00f8"
+        },
+        {
+          "name": "Unicode",
+          "type": "DOMAIN",  // 15
+          "access": "rw",
+          "pdo": true,
+          "value": "abc\u2713"
+        }
+      ]
+    },
+    {
+      "index": "0x2004",  // 8196
+      "name": "UNICODE_STRING",
+      "struct": "record",
+      "mandatory": false,
+      "sub": [
+        {
+          "name": "Number of Entries",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        },
+        {
+          "name": "Plain",
+          "type": "UNICODE_STRING",  // 11
+          "access": "rw",
+          "pdo": true,
+          "value": "abcd"
+        },
+        {
+          "name": "Latin1",
+          "type": "UNICODE_STRING",  // 11
+          "access": "rw",
+          "pdo": true,
+          "value": "abc\u00f8"
+        },
+        {
+          "name": "Unicode",
+          "type": "UNICODE_STRING",  // 11
+          "access": "rw",
+          "pdo": true,
+          "value": "abc\u2713"
+        }
+      ]
+    },
+    {
+      "index": "0x2006",  // 8198
+      "name": "VISIBLE_STRING",
+      "struct": "record",
+      "mandatory": false,
+      "sub": [
+        {
+          "name": "Number of Entries",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        },
+        {
+          "name": "Plain",
+          "type": "VISIBLE_STRING",  // 9
+          "access": "rw",
+          "pdo": true,
+          "value": "abcd"
+        },
+        {
+          "name": "Latin1",
+          "type": "VISIBLE_STRING",  // 9
+          "access": "rw",
+          "pdo": true,
+          "value": "abc\u00f8"
+        },
+        {
+          "name": "Unicode",
+          "type": "VISIBLE_STRING",  // 9
+          "access": "rw",
+          "pdo": true,
+          "value": "abc\u2713"
+        }
+      ]
+    },
+    {
+      "index": "0x1000",  // 4096
+      "name": "Device Type",
+      "struct": "var",
+      "group": "built-in",
+      "mandatory": true,
+      "sub": [
+        {
+          "name": "Device Type",
+          "type": "UNSIGNED32",  // 7
+          "access": "ro",
+          "pdo": false,
+          "value": 0
+        }
+      ]
+    },
+    {
+      "index": "0x1001",  // 4097
+      "name": "Error Register",
+      "struct": "var",
+      "group": "built-in",
+      "mandatory": true,
+      "sub": [
+        {
+          "name": "Error Register",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": true,
+          "value": 0
+        }
+      ]
+    },
+    {
+      "index": "0x1018",  // 4120
+      "name": "Identity",
+      "struct": "record",
+      "group": "built-in",
+      "mandatory": true,
+      "sub": [
+        {
+          "name": "Number of Entries",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        },
+        {
+          "name": "Vendor ID",
+          "type": "UNSIGNED32",  // 7
+          "access": "ro",
+          "pdo": false,
+          "value": 0
+        },
+        {
+          "name": "Product Code",
+          "type": "UNSIGNED32",  // 7
+          "access": "ro",
+          "pdo": false,
+          "value": 0
+        },
+        {
+          "name": "Revision Number",
+          "type": "UNSIGNED32",  // 7
+          "access": "ro",
+          "pdo": false,
+          "value": 0
+        },
+        {
+          "name": "Serial Number",
+          "type": "UNSIGNED32",  // 7
+          "access": "ro",
+          "pdo": false,
+          "value": 0
+        }
+      ]
+    }
+  ]
+}

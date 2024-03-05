@@ -78,14 +78,14 @@ class Node:
     @staticmethod
     def isXml(filepath):
         """Check if the file is an XML file"""
-        with open(filepath, 'r') as f:
+        with open(filepath, 'r', encoding="utf-8") as f:
             header = f.read(5)
             return header == "<?xml"
 
     @staticmethod
     def isEds(filepath):
         """Check if the file is an EDS file"""
-        with open(filepath, 'r') as f:
+        with open(filepath, 'r', encoding="utf-8") as f:
             header = f.readline().rstrip()
             return header == "[FileInfo]"
 
@@ -94,7 +94,7 @@ class Node:
         """ Open a file and create a new node """
         if Node.isXml(filepath):
             log.debug("Loading XML OD '%s'", filepath)
-            with open(filepath, "r") as f:
+            with open(filepath, "r", encoding="utf-8") as f:
                 return nosis.xmlload(f)  # type: ignore
 
         if Node.isEds(filepath):
@@ -102,7 +102,7 @@ class Node:
             return eds_utils.generate_node(filepath)
 
         log.debug("Loading JSON OD '%s'", filepath)
-        with open(filepath, "r") as f:
+        with open(filepath, "r", encoding="utf-8") as f:
             return Node.LoadJson(f.read())
 
     @staticmethod
@@ -114,7 +114,7 @@ class Node:
         """ Save node into file """
         if filetype == 'od':
             log.debug("Writing XML OD '%s'", filepath)
-            with open(filepath, "w") as f:
+            with open(filepath, "w", encoding="utf-8") as f:
                 # Never generate an od with IndexOrder in it
                 nosis.xmldump(f, self, omit=('IndexOrder', ))
             return
@@ -122,14 +122,14 @@ class Node:
         if filetype == 'eds':
             log.debug("Writing EDS '%s'", filepath)
             content = eds_utils.generate_eds_content(self, filepath)
-            with open(filepath, "w") as f:
+            with open(filepath, "w", encoding="utf-8") as f:
                 f.write(content)
             return
 
         if filetype == 'json':
             log.debug("Writing JSON OD '%s'", filepath)
             jdata = self.DumpJson(**kwargs)
-            with open(filepath, "w") as f:
+            with open(filepath, "w", encoding="utf-8") as f:
                 f.write(jdata)
             return
 
@@ -849,7 +849,7 @@ class Node:
             # Test if ParamDictionary exists without Dictionary
             #
             if index not in self.Dictionary:
-                _warn("Parameter without any value")
+                _warn("Parameter value without any dictionary entry")
                 if fix:
                     del self.ParamsDictionary[index]
                     _warn("FIX: Deleting ParamDictionary entry")
@@ -894,7 +894,7 @@ class Node:
             for idx, subvals in enumerate(self.UserMapping[index]['values']):
 
                 #
-                # Test if subindex have a name
+                # Test that subindexi have a name
                 #
                 if not subvals["name"]:
                     _warn(f"Sub index {idx}: Missing name")
@@ -1062,7 +1062,7 @@ class Node:
         # The profiles requires some vars to be set
         # pylint: disable=unused-variable
         try:
-            with open(profilepath, "r") as f:
+            with open(profilepath, "r", encoding="utf-8") as f:
                 log.debug("EXECFILE %s", profilepath)
                 code = compile(f.read(), profilepath, 'exec')
                 exec(code, globals(), locals())  # FIXME: Using exec is unsafe
@@ -1074,7 +1074,7 @@ class Node:
             raise ValueError(f"Loading profile '{profilepath}' failed: {exc}") from exc
 
     # --------------------------------------------------------------------------
-    #                      Utils
+    #                      Evaluation of values
     # --------------------------------------------------------------------------
 
     @staticmethod

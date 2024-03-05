@@ -148,7 +148,7 @@ def parse_cpj_file(filepath):
     networks = []
 
     # Read file text
-    with open(filepath, "r") as f:
+    with open(filepath, "r", encoding="utf-8") as f:
         cpj_data = f.read()
 
     sections = extract_sections(cpj_data)
@@ -283,7 +283,7 @@ def parse_eds_file(filepath):
     eds_dict = {}
 
     # Read file text
-    with open(filepath, 'r') as f:
+    with open(filepath, 'r', encoding="utf-8") as f:
         eds_file = f.read()
 
     sections = extract_sections(eds_file)
@@ -491,6 +491,11 @@ def generate_eds_content(node, filepath):
     # FIXME: Too many camelCase vars in here
     # pylint: disable=invalid-name
 
+    try:
+        value = node.GetEntry(0x1018)
+    except ValueError:
+        raise ValueError("Missing required Identity (0x1018) object")
+
     # Generate FileInfo section
     fileContent = "[FileInfo]\n"
     fileContent += f"FileName={filepath.name}\n"
@@ -610,19 +615,20 @@ def generate_eds_content(node, filepath):
                 # Extract the informations of each subindex
                 subentry_infos = node.GetSubentryInfos(entry, subentry)
                 # If entry is not for the compatibility, generate informations for subindex
-                if subentry_infos["name"] != "Compatibility Entry":
-                    subtext += f"\n[{entry:X}sub{subentry:X}]\n"
-                    subtext += f"ParameterName={subentry_infos['name']}\n"
-                    subtext += "ObjectType=0x7\n"
-                    subtext += f"DataType=0x{subentry_infos['type']:04X}\n"
-                    subtext += f"AccessType={subentry_infos['access']}\n"
-                    if subentry_infos["type"] == 1:
-                        subtext += f"DefaultValue={BOOL_TRANSLATE[value]}\n"
-                    else:
-                        subtext += f"DefaultValue={value}\n"
-                    subtext += f"PDOMapping={BOOL_TRANSLATE[subentry_infos['pdo']]}\n"
-                    # Increment number of subindex defined
-                    nb_subentry += 1
+                if subentry_infos["name"] == "Compatibility Entry":
+                    continue
+                subtext += f"\n[{entry:X}sub{subentry:X}]\n"
+                subtext += f"ParameterName={subentry_infos['name']}\n"
+                subtext += "ObjectType=0x7\n"
+                subtext += f"DataType=0x{subentry_infos['type']:04X}\n"
+                subtext += f"AccessType={subentry_infos['access']}\n"
+                if subentry_infos["type"] == 1:
+                    subtext += f"DefaultValue={BOOL_TRANSLATE[value]}\n"
+                else:
+                    subtext += f"DefaultValue={value}\n"
+                subtext += f"PDOMapping={BOOL_TRANSLATE[subentry_infos['pdo']]}\n"
+                # Increment number of subindex defined
+                nb_subentry += 1
             # Write number of subindex defined for the entry
             text += f"SubNumber={nb_subentry}\n"
             # Write subindex definitions

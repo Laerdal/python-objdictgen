@@ -51,6 +51,20 @@ def test_load_compare(odjsoneds):
     assert a == b
 
 
+def test_odload_py2_compare(py2_pickle, wd):
+    """ Load the OD and compare it with the python2 loaded OD to ensure that
+        the OD is loaded equally. This is particular important when comparing
+        string encoding.
+    """
+    od, py2data = py2_pickle
+
+    # Load the OD
+    m1 = Node.LoadFile(od)
+
+    a, b = shave_dict(py2data, m1.__dict__)
+    assert a == b
+
+
 def test_odexport(odjsoneds, wd, fn):
     """ Test that the od file can be exported to od and that the loaded file
         is equal to the original.
@@ -71,16 +85,16 @@ def test_odexport(odjsoneds, wd, fn):
     # Modify the od files to remove unique elements
     #  .od.orig  is the original .od file
     #  .od       is the generated .od file
-    RE_ID = re.compile(r'(id|module)="\w+"')
-    with open(od, 'r') as fi:
-        with open(f'{od.name}.orig', 'w') as fo:
+    re_id = re.compile(b'(id|module)="\\w+"')
+    with open(od, 'rb') as fi:
+        with open(f'{od.name}.orig', 'wb') as fo:
             for line in fi:
-                fo.write(RE_ID.sub('', line))
+                fo.write(re_id.sub(b'', line))
     shutil.move(tmpod + '.od', tmpod + '.tmp')
-    with open(tmpod + '.tmp', 'r') as fi:
-        with open(tmpod + '.od', 'w') as fo:
+    with open(tmpod + '.tmp', 'rb') as fi:
+        with open(tmpod + '.od', 'wb') as fo:
             for line in fi:
-                fo.write(RE_ID.sub('', line))
+                fo.write(re_id.sub(b'', line))
     os.remove(tmpod + '.tmp')
 
     # Load the saved OD
@@ -114,6 +128,9 @@ def test_cexport(odjsoneds, wd, fn):
     od = odjsoneds
     tmpod = od.stem
 
+    if tmpod in ('strings', 'legacy-strings', 'unicode'):
+        pytest.xfail("UNICODE_STRINGS is not supported in C")
+
     m0 = Node.LoadFile(od)
     m1 = Node.LoadFile(od)
 
@@ -131,6 +148,9 @@ def test_cexport_py2_compare(py2_cfile, wd, fn):
     # Extract the path to the OD and the path to the python2 c file
     od, py2od = py2_cfile
     tmpod = od.stem
+
+    if tmpod in ('strings', 'legacy-strings'):
+        pytest.xfail("UNICODE_STRINGS is not supported in C")
 
     m0 = Node.LoadFile(od)
 
@@ -372,12 +392,13 @@ EQUIVS = [
     ( "slave-heartbeat",     "legacy-slave-heartbeat"),
     ( "slave-nodeguarding",  "legacy-slave-nodeguarding"),
     ( "slave-sync",          "legacy-slave-sync"),
+    ( "strings",             "legacy-strings"),
 ]
 
 
 @pytest.mark.parametrize("equivs", EQUIVS, ids=(e[0] for e in EQUIVS))
 @pytest.mark.parametrize("suffix", ['od', 'json'])
-def test_legacy_compare(odpath, equivs, suffix):
+def test_equiv_compare(odpath, equivs, suffix):
     """ Test reading the od and compare it with the corresponding json file
     """
     a, b = equivs

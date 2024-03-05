@@ -387,7 +387,7 @@ def generate_node(contents):
     #        validator is better.
     global SCHEMA  # pylint: disable=global-statement
     if not SCHEMA:
-        with open(objdictgen.JSON_SCHEMA, 'r') as f:
+        with open(objdictgen.JSON_SCHEMA, 'r', encoding="utf-8") as f:
             SCHEMA = json.loads(remove_jasonc(f.read()))
 
     if SCHEMA:

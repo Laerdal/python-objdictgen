@@ -23,10 +23,11 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 # USA
 
+import ast
 import logging
 import re
 import sys
-from io import StringIO
+import io
 from xml.dom import minidom
 
 log = logging.getLogger('objdictgen.nosis')
@@ -40,7 +41,7 @@ TYPE_IN_BODY = {
     int: 0,
     float: 0,
     complex: 0,
-    str: 1,
+    str: 0,
 }
 
 # Regexp patterns
@@ -140,7 +141,6 @@ XML_QUOTES = (
 
 def safe_string(s):
     """Quote XML entries"""
-
     for repl in XML_QUOTES:
         s = s.replace(repl[0], repl[1])
     # for others, use Python style escapes
@@ -148,15 +148,17 @@ def safe_string(s):
 
 
 def unsafe_string(s):
-    # for Python escapes, exec the string
-    # (niggle w/ literalizing apostrophe)
-    _s = s = s.replace("'", "\\x27")
-    # log.debug("EXEC in unsafe_string(): '%s'" % ("s='" + s + "'",))
-    exec("s='" + s + "'")
-    if s != _s:
-        log.debug("EXEC in unsafe_string(): '%s' -> '%s'" % (_s, s))
-    # XML entities (DOM does it for us)
-    return s
+    """Recreate the original string from the string returned by safe_string()"""
+    # Unqoute XML entries
+    for repl in XML_QUOTES:
+        s = s.replace(repl[1], repl[0])
+
+    s = s.replace("'", "\\x27")  # Need this to not interfere with ast
+
+    tree = ast.parse("'" + s + "'", mode='eval')
+    if isinstance(tree.body, ast.Constant):
+        return tree.body.s
+    raise ValueError(f"Invalid string '{s}' passed to unsafe_string()")
 
 
 def safe_content(s):
@@ -166,22 +168,13 @@ def safe_content(s):
         s = s.replace(repl[0], repl[1])
     return s
 
-    # # wrap "regular" python strings as unicode
-    # if isinstance(s, str):
-    #     s = u"\xbb\xbb%s\xab\xab" % s
-
-    # return s.encode('utf-8')
-
 
 def unsafe_content(s):
     """Take the string returned by safe_content() and recreate the
     original string."""
-    # don't have to "unescape" XML entities (parser does it for us)
-
-    # # unwrap python strings from unicode wrapper
-    # if s[:2] == chr(187) * 2 and s[-2:] == chr(171) * 2:
-    #     s = s[2:-2].encode('us-ascii')
-
+    # Unqoute XML entries
+    for repl in XML_QUOTES:
+        s = s.replace(repl[1], repl[0])
     return s
 
 
@@ -193,13 +186,12 @@ VISITED = {}
 # entry point expected by XML_Pickle
 def thing_from_dom(filehandle):
     global VISITED  # pylint: disable=global-statement
-    VISITED = {}
+    VISITED = {}  # Reset the visited collection
     return _thing_from_dom(minidom.parse(filehandle), None)
 
 
 def _save_obj_with_id(node, obj):
     objid = node.getAttribute('id')
-
     if len(objid):  # might be None, or empty - shouldn't use as key
         VISITED[objid] = obj
 
@@ -248,91 +240,32 @@ def get_node_valuetext(node):
     return ''
 
 
-# a multipurpose list-like object. it is nicer conceptually for us
-# to pass lists around at the lower levels, yet we'd also like to be
-# able to do things like write to a file without the overhead of building
-# a huge list in memory first. this class handles that, yet drops in (for
-# our purposes) in place of a list.
-#
-# (it's not based on UserList so that (a) we don't have to pull in UserList,
-# and (b) it will break if someone accesses StreamWriter in an unexpected way
-# rather than failing silently for some cases)
-class StreamWriter:
-    """A multipurpose stream object. Four styles:
-
-    - write an uncompressed file
-    - write a compressed file
-    - create an uncompressed memory stream
-    - create a compressed memory stream
-    """
-    def __init__(self, iohandle=None, compress=None):
-
-        if iohandle:
-            self.iohandle = iohandle
-        else:
-            self.iohandle = self.sio = StringIO()
-
-        if compress == 1:  # maybe we'll add more types someday
-            import gzip  # pylint: disable=import-outside-toplevel
-            self.iohandle = gzip.GzipFile(None, 'wb', 9, self.iohandle)
-
-    def append(self, item):
-        if isinstance(item, (list, tuple)):
-            item = ''.join(item)
-        self.iohandle.write(item)
-
-    def getvalue(self):
-        """Returns memory stream as a single string, or None for file objs"""
-        if hasattr(self, 'sio'):
-            if self.iohandle != self.sio:
-                # if iohandle is a GzipFile, we need to close it to flush
-                # remaining bits, write the CRC, etc. However, if iohandle is
-                # the sio, we CAN'T close it (getvalue() wouldn't work)
-                self.iohandle.close()
-            return self.sio.getvalue()
-
-        # don't raise an exception - want getvalue() unconditionally
-        return None
-
-
-# split off for future expansion of compression types, etc.
-def StreamReader(stream):
-    """stream can be either a filehandle or string, and can
-    be compressed/uncompressed. Will return either a fileobj
-    appropriate for reading the stream."""
-
-    # turn strings into stream
-    if isinstance(stream, str):
-        stream = StringIO(stream)
-
-    # determine if we have a gzipped stream by checking magic
-    # number in stream header
-    pos = stream.tell()
-    magic = stream.read(2)
-    stream.seek(pos)
-    if magic == '\037\213':
-        import gzip  # pylint: disable=import-outside-toplevel
-        stream = gzip.GzipFile(None, 'rb', None, stream)
-
-    return stream
-
-
-def xmldump(iohandle=None, obj=None, binary=0, omit=None):
+def xmldump(filehandle=None, obj=None, omit=None):
     """Create the XML representation as a string."""
-    return _pickle_toplevel_obj(
-        StreamWriter(iohandle, binary), obj, omit,
-    )
+
+    stream = filehandle
+    if filehandle is None:
+        stream = io.StringIO()
+
+    _pickle_toplevel_obj(stream, obj, omit)
+
+    if filehandle is None:
+        stream.flush()
+        return stream.getvalue()
 
 
 def xmlload(filehandle):
     """Load pickled object from file fh."""
-    return thing_from_dom(StreamReader(filehandle))
+
+    if isinstance(filehandle, str):
+        filehandle = io.StringIO(filehandle)
+    elif isinstance(filehandle, bytes):
+        filehandle = io.BytesIO(filehandle)
+
+    return thing_from_dom(filehandle)
 
 
-# -- support functions
-
-
-def _pickle_toplevel_obj(xml_list, py_obj, omit=None):
+def _pickle_toplevel_obj(fh, py_obj, omit=None):
     """handle the top object -- add XML header, etc."""
 
     # Store the ref id to the pickling object (if not deepcopying)
@@ -364,23 +297,19 @@ def _pickle_toplevel_obj(xml_list, py_obj, omit=None):
     # else:
     #     extra = f'{famtype} class="{klass_tag}"'
 
-    xml_list.append('<?xml version="1.0"?>\n'
-                    + '<!DOCTYPE PyObject SYSTEM "PyObjects.dtd">\n')
+    fh.write('<?xml version="1.0"?>\n'
+                '<!DOCTYPE PyObject SYSTEM "PyObjects.dtd">\n')
 
     if id_ is not None:
-        xml_list.append(f'<PyObject {extra} id="{id_}">\n')
+        fh.write(f'<PyObject {extra} id="{id_}">\n')
     else:
-        xml_list.append(f'<PyObject {extra}>\n')
+        fh.write(f'<PyObject {extra}>\n')
 
-    pickle_instance(py_obj, xml_list, level=0, omit=omit)
-    xml_list.append('</PyObject>\n')
-
-    # returns None if xml_list is a fileobj, but caller should
-    # know that (or not care)
-    return xml_list.getvalue()
+    pickle_instance(py_obj, fh, level=0, omit=omit)
+    fh.write('</PyObject>\n')
 
 
-def pickle_instance(obj, list_, level=0, omit=None):
+def pickle_instance(obj, fh, level=0, omit=None):
     """Pickle the given object into a <PyObject>
 
     Add XML tags to list. Level is indentation (for aesthetic reasons)
@@ -404,7 +333,7 @@ def pickle_instance(obj, list_, level=0, omit=None):
         for key, val in stuff.items():
             if omit and key in omit:
                 continue
-            list_.append(_attr_tag(key, val, level))
+            fh.write(_attr_tag(key, val, level))
     else:
         raise ValueError(f"'{obj}.__dict__' is not a dict")
 
@@ -731,7 +660,6 @@ def _thing_from_dom(dom_node, container=None):
             if node_type == 'None':
                 node_val = None
             elif node_type == 'numeric':
-                # node_val = safe_eval(node_val)
                 node_val = aton(node_val)
             elif node_type == 'string':
                 node_val = node_val

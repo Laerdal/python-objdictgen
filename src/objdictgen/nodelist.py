@@ -176,7 +176,7 @@ class NodeList:
                 mode = "a"
             else:
                 mode = "w"
-            with open(cpjpath, mode=mode) as f:
+            with open(cpjpath, mode=mode, encoding="utf-8") as f:
                 f.write(content)
             self.Changed = False
         except Exception as exc:  # pylint: disable=broad-except

@@ -1,5 +1,4 @@
 
-from pathlib import Path
 import pytest
 import objdictgen.__main__
 
@@ -8,6 +7,10 @@ def test_objdictgen_run(odjsoneds, mocker, wd):
     """Test that we're able to run objdictgen on our od files"""
 
     od = odjsoneds
+    tmpod = od.stem
+
+    if tmpod in ('legacy-strings', 'strings', 'unicode'):
+        pytest.xfail("UNICODE_STRINGS is not supported in C")
 
     mocker.patch("sys.argv", [
         "objdictgen",
@@ -24,6 +27,9 @@ def test_objdictgen_py2_compare(py2_cfile, mocker, wd, fn):
     # Extract the path to the OD and the path to the python2 c file
     od, py2od = py2_cfile
     tmpod = od.stem
+
+    if tmpod in ('legacy-strings'):
+        pytest.xfail("UNICODE_STRINGS is not supported in C")
 
     mocker.patch("sys.argv", [
         "objdictgen",

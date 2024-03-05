@@ -719,13 +719,13 @@ def generate_file(filepath, node, pointers_dict=None):
     )
 
     # Write main .c contents
-    with open(filepath, "wb") as f:
-        f.write(content.encode('utf-8'))
+    with open(filepath, "w", encoding="utf-8") as f:
+        f.write(content)
 
     # Write header file
-    with open(headerpath, "wb") as f:
-        f.write(header.encode('utf-8'))
+    with open(headerpath, "w", encoding="utf-8") as f:
+        f.write(header)
 
     # Write object definitions header
-    with open(headerdefspath, "wb") as f:
-        f.write(header_defs.encode('utf-8'))
+    with open(headerdefspath, "w", encoding="utf-8") as f:
+        f.write(header_defs)

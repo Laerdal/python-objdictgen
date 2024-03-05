@@ -125,7 +125,7 @@ def handle_exception(e_type, e_value, e_traceback, parent=None):
                 info['self'] = format_namespace(exception_locals['self'].__dict__)
 
         f_date = info['date'].replace(':', '-').replace(' ', '_')
-        with open(Path.cwd() / f"bug_report_{f_date}.txt", 'w') as fp:
+        with open(Path.cwd() / f"bug_report_{f_date}.txt", 'w', encoding="utf-8") as fp:
             for a, t in info.items():
                 fp.write(f"{a}:\n{t}\n\n")
 
