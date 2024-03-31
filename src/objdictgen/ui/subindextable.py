@@ -105,7 +105,6 @@ SIZE_CONVERSION = {
 
 
 class SubindexTable(wx.grid.GridTableBase):
-
     """
     A custom wxGrid Table using user supplied data
     """
@@ -205,6 +204,7 @@ class SubindexTable(wx.grid.GridTableBase):
     def UpdateValues(self, grid):
         """Update all displayed values"""
         # This sends an event to the grid table to update all of the values
+        # FIXME: This symbols is not defined in wx no more. Investigate.
         msg = wx.grid.GridTableMessage(self, wx.grid.GRIDTABLE_REQUEST_VIEW_GET_VALUES)
         grid.ProcessTableMessage(msg)
 
@@ -227,7 +227,7 @@ class SubindexTable(wx.grid.GridTableBase):
         maplist = None
         for row in range(self.GetNumberRows()):
             editors = self.editors[row]
-            if wx.Platform == '__WXMSW__':
+            if wx.Platform == '__WXMSW__':  # FIXME: Missing from wxtyping?
                 grid.SetRowMinimalHeight(row, 20)
             else:
                 grid.SetRowMinimalHeight(row, 28)
@@ -534,6 +534,7 @@ class EditingPanel(wx.SplitterWindow):
                         subentry_infos = self.Manager.GetSubentryInfos(index, subindex)
                         typeinfos = self.Manager.GetEntryInfos(subentry_infos["type"])
                         if typeinfos:
+                            # FIXME: What is bus_id? It is never set anywhere
                             bus_id = '.'.join(map(str, self.ParentWindow.GetBusId()))
                             var_name = f"{self.Manager.GetCurrentNodeName()}_{index:04x}_{subindex:02x}"
                             size = typeinfos["size"]
@@ -549,6 +550,8 @@ class EditingPanel(wx.SplitterWindow):
                             return
             elif col == 0:
                 selected = self.IndexList.GetSelection()
+                # FIXME: When used in node editor context, this method doesn't exist.
+                # It exists in NetworkEditorTemplate. What's ths use here?
                 node_id = self.ParentWindow.GetCurrentNodeId()
                 if selected != wx.NOT_FOUND and node_id is not None:
                     index = self.ListIndex[selected]
@@ -558,7 +561,9 @@ class EditingPanel(wx.SplitterWindow):
                         subentry_infos = self.Manager.GetSubentryInfos(index, subindex)
                         typeinfos = self.Manager.GetEntryInfos(subentry_infos["type"])
                         if subentry_infos["pdo"] and typeinfos:
+                            # FIXME: What is bus_id? It is never set anywhere
                             bus_id = '.'.join(map(str, self.ParentWindow.GetBusId()))
+                            # FIXME: Exists in NodeList, not in NodeManager
                             var_name = f"{self.Manager.GetSlaveName(node_id)}_{index:04x}_{subindex:02x}"
                             size = typeinfos["size"]
                             data = wx.TextDataObject(str((
@@ -610,9 +615,9 @@ class EditingPanel(wx.SplitterWindow):
             wx.CallAfter(self.ParentWindow.RefreshStatusBar)
         event.Skip()
 
-# ------------------------------------------------------------------------------
-#                             Refresh Functions
-# ------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
+    #                         Refresh Functions
+    # --------------------------------------------------------------------------
 
     def RefreshIndexList(self):
         selected = self.IndexList.GetSelection()
@@ -684,9 +689,9 @@ class EditingPanel(wx.SplitterWindow):
                 self.Table.ResetView(self.SubindexGrid)
         self.ParentWindow.RefreshStatusBar()
 
-# ------------------------------------------------------------------------------
-#                        Editing Table value function
-# ------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
+    #                    Editing Table value function
+    # --------------------------------------------------------------------------
 
     def OnSubindexGridEditorShown(self, event):
         row, col = event.GetRow(), event.GetCol()
@@ -697,6 +702,7 @@ class EditingPanel(wx.SplitterWindow):
             event.Skip()
 
     def ShowDCFEntryDialog(self, row, col):
+        # FIXME: Exists in NetworkEditorTemplate, not in NodeEditorTemplate
         if self.Editable or self.ParentWindow.GetCurrentNodeId() is None:
             selected = self.IndexList.GetSelection()
             if selected != wx.NOT_FOUND:
@@ -731,9 +737,9 @@ class EditingPanel(wx.SplitterWindow):
             wx.CallAfter(self.RefreshTable)
         event.Skip()
 
-# ------------------------------------------------------------------------------
-#                          Contextual Menu functions
-# ------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
+    #                      Contextual Menu functions
+    # --------------------------------------------------------------------------
 
     def OnIndexListRightUp(self, event):
         if self.Editable:
@@ -789,6 +795,7 @@ class EditingPanel(wx.SplitterWindow):
                         self.SubindexGridMenu.FindItemByPosition(3).Enable(False)
                     if showpopup:
                         self.PopupMenu(self.SubindexGridMenu)
+        # FIXME: Exists in NetworkEditorTemplate, not in NodeEditorTemplate
         elif (self.Table.GetColLabelValue(event.GetCol(), False) == "value"
                 and self.ParentWindow.GetCurrentNodeId() is not None
         ):
@@ -816,6 +823,7 @@ class EditingPanel(wx.SplitterWindow):
                     subentry_infos = self.Manager.GetSubentryInfos(index, subindex)
                     typeinfos = self.Manager.GetEntryInfos(subentry_infos["type"])
                     if typeinfos:
+                        # FIXME: Exists in NetworkEditorTemplate, not in NodeEditorTemplate
                         node_id = self.ParentWindow.GetCurrentNodeId()
                         value = self.Table.GetValueByName(subindex, "value")
                         if value == "True":
@@ -828,9 +836,11 @@ class EditingPanel(wx.SplitterWindow):
                             value = int(value, 16)
                         else:
                             value = int(value, 16)
+                        # FIXME: Exists in NodeList, not in NodeManager
                         self.Manager.AddToMasterDCF(
                             node_id, index, subindex, max(1, typeinfos["size"] // 8), value
                         )
+                        # FIXME: Exists in NetworkEditorTemplate, not in NodeEditorTemplate
                         self.ParentWindow.OpenMasterDCFDialog(node_id)
 
     def OpenDCFDialog(self, node_id):

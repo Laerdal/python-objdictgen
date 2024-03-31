@@ -208,6 +208,7 @@ def parse_cpj_file(filepath):
                                     f"of section '[{section_name}]'"
                                 )
                             topology["Name"] = computed_value
+
                         elif keyname.upper() == "NODES":
                             if not is_integer(computed_value):
                                 raise ValueError(
@@ -215,6 +216,7 @@ def parse_cpj_file(filepath):
                                     f"of section '[{section_name}]'"
                                 )
                             topology["Number"] = computed_value
+
                         elif keyname.upper() == "EDSBASENAME":
                             if not is_string(computed_value):
                                 raise ValueError(
@@ -222,6 +224,7 @@ def parse_cpj_file(filepath):
                                     f"of section '[{section_name}]'"
                                 )
                             topology["Path"] = computed_value
+
                         elif nodepresent_result:
                             if not is_boolean(computed_value):
                                 raise ValueError(
@@ -232,6 +235,7 @@ def parse_cpj_file(filepath):
                             if nodeid not in topology["Nodes"]:
                                 topology["Nodes"][nodeid] = {}
                             topology["Nodes"][nodeid]["Present"] = computed_value
+
                         elif nodename_result:
                             if not is_string(value):
                                 raise ValueError(
@@ -242,6 +246,7 @@ def parse_cpj_file(filepath):
                             if nodeid not in topology["Nodes"]:
                                 topology["Nodes"][nodeid] = {}
                             topology["Nodes"][nodeid]["Name"] = computed_value
+
                         elif nodedcfname_result:
                             if not is_string(computed_value):
                                 raise ValueError(
@@ -252,6 +257,7 @@ def parse_cpj_file(filepath):
                             if nodeid not in topology["Nodes"]:
                                 topology["Nodes"][nodeid] = {}
                             topology["Nodes"][nodeid]["DCFName"] = computed_value
+
                         else:
                             raise ValueError(f"Keyname '{keyname}' not recognised for section '[{section_name}]'")
 
@@ -464,7 +470,7 @@ def verify_value(values, section_name, param):
             elif values["DATATYPE"] == 0x01:
                 values[uparam] = {0: False, 1: True}[values[uparam]]
             elif not isinstance(values[uparam], int) and "$NODEID" not in values[uparam].upper():
-                raise ValueError()  # FIXME: Should this get something more specific?
+                raise ValueError()
         except ValueError:
             raise ValueError(f"Error on section '[{section_name}]': '{param}' incompatible with DataType") from None
 

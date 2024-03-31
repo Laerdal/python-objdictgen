@@ -314,9 +314,9 @@ class ObjdictEdit(wx.Frame, net.NodeEditorTemplate):
         else:
             event.Skip()
 
-# ------------------------------------------------------------------------------
-#                             Refresh Functions
-# ------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
+    #                         Refresh Functions
+    # --------------------------------------------------------------------------
 
     def RefreshTitle(self):
         if self.FileOpened.GetPageCount() > 0:
@@ -370,9 +370,9 @@ class ObjdictEdit(wx.Frame, net.NodeEditorTemplate):
             self.EditMenu.Enable(wx.ID_UNDO, False)
             self.EditMenu.Enable(wx.ID_REDO, False)
 
-# ------------------------------------------------------------------------------
-#                            Buffer Functions
-# ------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
+    #                        Buffer Functions
+    # --------------------------------------------------------------------------
 
     def RefreshBufferState(self):
         fileopened = self.Manager.GetAllFilenames()
@@ -381,9 +381,9 @@ class ObjdictEdit(wx.Frame, net.NodeEditorTemplate):
         self.RefreshEditMenu()
         self.RefreshTitle()
 
-# ------------------------------------------------------------------------------
-#                         Load and Save Funtions
-# ------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
+    #                     Load and Save Funtions
+    # --------------------------------------------------------------------------
 
     def OnNewMenu(self, event):  # pylint: disable=unused-argument
         # self.FilePath = ""

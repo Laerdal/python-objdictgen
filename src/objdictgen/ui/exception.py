@@ -107,7 +107,7 @@ def handle_exception(e_type, e_value, e_traceback, parent=None):
         info = {
             'app-title': wx.GetApp().GetAppName(),  # app_title
             'app-version': __version__,
-            'wx-version': wx.VERSION_STRING,
+            'wx-version': wx.VERSION_STRING,  # FIXME: Missing from wx
             'wx-platform': wx.Platform,
             'python-version': platform.python_version(),  # sys.version.split()[0],
             'platform': platform.platform(),

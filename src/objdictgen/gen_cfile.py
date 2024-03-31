@@ -126,6 +126,7 @@ def generate_file_content(node, headerfile, pointers_dict=None):
     # pylint: disable=invalid-name
 
     context = CFileContext()
+
     pointers_dict = pointers_dict or {}
     texts = {}
     texts["maxPDOtransmit"] = 0
@@ -147,9 +148,9 @@ def generate_file_content(node, headerfile, pointers_dict=None):
     # pdolist = [idx for idx in node.GetIndexes() if 0x1400 <= idx <= 0x1BFF]
     variablelist = [idx for idx in node.GetIndexes() if 0x2000 <= idx <= 0xBFFF]
 
-# ------------------------------------------------------------------------------
-#                       Declaration of the value range types
-# ------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
+    #                   Declaration of the value range types
+    # --------------------------------------------------------------------------
 
     valueRangeContent = ""
     strDefine = (
@@ -195,9 +196,9 @@ def generate_file_content(node, headerfile, pointers_dict=None):
     valueRangeContent += strSwitch
     valueRangeContent += "  }\n  return 0;\n}\n"
 
-# ------------------------------------------------------------------------------
-#            Creation of the mapped variables and object dictionary
-# ------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
+    #        Creation of the mapped variables and object dictionary
+    # --------------------------------------------------------------------------
 
     mappedVariableContent = ""
     pointedVariableContent = ""
@@ -211,6 +212,7 @@ def generate_file_content(node, headerfile, pointers_dict=None):
         params_infos = node.GetParamsEntry(index)
         texts["EntryName"] = entry_infos["name"]
         values = node.GetEntry(index)
+
         if index in variablelist:
             strindex += "\n/* index 0x%(index)04X :   Mapped variable %(EntryName)s */\n" % texts
         else:
@@ -448,9 +450,9 @@ def generate_file_content(node, headerfile, pointers_dict=None):
         strindex += "                     };\n"
         indexContents[index] = strindex
 
-# ------------------------------------------------------------------------------
-#                     Declaration of Particular Parameters
-# ------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
+    #                 Declaration of Particular Parameters
+    # --------------------------------------------------------------------------
 
     if 0x1003 not in communicationlist:
         entry_infos = node.GetEntryInfos(0x1003)
@@ -522,18 +524,20 @@ def generate_file_content(node, headerfile, pointers_dict=None):
                     UNS8 %(NodeName)s_obj100D = 0x0;   /* 0 */
 """ % texts
 
-# ------------------------------------------------------------------------------
-#               Declaration of navigation in the Object Dictionary
-# ------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
+    #           Declaration of navigation in the Object Dictionary
+    # --------------------------------------------------------------------------
 
     strDeclareIndex = ""
     strDeclareSwitch = ""
     strQuickIndex = ""
+
     quick_index = {}
     for index_cat in INDEX_CATEGORIES:
         quick_index[index_cat] = {}
         for cat, idx_min, idx_max in CATEGORIES:
             quick_index[index_cat][cat] = 0
+
     maxPDOtransmit = 0
     for i, index in enumerate(listindex):
         texts["index"] = index
@@ -550,6 +554,7 @@ def generate_file_content(node, headerfile, pointers_dict=None):
                     quick_index["firstIndex"][cat] = i
                 if cat == "PDO_TRS":
                     maxPDOtransmit += 1
+
     texts["maxPDOtransmit"] = max(1, maxPDOtransmit)
     for index_cat in INDEX_CATEGORIES:
         strQuickIndex += f"\nconst quick_index {texts['NodeName']}_{index_cat} = {{\n"
@@ -560,9 +565,9 @@ def generate_file_content(node, headerfile, pointers_dict=None):
             strQuickIndex += f"  {quick_index[index_cat][cat]}{sep} /* {cat} */\n"
         strQuickIndex += "};\n"
 
-# ------------------------------------------------------------------------------
-#                            Write File Content
-# ------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
+    #                        Write File Content
+    # --------------------------------------------------------------------------
 
     fileContent = FILE_HEADER + f"""
 #include "{headerfile}"
@@ -660,9 +665,9 @@ CO_Data %(NodeName)s_Data = CANOPEN_NODE_DATA_INITIALIZER(%(NodeName)s);
 
 """ % texts
 
-# ------------------------------------------------------------------------------
-#                          Write Header File Content
-# ------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
+    #                      Write Header File Content
+    # --------------------------------------------------------------------------
 
     texts["file_include_name"] = headerfile.replace(".", "_").upper()
     headerFileContent = FILE_HEADER + """
@@ -682,9 +687,9 @@ extern CO_Data %(NodeName)s_Data;
 
     headerFileContent += "\n#endif // %(file_include_name)s\n" % texts
 
-# ------------------------------------------------------------------------------
-#                          Write Header Object Defintions Content
-# ------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
+    #                      Write Header Object Defintions Content
+    # --------------------------------------------------------------------------
     texts["file_include_objdef_name"] = headerfile.replace(".", "_OBJECTDEFINES_").upper()
     headerObjectDefinitionContent = FILE_HEADER + """
 #ifndef %(file_include_objdef_name)s

@@ -71,6 +71,7 @@ class NetworkEditorTemplate(net.NodeEditorTemplate):
             new_editingpanel.SetIndex(self.Manager.GetCurrentNodeID())
             self.NetworkNodes.AddPage(new_editingpanel, "")
             for idx in self.NodeList.GetSlaveIDs():
+                # FIXME: Why is NodeList used where NodeManager is expected?
                 new_editingpanel = sit.EditingPanel(self.NetworkNodes, self, self.NodeList, False)
                 new_editingpanel.SetIndex(idx)
                 self.NetworkNodes.AddPage(new_editingpanel, "")
@@ -87,9 +88,9 @@ class NetworkEditorTemplate(net.NodeEditorTemplate):
             wx.CallAfter(self.RefreshStatusBar)
         event.Skip()
 
-# ------------------------------------------------------------------------------
-#                              Buffer Functions
-# ------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
+    #                          Buffer Functions
+    # --------------------------------------------------------------------------
 
     def RefreshBufferState(self):
         if self.NodeList is not None:
@@ -102,9 +103,9 @@ class NetworkEditorTemplate(net.NodeEditorTemplate):
             for idx, name in enumerate(self.NodeList.GetSlaveNames()):
                 self.NetworkNodes.SetPageText(idx + 1, name)
 
-# ------------------------------------------------------------------------------
-#                             Slave Nodes Management
-# ------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
+    #                         Slave Nodes Management
+    # --------------------------------------------------------------------------
 
     def OnAddSlaveMenu(self, event):  # pylint: disable=unused-argument
         with cdia.AddSlaveDialog(self.Frame) as dialog:
@@ -117,6 +118,7 @@ class NetworkEditorTemplate(net.NodeEditorTemplate):
             self.NodeList.AddSlaveNode(
                 values["slaveName"], values["slaveNodeID"], values["edsFile"],
             )
+            # FIXME: Why is NodeList used where NodeManager is expected?
             new_editingpanel = sit.EditingPanel(self.NetworkNodes, self, self.NodeList, False)
             new_editingpanel.SetIndex(values["slaveNodeID"])
             idx = self.NodeList.GetOrderNumber(values["slaveNodeID"])

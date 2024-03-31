@@ -151,7 +151,7 @@ class Node:
         )
 
     # --------------------------------------------------------------------------
-    #                      Node Functions
+    #                      Node Informations Functions
     # --------------------------------------------------------------------------
 
     def GetMappings(self, userdefinedtoo=True):

@@ -181,8 +181,6 @@ class NetworkEdit(wx.Frame, NetworkEditorTemplate):
         self.NetworkMenu = wx.Menu(title='')
         self.EditMenu = wx.Menu(title='')
         self.AddMenu = wx.Menu(title='')
-        # FIXME: Unused. Delete this?
-        # self.HelpMenu = wx.Menu(title='')
 
         self._init_coll_MenuBar_Menus(self.MenuBar)
         if self.ModeSolo:
@@ -221,8 +219,6 @@ class NetworkEdit(wx.Frame, NetworkEditorTemplate):
         else:
             NetworkEditorTemplate.__init__(self, nodelist, self, False)
         self._init_ctrls(parent)
-        # FIXME: Unused. Delete this?
-        # self.HtmlFrameOpened = []
 
         icon = wx.Icon(
             str(objdictgen.SCRIPT_DIRECTORY / "img" / "networkedit.ico"),
@@ -241,7 +237,7 @@ class NetworkEdit(wx.Frame, NetworkEditorTemplate):
                     log.debug("Exception: %s", exc)
                     raise  # FIXME: Temporary. Orginal code swallows exception
             else:
-                self.NodeList = None
+                self.NodeList = None  # FIXME: Why is this needed?
         else:
             self.NodeList.CurrentSelected = 0
             self.RefreshNetworkNodes()
@@ -261,9 +257,9 @@ class NetworkEdit(wx.Frame, NetworkEditorTemplate):
     def OnQuitMenu(self, event):  # pylint: disable=unused-argument
         self.Close()
 
-# ------------------------------------------------------------------------------
-#                         Load and Save Funtions
-# ------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
+    #                     Load and Save Funtions
+    # --------------------------------------------------------------------------
 
     def OnNewProjectMenu(self, event):  # pylint: disable=unused-argument
         if self.NodeList:
@@ -353,15 +349,15 @@ class NetworkEdit(wx.Frame, NetworkEditorTemplate):
                     self.NodeList.Changed = False
 
             if not self.NodeList.HasChanged():
-                self.Manager = None
-                self.NodeList = None
+                self.Manager = None  # FIXME: Why is this needed?
+                self.NodeList = None  # FIXME: Why is this needed?
                 self.RefreshNetworkNodes()
                 self.RefreshTitle()
                 self.RefreshMainMenu()
 
-# ------------------------------------------------------------------------------
-#                             Refresh Functions
-# ------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
+    #                             Refresh Functions
+    # --------------------------------------------------------------------------
 
     def RefreshTitle(self):
         if self.NodeList is not None:
@@ -410,9 +406,9 @@ class NetworkEdit(wx.Frame, NetworkEditorTemplate):
                     self.MenuBar.EnableTop(1, False)
                     self.MenuBar.EnableTop(2, False)
 
-# ------------------------------------------------------------------------------
-#                              Buffer Functions
-# ------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
+    #                              Buffer Functions
+    # --------------------------------------------------------------------------
 
     def RefreshBufferState(self):
         NetworkEditorTemplate.RefreshBufferState(self)

@@ -236,6 +236,7 @@ class NodeManager:
                 for idx in range(firstmappingindex, firstmappingindex + 4):
                     addindexlist.append(idx)
                     addsubindexlist.append((idx, 8))
+
         # Add a new buffer
         index = self.AddNodeBuffer(node.Copy(), False)
         self.SetCurrentFilePath(None)

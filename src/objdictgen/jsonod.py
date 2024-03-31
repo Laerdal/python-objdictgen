@@ -55,6 +55,7 @@ JSON_TOP_ORDER = (
     "name", "description", "type", "id", "profile",
     "default_string_size", "dictionary",
 )
+# Output order for the "dictionary" list in the JSON file
 JSON_DICTIONARY_ORDER = (
     "index", "name", "__name",
     "repeat", "struct", "group",
@@ -65,6 +66,7 @@ JSON_DICTIONARY_ORDER = (
     "values", "dictionary", "params",
     "user", "profile", "ds302", "built-in",
 )
+# Output order of the "sub" list in the JSON file
 JSON_SUB_ORDER = (
     "name", "__name", "type", "__type",
     "access", "pdo",
@@ -73,11 +75,10 @@ JSON_SUB_ORDER = (
     "default", "value",
 )
 
-
-# ----------
 # Reverse validation (mem -> dict):
+# ---------------------------------
 
-# Fields that must be present in the mapping (where the parameter is defined)
+# Fields that must be present in the mapping (where the object is defined)
 # mapping[index] = { ..dict.. }
 FIELDS_MAPPING_MUST = {'name', 'struct', 'values'}
 FIELDS_MAPPING_OPT = {'need', 'incr', 'nbmax', 'size', 'default'}
@@ -87,7 +88,7 @@ FIELDS_MAPPING_OPT = {'need', 'incr', 'nbmax', 'size', 'default'}
 FIELDS_MAPVALS_MUST = {'name', 'type', 'access', 'pdo'}
 FIELDS_MAPVALS_OPT = {'nbmin', 'nbmax', 'default'}
 
-# Fields that must be present in parameter dictionary (user settings)
+# Fields that must be present in object dictionary (user settings)
 # node.ParamDictionary[index] = { N: { ..dict..}, ..dict.. }
 FIELDS_PARAMS = {'comment', 'save', 'buffer_size'}
 FIELDS_PARAMS_PROMOTE = {'callback'}
@@ -95,8 +96,8 @@ FIELDS_PARAMS_PROMOTE = {'callback'}
 # Fields representing the dictionary value
 FIELDS_VALUE = {'value'}
 
-# ---------
 # Forward validation (dict -> mem)
+# --------------------------------
 
 # Fields contents of the top-most level, json = { ..dict.. }
 FIELDS_DATA_MUST = {
@@ -119,14 +120,14 @@ FIELDS_DICT_MUST = {
     'sub',
 }
 FIELDS_DICT_OPT = {
-                        # R = omitted if repeat is True   # noqa: E126
-    'group',            # R, default 'user'   # noqa: E131
+                        # R = omitted if repeat is True
+    'group',            # R, default 'user'
     'each',             # R, only when struct != *var
-    'callback',         #    set if present   # noqa: E262
-    'profile_callback', # R, set if present   # noqa: E261
+    'callback',         #    set if present
+    'profile_callback', # R, set if present
     'unused',           #    default False
     'mandatory',        # R, set if present
-    'repeat',           #    default False   # noqa: E262
+    'repeat',           #    default False
     'incr',             # R, only when struct is "N"-type
     'nbmax',            # R, only when struct is "N"-type
     'size',             # R, only when index < 0x1000
@@ -169,6 +170,7 @@ def remove_jasonc(text):
     )
 
 
+# FIXME: Move to generic utils/funcs?
 def exc_amend(exc, text):
     """ Helper to prefix text to an exception """
     args = list(exc.args)

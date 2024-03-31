@@ -131,9 +131,9 @@ class NodeEditorTemplate:
                     edititem.SetItemLabel("Other Profile")
                     edititem.Enable(False)
 
-# ------------------------------------------------------------------------------
-#                            Buffer Functions
-# ------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
+    #                        Buffer Functions
+    # --------------------------------------------------------------------------
 
     def RefreshBufferState(self):
         pass
@@ -148,9 +148,9 @@ class NodeEditorTemplate:
         self.RefreshCurrentIndexList()
         self.RefreshBufferState()
 
-# ------------------------------------------------------------------------------
-#                          Editing Profiles functions
-# ------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
+    #                      Editing Profiles functions
+    # --------------------------------------------------------------------------
 
     def OnCommunicationMenu(self, event):  # pylint: disable=unused-argument
         dictionary, current = self.Manager.GetCurrentCommunicationLists()
@@ -192,9 +192,9 @@ class NodeEditorTemplate:
             self.RefreshCurrentIndexList()
         return profile_cb
 
-# ------------------------------------------------------------------------------
-#                         Edit Node informations function
-# ------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
+    #                     Edit Node informations function
+    # --------------------------------------------------------------------------
 
     def OnNodeInfosMenu(self, event):  # pylint: disable=unused-argument
         dialog = cdia.NodeInfosDialog(self.Frame)
@@ -209,9 +209,9 @@ class NodeEditorTemplate:
             self.RefreshCurrentIndexList()
             self.RefreshProfileMenu()
 
-# ------------------------------------------------------------------------------
-#                           Add User Types and Variables
-# ------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
+    #                       Add User Types and Variables
+    # --------------------------------------------------------------------------
 
     def AddMapVariable(self):
         index = self.Manager.GetCurrentNextMapIndex()

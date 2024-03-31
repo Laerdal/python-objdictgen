@@ -590,7 +590,7 @@ class UserTypeDialog(wx.Dialog):
                 try:
                     int(self.Min.GetValue(), 16)
                 except ValueError as exc:
-                    log.debug("ValueError: '%s': %s", self.Index.GetValue(), exc)
+                    log.debug("ValueError: '%s': %s", self.Index.GetValue(), exc)  # FIXME: What is self.Index?
                     error.append("Minimum")
                 try:
                     int(self.Max.GetValue(), 16)
@@ -1478,6 +1478,7 @@ class DCFEntryValuesTable(wx.grid.GridTableBase):
     def UpdateValues(self, grid):
         """Update all displayed values"""
         # This sends an event to the grid table to update all of the values
+        # FIXME: This symbol has probably been removed from wx. Needs more investigation
         msg = wx.grid.GridTableMessage(self, wx.grid.GRIDTABLE_REQUEST_VIEW_GET_VALUES)
         grid.ProcessTableMessage(msg)
 
@@ -1670,6 +1671,7 @@ class DCFEntryValuesDialog(wx.Dialog):
             self.RefreshValues()
 
     def SetValues(self, values):
+        # FIXME: THis function needs rewrite, as the map.be_to_le is not ported properly to py3
         self.Values = []
         if values:
             data = values[4:]
@@ -1686,6 +1688,7 @@ class DCFEntryValuesDialog(wx.Dialog):
         self.RefreshValues()
 
     def GetValues(self):
+        # FIXME: THis function needs rewrite, as the map.be_to_le is not ported properly to py3
         if len(self.Values) <= 0:
             return ""
         value = Node.le_to_be(len(self.Values), 4)
