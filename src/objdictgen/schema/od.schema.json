@@ -111,7 +111,7 @@
                     "profile_callback": { "$ref": "#callback" },
                     "callback": { "$ref": "#callback" },
                     "unused": { "$ref": "#unused" },
-                    "default": { "$ref": "#default" },
+                    "default": { "$ref": "#value" },
                     "size": { "$ref": "#size" },
                     "incr": { "$ref": "#incr" },
                     "nbmax": { "$ref": "#nbmax" },
@@ -137,7 +137,7 @@
             "properties": {
                 "name": { "$ref": "#name" },
                 "comment": { "$ref": "#comment" },
-                "buffer_size": { "$ref": "#buffersize" },
+                "buffer_size": { "$ref": "#buffer_size" },
                 "type": { "$ref": "#type" },
                 "access": { "$ref": "#access" },
                 "pdo": { "$ref": "#pdo" },
@@ -159,13 +159,13 @@
             }
         },
 
-        "subitem_base": {
+        "subitem_repeat": {
             "$id": "#subitem_repeat",
             "description": "Sub object item in repeated parameter",
             "type": "object",
             "properties": {
                 "comment": { "$ref": "#comment" },
-                "buffer_size": { "$ref": "#buffersize" },
+                "buffer_size": { "$ref": "#buffer_size" },
                 "save": { "$ref": "#save" },
                 "value": { "$ref": "#value" }
             },
@@ -216,7 +216,7 @@
         },
 
         "buffer_size": {
-            "$id": "#buffersize",
+            "$id": "#buffer_size",
             "description": "Buffer size (for strings)",
             "anyOf": [
                 {
@@ -237,11 +237,6 @@
         "comment": {
             "$id": "#comment",
             "description": "Free-text comment"
-        },
-
-        "default": {
-            "$id": "#default",
-            "type": "integer"
         },
 
         "group": {
