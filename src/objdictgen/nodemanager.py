@@ -22,12 +22,18 @@ import codecs
 import logging
 import os
 import re
+from pathlib import Path
+from typing import Container, Generic, TypeVar, cast
 
 import colorama
 
 from objdictgen import maps
 from objdictgen import node as nodelib
-from objdictgen.maps import OD
+from objdictgen.maps import OD, ODMapping
+from objdictgen.node import Node
+from objdictgen.typing import TODSubObj, TPath
+
+T = TypeVar("T")
 
 log = logging.getLogger('objdictgen')
 
@@ -50,19 +56,19 @@ def get_new_id():
     return CURRENTID
 
 
-class UndoBuffer:
+class UndoBuffer(Generic[T]):
     """
     Class implementing a buffer of changes made on the current editing Object Dictionary
     """
 
-    def __init__(self, currentstate, issaved=False):
+    def __init__(self, currentstate: T|None = None, issaved: bool = False):
         """
         Constructor initialising buffer
         """
-        self.Buffer = []
-        self.CurrentIndex = -1
-        self.MinIndex = -1
-        self.MaxIndex = -1
+        self.Buffer: list[T|None] = []
+        self.CurrentIndex: int = -1
+        self.MinIndex: int = -1
+        self.MaxIndex: int = -1
         # if current state is defined
         if currentstate:
             self.CurrentIndex = 0
@@ -77,7 +83,7 @@ class UndoBuffer:
         else:
             self.LastSave = -1
 
-    def Buffering(self, currentstate):
+    def Buffering(self, currentstate: T):
         """
         Add a new state in buffer
         """
@@ -92,13 +98,13 @@ class UndoBuffer:
             self.MinIndex = (self.MinIndex + 1) % UNDO_BUFFER_LENGTH
         self.MinIndex = max(self.MinIndex, 0)
 
-    def Current(self):
+    def Current(self) -> T:
         """
         Return current state of buffer
         """
         return self.Buffer[self.CurrentIndex]
 
-    def Previous(self):
+    def Previous(self) -> T:
         """
         Change current state to previous in buffer and return new current state
         """
@@ -107,7 +113,7 @@ class UndoBuffer:
             return self.Buffer[self.CurrentIndex]
         return None
 
-    def Next(self):
+    def Next(self) -> T:
         """
         Change current state to next in buffer and return new current state
         """
@@ -116,13 +122,13 @@ class UndoBuffer:
             return self.Buffer[self.CurrentIndex]
         return None
 
-    def IsFirst(self):
+    def IsFirst(self) -> bool:
         """
         Return True if current state is the first in buffer
         """
         return self.CurrentIndex == self.MinIndex
 
-    def IsLast(self):
+    def IsLast(self) -> bool:
         """
         Return True if current state is the last in buffer
         """
@@ -134,7 +140,7 @@ class UndoBuffer:
         """
         self.LastSave = self.CurrentIndex
 
-    def IsCurrentSaved(self):
+    def IsCurrentSaved(self) -> bool:
         """
         Return True if current state is saved
         """
@@ -151,17 +157,17 @@ class NodeManager:
         Constructor
         """
         self.LastNewIndex = 0
-        self.FilePaths = {}
-        self.FileNames = {}
-        self.NodeIndex = None
-        self.CurrentNode = None
-        self.UndoBuffers = {}
+        self.FilePaths: dict[int, Path|None] = {}
+        self.FileNames: dict[int, str] = {}
+        self.NodeIndex: int|None = None
+        self.CurrentNode: Node|None = None
+        self.UndoBuffers: dict[int, UndoBuffer[Node]] = {}
 
     # --------------------------------------------------------------------------
     #                         Type and Map Variable Lists
     # --------------------------------------------------------------------------
 
-    def GetCurrentTypeList(self):
+    def GetCurrentTypeList(self) -> list[str]|str:
         """
         Return the list of types defined for the current node
         """
@@ -169,7 +175,7 @@ class NodeManager:
             return self.CurrentNode.GetTypeList()
         return ""
 
-    def GetCurrentMapList(self):
+    def GetCurrentMapList(self) -> list[str]|str:
         """
         Return the list of variables that can be mapped for the current node
         """
@@ -181,7 +187,10 @@ class NodeManager:
     #                        Create Load and Save Functions
     # --------------------------------------------------------------------------
 
-    def CreateNewNode(self, name, id, type, description, profile, filepath, nmt, options):  # pylint: disable=redefined-builtin, invalid-name
+    # FIXME: Change to not mask the builtins
+    def CreateNewNode(self, name: str, id: int, type: str, description: str,
+                        profile: str, filepath: TPath, nmt: str,
+                        options: Container[str]):
         """
         Create a new node and add a new buffer for storing it
         """
@@ -246,7 +255,7 @@ class NodeManager:
             self.AddSubentriesToCurrent(idx, num)
         return index
 
-    def OpenFileInCurrent(self, filepath, load=True):
+    def OpenFileInCurrent(self, filepath: TPath, load=True) -> int:
         """
         Open a file and store it in a new buffer
         """
@@ -259,7 +268,7 @@ class NodeManager:
         self.SetCurrentFilePath(filepath if load else None)
         return index
 
-    def SaveCurrentInFile(self, filepath=None, filetype='', **kwargs):
+    def SaveCurrentInFile(self, filepath: TPath|None = None, filetype='', **kwargs) -> bool:
         """
         Save current node in a file
         """
@@ -286,7 +295,7 @@ class NodeManager:
             self.UndoBuffers[self.NodeIndex].CurrentSaved()
         return True
 
-    def CloseCurrent(self, ignore=False):
+    def CloseCurrent(self, ignore=False) -> bool:
         """
         Close current state
         """
@@ -315,7 +324,7 @@ class NodeManager:
     #                        Add Entries to Current Functions
     # --------------------------------------------------------------------------
 
-    def AddSubentriesToCurrent(self, index, number, node=None):
+    def AddSubentriesToCurrent(self, index: int, number: int, node: Node|None = None):
         """
         Add the specified number of subentry for the given entry. Verify that total
         number of subentry (except 0) doesn't exceed nbmax defined
@@ -349,7 +358,7 @@ class NodeManager:
             if not disable_buffer:
                 self.BufferCurrentNode()
 
-    def RemoveSubentriesFromCurrent(self, index, number):
+    def RemoveSubentriesFromCurrent(self, index: int, number: int):
         """
         Remove the specified number of subentry for the given entry. Verify that total
         number of subentry (except 0) isn't less than 1
@@ -407,7 +416,7 @@ class NodeManager:
         if None not in indexlist:
             self.ManageEntriesOfCurrent(indexlist, [])
 
-    def AddSpecificEntryToCurrent(self, menuitem):
+    def AddSpecificEntryToCurrent(self, menuitem: str):
         """
         Add a list of entries defined in profile for menu item selected to current node
         """
@@ -421,7 +430,7 @@ class NodeManager:
         if None not in indexlist:
             self.ManageEntriesOfCurrent(indexlist, [])
 
-    def GetLineFromIndex(self, base_index):
+    def GetLineFromIndex(self, base_index: int) -> int|None:
         """
         Search the first index available for a pluri entry from base_index
         """
@@ -437,7 +446,7 @@ class NodeManager:
             return index
         return None
 
-    def ManageEntriesOfCurrent(self, addinglist, removinglist, node=None):
+    def ManageEntriesOfCurrent(self, addinglist: list[int], removinglist: list[int], node: Node|None = None):
         """
         Add entries specified in addinglist and remove entries specified in removinglist
         """
@@ -487,7 +496,7 @@ class NodeManager:
         if not disable_buffer:
             self.BufferCurrentNode()
 
-    def SetCurrentEntryToDefault(self, index, subindex, node=None):
+    def SetCurrentEntryToDefault(self, index: int, subindex:int, node: Node|None = None):
         """
         Reset an subentry from current node to its default value
         """
@@ -504,7 +513,7 @@ class NodeManager:
             if not disable_buffer:
                 self.BufferCurrentNode()
 
-    def RemoveCurrentVariable(self, index, subindex=None):
+    def RemoveCurrentVariable(self, index: int, subindex: int|None = None):
         """
         Remove an entry from current node. Analize the index to perform the correct
         method
@@ -558,7 +567,7 @@ class NodeManager:
             if index in mappings[-1]:
                 node.RemoveMappingEntry(index, subindex)
 
-    def AddMapVariableToCurrent(self, index, name, struct, number, node=None):
+    def AddMapVariableToCurrent(self, index: int, name: str, struct: int, number: int, node: Node|None = None):
         if 0x2000 <= index <= 0x5FFF:
             disable_buffer = node is not None
             if node is None:
@@ -592,7 +601,7 @@ class NodeManager:
             return
         raise ValueError(f"Index 0x{index:04X} isn't a valid index for Map Variable!")
 
-    def AddUserTypeToCurrent(self, type_, min_, max_, length):
+    def AddUserTypeToCurrent(self, type_: int, min_: int, max_: int, length: int):
         assert self.CurrentNode  # For mypy
         node = self.CurrentNode
         index = 0xA0
@@ -644,14 +653,14 @@ class NodeManager:
     #                      Modify Entry and Mapping Functions
     # --------------------------------------------------------------------------
 
-    def SetCurrentEntryCallbacks(self, index, value):
+    def SetCurrentEntryCallbacks(self, index: int, value: bool):
         if self.CurrentNode and self.CurrentNode.IsEntry(index):
             entry_infos = self.GetEntryInfos(index)
             if "callback" not in entry_infos:
                 self.CurrentNode.SetParamsEntry(index, None, callback=value)
                 self.BufferCurrentNode()
 
-    def SetCurrentEntry(self, index, subindex, value, name, editor, node=None):
+    def SetCurrentEntry(self, index: int, subindex: int, value: str, name: str, editor: str, node: Node|None = None):
         disable_buffer = node is not None
         if node is None:
             node = self.CurrentNode
@@ -732,11 +741,11 @@ class NodeManager:
             if not disable_buffer:
                 self.BufferCurrentNode()
 
-    def SetCurrentEntryName(self, index, name):
+    def SetCurrentEntryName(self, index: int, name: str):
         self.CurrentNode.SetMappingEntry(index, name=name)
         self.BufferCurrentNode()
 
-    def SetCurrentUserType(self, index, type_, min_, max_, length):
+    def SetCurrentUserType(self, index: int, type_: int, min_: int, max_: int, length: int):
         assert self.CurrentNode  # For mypy
         node = self.CurrentNode
         customisabletypes = self.GetCustomisableTypes()
@@ -783,19 +792,19 @@ class NodeManager:
     def BufferCurrentNode(self):
         self.UndoBuffers[self.NodeIndex].Buffering(self.CurrentNode.Copy())
 
-    def CurrentIsSaved(self):
+    def CurrentIsSaved(self) -> bool:
         return self.UndoBuffers[self.NodeIndex].IsCurrentSaved()
 
-    def OneFileHasChanged(self):
+    def OneFileHasChanged(self) -> bool:
         return any(
             not buffer
             for buffer in self.UndoBuffers.values()
         )
 
-    def GetBufferNumber(self):
+    def GetBufferNumber(self) -> int:
         return len(self.UndoBuffers)
 
-    def GetBufferIndexes(self):
+    def GetBufferIndexes(self) -> list[int]:
         return list(self.UndoBuffers)
 
     def LoadCurrentPrevious(self):
@@ -804,38 +813,38 @@ class NodeManager:
     def LoadCurrentNext(self):
         self.CurrentNode = self.UndoBuffers[self.NodeIndex].Next().Copy()
 
-    def AddNodeBuffer(self, currentstate=None, issaved=False):
+    def AddNodeBuffer(self, currentstate: Node|None = None, issaved=False) -> int:
         self.NodeIndex = get_new_id()
         self.UndoBuffers[self.NodeIndex] = UndoBuffer(currentstate, issaved)
         self.FilePaths[self.NodeIndex] = ""
         self.FileNames[self.NodeIndex] = ""
         return self.NodeIndex
 
-    def ChangeCurrentNode(self, index):
+    def ChangeCurrentNode(self, index: int):
         if index in self.UndoBuffers:
             self.NodeIndex = index
             self.CurrentNode = self.UndoBuffers[self.NodeIndex].Current().Copy()
 
-    def RemoveNodeBuffer(self, index):
+    def RemoveNodeBuffer(self, index: int):
         self.UndoBuffers.pop(index)
         self.FilePaths.pop(index)
         self.FileNames.pop(index)
 
-    def GetCurrentFilename(self):
+    def GetCurrentFilename(self) -> str:
         return self.GetFilename(self.NodeIndex)
 
-    def GetAllFilenames(self):
+    def GetAllFilenames(self) -> list[str]:
         return [
             self.GetFilename(idx)
             for idx in sorted(self.UndoBuffers)
         ]
 
-    def GetFilename(self, index):
+    def GetFilename(self, index: int) -> str:
         if self.UndoBuffers[index].IsCurrentSaved():
             return self.FileNames[index]
         return f"~{self.FileNames[index]}~"
 
-    def SetCurrentFilePath(self, filepath):
+    def SetCurrentFilePath(self, filepath: TPath|None):
         self.FilePaths[self.NodeIndex] = filepath
         if filepath:
             self.FileNames[self.NodeIndex] = os.path.splitext(os.path.basename(filepath))[0]
@@ -843,12 +852,12 @@ class NodeManager:
             self.LastNewIndex += 1
             self.FileNames[self.NodeIndex] = f"Unnamed{self.LastNewIndex}"
 
-    def GetCurrentFilePath(self):
+    def GetCurrentFilePath(self) -> Path|None:
         if len(self.FilePaths) > 0:
             return self.FilePaths[self.NodeIndex]
         return None
 
-    def GetCurrentBufferState(self):
+    def GetCurrentBufferState(self) -> tuple[bool, bool]:
         first = self.UndoBuffers[self.NodeIndex].IsFirst()
         last = self.UndoBuffers[self.NodeIndex].IsLast()
         return not first, not last
@@ -857,20 +866,20 @@ class NodeManager:
     #                         Profiles Management Functions
     # --------------------------------------------------------------------------
 
-    def GetCurrentCommunicationLists(self):
+    def GetCurrentCommunicationLists(self) -> tuple[dict[int, tuple[str, bool]], list[int]]:
         list_ = []
         for index in maps.MAPPING_DICTIONARY:
             if 0x1000 <= index < 0x1200:
                 list_.append(index)
         return self.GetProfileLists(maps.MAPPING_DICTIONARY, list_)
 
-    def GetCurrentDS302Lists(self):
+    def GetCurrentDS302Lists(self) -> tuple[dict[int, tuple[str, bool]], list[int]]:
         return self.GetSpecificProfileLists(self.CurrentNode.DS302)
 
-    def GetCurrentProfileLists(self):
+    def GetCurrentProfileLists(self) -> tuple[dict[int, tuple[str, bool]], list[int]]:
         return self.GetSpecificProfileLists(self.CurrentNode.Profile)
 
-    def GetSpecificProfileLists(self, mappingdictionary):
+    def GetSpecificProfileLists(self, mappingdictionary: ODMapping) -> tuple[dict[int, tuple[str, bool]], list[int]]:
         validlist = []
         exclusionlist = []
         for _, list_ in self.CurrentNode.SpecificMenu:
@@ -880,7 +889,8 @@ class NodeManager:
                 validlist.append(index)
         return self.GetProfileLists(mappingdictionary, validlist)
 
-    def GetProfileLists(self, mappingdictionary, list_):
+    def GetProfileLists(self, mappingdictionary: ODMapping,
+                        list_: list[int]) -> tuple[dict[int, tuple[str, bool]], list[int]]:
         dictionary = {}
         current = []
         for index in list_:
@@ -889,7 +899,7 @@ class NodeManager:
                 current.append(index)
         return dictionary, current
 
-    def GetCurrentNextMapIndex(self):
+    def GetCurrentNextMapIndex(self) -> int|None:
         if self.CurrentNode:
             index = 0x2000
             while self.CurrentNode.IsEntry(index) and index < 0x5FFF:
@@ -898,18 +908,18 @@ class NodeManager:
                 return index
         return None
 
-    def CurrentDS302Defined(self):
+    def CurrentDS302Defined(self) -> bool:
         if self.CurrentNode:
             return len(self.CurrentNode.DS302) > 0
         return False
 
-    def GetUnusedParameters(self):
+    def GetUnusedParameters(self) -> list[int]:
         node = self.CurrentNode
         if not node:
             raise ValueError("No node loaded")
         return node.GetUnusedParameters()
 
-    def RemoveParams(self, remove):
+    def RemoveParams(self, remove: list[int]):
         node = self.CurrentNode
         if not node:
             raise ValueError("No node loaded")
@@ -922,17 +932,17 @@ class NodeManager:
     #                         Node State and Values Functions
     # --------------------------------------------------------------------------
 
-    def GetCurrentNodeName(self):
+    def GetCurrentNodeName(self) -> str:
         if self.CurrentNode:
             return self.CurrentNode.Name
         return ""
 
-    def GetCurrentNodeID(self, node=None):  # pylint: disable=unused-argument
+    def GetCurrentNodeID(self, node: Node|None = None) -> int|None:  # pylint: disable=unused-argument
         if self.CurrentNode:
             return self.CurrentNode.ID
         return None
 
-    def GetCurrentNodeInfos(self):
+    def GetCurrentNodeInfos(self) -> tuple[str, int, str, str]:
         node = self.CurrentNode
         name = node.Name
         id_ = node.ID
@@ -940,7 +950,7 @@ class NodeManager:
         description = node.Description or ""
         return name, id_, type_, description
 
-    def SetCurrentNodeInfos(self, name, id_, type_, description):
+    def SetCurrentNodeInfos(self, name: str, id_: int, type_: str, description: str):
         node = self.CurrentNode
         node.Name = name
         node.ID = id_
@@ -948,35 +958,35 @@ class NodeManager:
         node.Description = description
         self.BufferCurrentNode()
 
-    def GetCurrentNodeDefaultStringSize(self):
+    def GetCurrentNodeDefaultStringSize(self) -> int:
         if self.CurrentNode:
             return self.CurrentNode.DefaultStringSize
         return nodelib.Node.DefaultStringSize
 
-    def SetCurrentNodeDefaultStringSize(self, size):
+    def SetCurrentNodeDefaultStringSize(self, size: int):
         if self.CurrentNode:
             self.CurrentNode.DefaultStringSize = size
         else:
             nodelib.Node.DefaultStringSize = size
 
-    def GetCurrentProfileName(self):
+    def GetCurrentProfileName(self) -> str:
         if self.CurrentNode:
             return self.CurrentNode.ProfileName
         return ""
 
-    def IsCurrentEntry(self, index):
+    def IsCurrentEntry(self, index: int) -> bool:
         if self.CurrentNode:
             return self.CurrentNode.IsEntry(index)
         return False
 
-    def GetCurrentValidIndexes(self, min_, max_):
+    def GetCurrentValidIndexes(self, min_: int, max_: int) -> list[tuple[str, int]]:
         return [
             (self.GetEntryName(index), index)
             for index in self.CurrentNode.GetIndexes()
             if min_ <= index <= max_
         ]
 
-    def GetCurrentValidChoices(self, min_, max_):
+    def GetCurrentValidChoices(self, min_: int, max_: int) -> list[tuple[str, int|None],]:
         validchoices = []
         exclusionlist = []
         for menu, indexes in self.CurrentNode.SpecificMenu:
@@ -997,17 +1007,17 @@ class NodeManager:
                 validchoices.append((self.GetEntryName(index), index))
         return validchoices
 
-    def HasCurrentEntryCallbacks(self, index):
+    def HasCurrentEntryCallbacks(self, index: int) -> bool:
         if self.CurrentNode:
             return self.CurrentNode.HasEntryCallbacks(index)
         return False
 
-    def GetCurrentEntryValues(self, index):
+    def GetCurrentEntryValues(self, index: int) -> tuple[list[dict], list[dict]]|None:
         if self.CurrentNode:
             return self.GetNodeEntryValues(self.CurrentNode, index)
         return None
 
-    def GetNodeEntryValues(self, node, index):
+    def GetNodeEntryValues(self, node: Node, index: int) -> tuple[list[dict], list[dict]]|None:
         if node and node.IsEntry(index):
             entry_infos = node.GetEntryInfos(index)
             data = []
@@ -1114,7 +1124,7 @@ class NodeManager:
             return data, editors
         return None
 
-    def AddToDCF(self, node_id, index, subindex, size, value):
+    def AddToDCF(self, node_id: int, index: int, subindex: int, size: int, value: int):
         if self.CurrentNode.IsEntry(0x1F22, node_id):
             dcf_value = self.CurrentNode.GetEntry(0x1F22, node_id)
             if dcf_value:

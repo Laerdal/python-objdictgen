@@ -25,7 +25,9 @@ import wx
 import wx.grid
 
 import objdictgen
+from objdictgen import maps
 from objdictgen.maps import OD
+from objdictgen.typing import TGetValues
 from objdictgen.node import Node
 from objdictgen.ui.exception import (display_error_dialog,
                                      display_exception_dialog)
@@ -49,6 +51,10 @@ log = logging.getLogger('objdictgen')
 class CommunicationDialog(wx.Dialog):
     """Edit Communication Profile Dialog."""
     # pylint: disable=attribute-defined-outside-init
+
+    IndexDictionary: dict[int, tuple[str, bool]]
+    CurrentList: list[int]
+    AllList: list[int]
 
     def _init_coll_flexGridSizer1_Items(self, parent):
         parent.Add(self.MainSizer, 0, border=20,
@@ -168,15 +174,15 @@ class CommunicationDialog(wx.Dialog):
         self.CurrentList = []
         self.IndexDictionary = {}
 
-    def SetIndexDictionary(self, dictionary):
+    def SetIndexDictionary(self, dictionary: dict[int, tuple[str, bool]]):
         self.IndexDictionary = dictionary
 
-    def SetCurrentList(self, list_):
+    def SetCurrentList(self, list_: list[int]):
         self.CurrentList = []
         self.CurrentList.extend(list_)
         self.CurrentList.sort()
 
-    def GetCurrentList(self):
+    def GetCurrentList(self) -> list[int]:
         return self.CurrentList
 
     def RefreshLists(self):
@@ -455,6 +461,12 @@ class UserTypeDialog(wx.Dialog):
     """Create User Type Dialog."""
     # pylint: disable=attribute-defined-outside-init
 
+    # Helpers for typing
+    RightBoxSizer: wx.StaticBoxSizer
+    RightBoxGridSizer: wx.FlexGridSizer
+    TypeDictionary: dict[str, tuple[int, int]]
+    # Index: wx.TextCtrl
+
     def _init_coll_flexGridSizer1_Items(self, parent):
         parent.Add(self.MainSizer, 0, border=20,
             flag=wx.GROW | wx.TOP | wx.LEFT | wx.RIGHT)
@@ -578,7 +590,7 @@ class UserTypeDialog(wx.Dialog):
     def __init__(self, parent):
         self._init_ctrls(parent)
 
-        self.TypeDictionary = {}
+        self.TypeDictionary: dict[str, tuple[int, int]] = {}
 
     def OnOK(self, event):  # pylint: disable=unused-argument
         error = []
@@ -619,7 +631,7 @@ class UserTypeDialog(wx.Dialog):
         else:
             self.EndModal(wx.ID_OK)
 
-    def SetValues(self, min=None, max=None, length=None):  # pylint: disable=redefined-builtin
+    def SetValues(self, min=None, max=None, length=None):
         if min is not None:
             self.Min.SetValue(str(min))
         if max is not None:
@@ -1147,7 +1159,7 @@ class CreateNodeDialog(wx.Dialog):
         name = self.Profile.GetStringSelection()
         return name, self.ListProfile[name]
 
-    def GetNMTManagement(self):
+    def GetNMTManagement(self) -> str:
         if self.NMT_None.GetValue():
             return "None"
         if self.NMT_NodeGuarding.GetValue():
@@ -1156,8 +1168,8 @@ class CreateNodeDialog(wx.Dialog):
             return "Heartbeat"
         return None
 
-    def GetOptions(self):
-        options = []
+    def GetOptions(self) -> list[str]:
+        options: list[str] = []
         if self.DS302.GetValue():
             options.append("DS302")
         if self.GenSYNC.GetValue():
@@ -1375,8 +1387,8 @@ class AddSlaveDialog(wx.Dialog):
         self.NodeList = nodelist
         self.RefreshEDSFile()
 
-    def GetValues(self):
-        values = {}
+    def GetValues(self) -> TGetValues:
+        values: TGetValues = {}
         values["slaveName"] = self.SlaveName.GetValue()
         nodeid = self.SlaveNodeID.GetValue()
         if "x" in nodeid:
@@ -1400,7 +1412,7 @@ class DCFEntryValuesTable(wx.grid.GridTableBase):
     """
     A custom wxGrid Table using user supplied data
     """
-    def __init__(self, parent, data, colnames):
+    def __init__(self, parent: "DCFEntryValuesDialog", data, colnames):
         # The base class must be initialized *first*
         wx.grid.GridTableBase.__init__(self)
         self.data = data
@@ -1621,7 +1633,7 @@ class DCFEntryValuesDialog(wx.Dialog):
         colname = self.Table.GetColLabelValue(col)
         value = self.Table.GetValue(row, col)
         try:
-            self.Values[row][colname] = int(value, 16)
+            self.Values[row][colname] = int(value, 16)  # pyright: ignore[reportArgumentType]
         except ValueError:
             display_error_dialog(self, f"'{value}' is not a valid value!")
         wx.CallAfter(self.RefreshValues)

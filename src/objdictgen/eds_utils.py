@@ -22,10 +22,17 @@ import logging
 import re
 from pathlib import Path
 from time import localtime, strftime
-import logging
+from typing import TYPE_CHECKING, Any, Callable
 
+# Accessed by node.py, so we need to import module to avoid circular references
+from objdictgen import maps
 from objdictgen import node as nodelib
 from objdictgen.maps import OD
+from objdictgen.typing import TEntry, TPath
+
+if TYPE_CHECKING:
+    from objdictgen.node import Node
+    from objdictgen.nodelist import NodeList
 
 log = logging.getLogger('objdictgen')
 
@@ -52,12 +59,12 @@ ACCESS_TRANSLATE = {
 }
 
 # Function for verifying data values
-is_integer = lambda x: isinstance(x, int)  # pylint: disable=unnecessary-lambda-assignment  # noqa: E731
-is_string = lambda x: isinstance(x, str)  # pylint: disable=unnecessary-lambda-assignment  # noqa: E731
-is_boolean = lambda x: x in (0, 1)  # pylint: disable=unnecessary-lambda-assignment  # noqa: E731
+is_integer = lambda x: isinstance(x, int)  # pylint: disable=unnecessary-lambda-assignment
+is_string = lambda x: isinstance(x, str)  # pylint: disable=unnecessary-lambda-assignment
+is_boolean = lambda x: x in (0, 1)  # pylint: disable=unnecessary-lambda-assignment
 
 # Define checking of value for each attribute
-ENTRY_ATTRIBUTES = {
+ENTRY_ATTRIBUTES: dict[str, Callable[[Any], bool]] = {
     "SUBNUMBER": is_integer,
     "PARAMETERNAME": is_string,
     "OBJECTTYPE": lambda x: x in (2, 7, 8, 9),
@@ -74,7 +81,7 @@ ENTRY_ATTRIBUTES = {
 }
 
 # Define entry parameters by entry ObjectType number
-ENTRY_TYPES = {
+ENTRY_TYPES: dict[int, TEntry] = {
     2: {"name": " DOMAIN",
         "require": ["PARAMETERNAME", "OBJECTTYPE"],
         "optional": ["DATATYPE", "ACCESSTYPE", "DEFAULTVALUE", "OBJFLAGS"]},
@@ -91,7 +98,7 @@ ENTRY_TYPES = {
 }
 
 
-def get_default_value(node, index, subindex=None):
+def get_default_value(node: "Node", index: int, subindex: int = -1):
     """Function that search into Node Mappings the informations about an index
     or a subindex and return the default value."""
     infos = node.GetEntryInfos(index)
@@ -129,7 +136,7 @@ SECTION_KEYNAMES = ["FILEINFO", "DEVICEINFO", "DUMMYUSAGE", "COMMENTS",
                     "STANDARDDATATYPES", "SUPPORTEDMODULES"]
 
 
-def extract_sections(data):
+def extract_sections(data: str) -> list[tuple[str, list[str]]]:
     """Extract sections from a file and returns a dictionary of the informations"""
     return [
         (
@@ -143,7 +150,7 @@ def extract_sections(data):
         if blocktuple[0].isalnum()]       # if EntryName exists
 
 
-def parse_cpj_file(filepath):
+def parse_cpj_file(filepath: TPath):
     """Parse a CPJ file and return a list of dictionaries of the informations"""
     networks = []
 
@@ -159,7 +166,7 @@ def parse_cpj_file(filepath):
         if section_name.upper() in "TOPOLOGY":
 
             # Reset values for topology
-            topology = {"Name": "", "Nodes": {}}
+            topology: dict[str, Any] = {"Name": "", "Nodes": {}}
 
             for assignment in assignments:
                 # Escape any comment
@@ -175,6 +182,7 @@ def parse_cpj_file(filepath):
                     if keyname.isalnum():
                         # value can be preceded and followed by whitespaces, so we escape them
                         value = value.strip()
+                        computed_value: int|str|bool
 
                         # First case, value starts with "0x" or "-0x", then it's an hexadecimal value
                         if value.startswith("0x") or value.startswith("-0x"):
@@ -284,9 +292,9 @@ def parse_cpj_file(filepath):
     return networks
 
 
-def parse_eds_file(filepath):
+def parse_eds_file(filepath: TPath) -> dict[str|int, Any]:
     """Parse an EDS file and returns a dictionary of the informations"""
-    eds_dict = {}
+    eds_dict: dict[str|int, Any] = {}
 
     # Read file text
     with open(filepath, 'r', encoding="utf-8") as f:
@@ -297,7 +305,7 @@ def parse_eds_file(filepath):
     # Parse assignments for each section
     for section_name, assignments in sections:
         # Reset values of entry
-        values = {}
+        values: dict[str, Any] = {}
 
         # Search if the section name match an index or subindex expression
         index_result = RE_INDEX.match(section_name.upper())
@@ -363,6 +371,7 @@ def parse_eds_file(filepath):
                     # value can be preceded and followed by whitespaces, so we escape them
                     value = value.strip()
                     # First case, value starts with "$NODEID", then it's a formula
+                    computed_value: int|str
                     if value.upper().startswith("$NODEID"):
                         try:
                             _ = int(value.upper().replace("$NODEID+", ""), 16)
@@ -458,7 +467,7 @@ def parse_eds_file(filepath):
     return eds_dict
 
 
-def verify_value(values, section_name, param):
+def verify_value(values: dict[str, Any], section_name: str, param: str):
     """Verify that a value is compatible with the DataType of the entry"""
     uparam = param.upper()
     if uparam in values:
@@ -475,7 +484,7 @@ def verify_value(values, section_name, param):
             raise ValueError(f"Error on section '[{section_name}]': '{param}' incompatible with DataType") from None
 
 
-def generate_eds_content(node, filepath):
+def generate_eds_content(node: "Node", filepath: TPath):
     """Generate the EDS file content for the current node in the manager."""
 
     filepath = Path(filepath)
@@ -572,9 +581,9 @@ def generate_eds_content(node, filepath):
     fileContent += "Lines=0\n"
 
     # List of entry by type (Mandatory, Optional or Manufacturer
-    mandatories = []
-    optionals = []
-    manufacturers = []
+    mandatories: list[int] = []
+    optionals: list[int] = []
+    manufacturers: list[int] = []
 
     # Remove all unused PDO
     # for entry in entries[:]:
@@ -654,7 +663,7 @@ def generate_eds_content(node, filepath):
         # Save text of the entry in the dictiionary of contents
         indexcontents[entry] = text
 
-    def generate_index_contents(name, entries):
+    def generate_index_contents(name: str, entries: list[int]):
         """Generate the index section for the index and the subindexes."""
         nonlocal fileContent
         fileContent += f"\n[{name}]\n"
@@ -674,7 +683,7 @@ def generate_eds_content(node, filepath):
     return fileContent
 
 
-def generate_cpj_content(nodelist):
+def generate_cpj_content(nodelist: "NodeList"):
     """Generate the CPJ file content for the nodelist."""
     nodes = nodelist.SlaveNodes
 
@@ -691,7 +700,7 @@ def generate_cpj_content(nodelist):
     return filecontent
 
 
-def generate_node(filepath, nodeid=0):
+def generate_node(filepath: TPath, nodeid: int = 0) -> "Node":
     """Generate a Node from an EDS file."""
     # Create a new node
     node = nodelib.Node(id=nodeid)
@@ -739,6 +748,9 @@ def generate_node(filepath, nodeid=0):
         # All sections with a name in keynames are escaped
         if entry in SECTION_KEYNAMES:
             continue
+
+        # FIXME: entry should be integer, but can that be guaranteed?
+        assert isinstance(entry, int)
 
         # Extract informations for the entry
         entry_infos = node.GetEntryInfos(entry)

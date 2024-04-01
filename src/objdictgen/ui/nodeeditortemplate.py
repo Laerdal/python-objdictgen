@@ -21,6 +21,9 @@
 import wx
 
 from objdictgen.maps import OD
+from objdictgen.node import Node
+from objdictgen.nodemanager import NodeManager
+from objdictgen.ui import commondialogs as common
 from objdictgen.ui import commondialogs as cdia
 from objdictgen.ui.exception import (display_error_dialog,
                                      display_exception_dialog)
@@ -29,10 +32,15 @@ from objdictgen.ui.exception import (display_error_dialog,
 class NodeEditorTemplate:
     """Template for the NodeEditor class."""
 
-    EDITMENU_ID = None
+    EDITMENU_ID: int|None = None
 
-    def __init__(self, manager, frame, mode_solo):
-        self.Manager = manager
+    # Hints for typing
+    HelpBar: wx.StatusBar
+    EditMenu: wx.Menu
+    AddMenu: wx.Menu
+
+    def __init__(self, manager: NodeManager, frame, mode_solo: bool):
+        self.Manager: NodeManager = manager
         self.Frame = frame
         self.ModeSolo = mode_solo
 
@@ -165,7 +173,7 @@ class NodeEditorTemplate:
         dictionary, current = self.Manager.GetCurrentProfileLists()
         self.EditProfile(title, dictionary, current)
 
-    def EditProfile(self, title, dictionary, current):
+    def EditProfile(self, title: str, dictionary: dict[int, tuple[str, bool]], current: list[int]):
         with cdia.CommunicationDialog(self.Frame) as dialog:
             dialog.SetTitle(title)
             dialog.SetIndexDictionary(dictionary)

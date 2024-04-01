@@ -19,9 +19,13 @@
 # USA
 
 import re
+from collections import UserDict
+from dataclasses import dataclass
 from pathlib import Path
+from typing import Any, Self
 
 from objdictgen.maps import OD
+from objdictgen.typing import NodeProtocol, TODValue, TPath
 
 RE_WORD = re.compile(r'([a-zA-Z_0-9]*)')
 RE_TYPE = re.compile(r'([\_A-Z]*)([0-9]*)')
@@ -29,7 +33,7 @@ RE_RANGE = re.compile(r'([\_A-Z]*)([0-9]*)\[([\-0-9]*)-([\-0-9]*)\]')
 RE_STARTS_WITH_DIGIT = re.compile(r'^(\d.*)')
 RE_NOTW = re.compile(r"[^\w]")
 
-CATEGORIES = [
+CATEGORIES: list[tuple[str, int, int]] = [
     ("SDO_SVR", 0x1200, 0x127F), ("SDO_CLT", 0x1280, 0x12FF),
     ("PDO_RCV", 0x1400, 0x15FF), ("PDO_RCV_MAP", 0x1600, 0x17FF),
     ("PDO_TRS", 0x1800, 0x19FF), ("PDO_TRS_MAP", 0x1A00, 0x1BFF)
@@ -48,7 +52,7 @@ class CFileContext:
         self.default_string_size = 10
 
 
-def format_name(name):
+def format_name(name: str) -> str:
     """Format a string for making a C++ variable."""
     wordlist = [word for word in RE_WORD.findall(name) if word]
     return "_".join(wordlist)
@@ -93,7 +97,7 @@ def get_valid_type_infos(context, typename, items=None):
     return typeinfos
 
 
-def compute_value(type_, value):
+def compute_value(type_: str, value: TODValue) -> tuple[str, str]:
     """Compute value for C file."""
     if type_ == "visible_string":
         return f'"{value}"', ""
@@ -108,7 +112,7 @@ def compute_value(type_, value):
     return f"0x{value:X}", f"\t/* {value} */"
 
 
-def get_type_name(node, typenumber):
+def get_type_name(node: NodeProtocol, typenumber: int) -> str:
     """Get type name from a type number."""
     typename = node.GetTypeName(typenumber)
     if typename is None:
@@ -117,7 +121,7 @@ def get_type_name(node, typenumber):
     return typename
 
 
-def generate_file_content(node, headerfile, pointers_dict=None):
+def generate_file_content(node: NodeProtocol, headerfile: str, pointers_dict=None) -> tuple[str, str, str]:
     """
     pointers_dict = {(Idx,Sidx):"VariableName",...}
     """
@@ -714,7 +718,7 @@ extern CO_Data %(NodeName)s_Data;
 #                             Main Function
 # ------------------------------------------------------------------------------
 
-def generate_file(filepath, node, pointers_dict=None):
+def generate_file(filepath: TPath, node: "NodeProtocol", pointers_dict=None):
     """Main function to generate the C file from a object dictionary node."""
     filepath = Path(filepath)
     headerpath = filepath.with_suffix(".h")

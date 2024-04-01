@@ -27,6 +27,7 @@ import wx
 
 import objdictgen
 from objdictgen.nodelist import NodeList
+import objdictgen.nodelist as nl  # Because NodeList is also an attr in NetworkEdit
 from objdictgen.nodemanager import NodeManager
 from objdictgen.ui.exception import add_except_hook, display_exception_dialog
 from objdictgen.ui.networkeditortemplate import NetworkEditorTemplate
@@ -66,6 +67,9 @@ def usage():
 class NetworkEdit(wx.Frame, NetworkEditorTemplate):
     """Network Editor UI."""
     # pylint: disable=attribute-defined-outside-init
+
+    # Type helpers
+    NodeList: nl.NodeList
 
     EDITMENU_ID = ID_NETWORKEDITEDITMENUOTHERPROFILE
 
@@ -213,7 +217,7 @@ class NetworkEdit(wx.Frame, NetworkEditorTemplate):
         self._init_coll_HelpBar_Fields(self.HelpBar)
         self.SetStatusBar(self.HelpBar)
 
-    def __init__(self, parent, nodelist=None, projectOpen=None):
+    def __init__(self, parent, nodelist: nl.NodeList|None = None, projectOpen=None):
         if nodelist is None:
             NetworkEditorTemplate.__init__(self, NodeList(NodeManager()), self, True)
         else:

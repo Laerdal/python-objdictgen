@@ -17,23 +17,35 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 # USA
 
+import copy
 import json
 import logging
 import re
 from datetime import datetime
+from typing import (TYPE_CHECKING, Any, Iterable, Mapping, Sequence, TypeVar, cast)
 
-import deepdiff
+import deepdiff  # type: ignore[import]  # Due to missing typing stubs for deepdiff
+import deepdiff.model # type: ignore[import]  # Due to missing typing stubs for deepdiff
 import jsonschema
 
 import objdictgen
+# Accessed by node.py, so we need to import node as module to avoid circular references
 from objdictgen import maps
 from objdictgen import node as nodelib
-from objdictgen.maps import OD
+from objdictgen.maps import OD, ODMapping, ODMappingList
+from objdictgen.typing import (TDiffNodes, TIndexEntry, TODJson, TODObjJson,
+                               TODObj, TODSubObj, TODSubObjJson, TODValue, TParamEntry, TPath, TProfileMenu)
+
+T = TypeVar('T')
+M = TypeVar('M', bound=Mapping)
+
+if TYPE_CHECKING:
+    from objdictgen.node import Node
 
 log = logging.getLogger('objdictgen')
 
 
-SCHEMA = None
+SCHEMA: dict[str, Any]|None = None
 
 
 class ValidationError(Exception):
@@ -154,7 +166,7 @@ SUBINDEX0 = {
 }
 
 
-def remove_jasonc(text):
+def remove_jasonc(text: str) -> str:
     """ Remove jsonc annotations """
     # Copied from https://github.com/NickolaiBeloguzov/jsonc-parser/blob/master/jsonc_parser/parser.py#L11-L39
     def __re_sub(match):
@@ -171,7 +183,7 @@ def remove_jasonc(text):
 
 
 # FIXME: Move to generic utils/funcs?
-def exc_amend(exc, text):
+def exc_amend(exc: Exception, text: str) -> Exception:
     """ Helper to prefix text to an exception """
     args = list(exc.args)
     if len(args) > 0:
@@ -182,7 +194,7 @@ def exc_amend(exc, text):
     return exc
 
 
-def str_to_number(string):
+def str_to_number(string: str|int|float|None) -> str|int|float|None:
     """ Convert string to a number, otherwise pass it through """
     if string is None or isinstance(string, (int, float)):
         return string
@@ -194,7 +206,7 @@ def str_to_number(string):
     return string
 
 
-def copy_in_order(d, order):
+def copy_in_order(d: M, order: Sequence[T]) -> M:
     """ Remake dict d with keys in order """
     out = {
         k: d[k]
@@ -206,26 +218,32 @@ def copy_in_order(d, order):
         for k, v in d.items()
         if k not in out
     })
-    return out
+    return cast(M, out)  # FIXME: For mypy
 
 
-def remove_underscore(d):
+def remove_underscore(d: T) -> T:
     """ Recursively remove any keys prefixed with '__' """
     if isinstance(d, dict):
-        return {
+        return {  # type: ignore[return-value]
             k: remove_underscore(v)
             for k, v in d.items()
             if not k.startswith('__')
         }
     if isinstance(d, list):
-        return [
+        return [  # type: ignore[return-value]
             remove_underscore(v)
             for v in d
         ]
     return d
 
 
-def member_compare(a, must=None, optional=None, not_want=None, msg='', only_if=None):
+def member_compare(
+        a: Iterable[str],
+        must: set[str]|None = None,
+        optional: set[str]|None = None,
+        not_want: set[str]|None = None,
+        msg: str = '', only_if : bool|None = None
+    ) -> None:
     """ Compare the membes of a with set of wants
         must: Raise if a is missing any from must
         optional: Raise if a contains members that is not must or optional
@@ -259,7 +277,10 @@ def member_compare(a, must=None, optional=None, not_want=None, msg='', only_if=N
             raise ValidationError(f"Unexpected parameters '{unexp}'{msg}")
 
 
-def get_object_types(node=None, dictionary=None):
+def get_object_types(
+        node: "Node|None" = None,
+        dictionary: list[TODObjJson]|None = None
+) -> tuple[dict[int, str], dict[str, int]]:
     """ Return two dicts with the object type mapping """
 
     groups = [maps.MAPPING_DICTIONARY]
@@ -299,8 +320,11 @@ def get_object_types(node=None, dictionary=None):
     return i2s, s2i
 
 
-def compare_profile(profilename, params, menu=None):
-    """Compare a profile with a set of parameters and menu."""
+def compare_profile(profilename: TPath, params: ODMapping, menu: TProfileMenu|None = None) -> tuple[bool, bool]:
+    """Compare a profile with a set of parameters and menu. Return tuple of
+    (loaded, identical) where loaded is True if the profile was loaded and
+    identical is True if the profile is identical with the givens params.
+    """
     try:
         dsmap, menumap = nodelib.Node.ImportProfile(profilename)
         identical = all(
@@ -316,7 +340,7 @@ def compare_profile(profilename, params, menu=None):
         return False, False
 
 
-def generate_json(node, compact=False, sort=False, internal=False, validate=True):
+def generate_json(node: "Node", compact=False, sort=False, internal=False, validate=True) -> str:
     """ Export a JSON string representation of the node """
 
     # Get the dict representation
@@ -341,7 +365,7 @@ def generate_json(node, compact=False, sort=False, internal=False, validate=True
     )
 
     # Annotate symbolic fields with comments of the value
-    def _index_repl(m):
+    def _index_repl(m: re.Match[str]) -> str:
         p = m.group(1)
         n = v = m.group(2)
         if p == 'index':
@@ -367,7 +391,7 @@ def generate_json(node, compact=False, sort=False, internal=False, validate=True
     return out
 
 
-def generate_node(contents):
+def generate_node(contents: str|TODJson) -> "Node":
     """ Import from JSON string or objects """
 
     jd = contents
@@ -398,7 +422,7 @@ def generate_node(contents):
     return node_fromdict(jd)
 
 
-def node_todict(node, sort=False, rich=True, internal=False, validate=True):
+def node_todict(node: "Node", sort=False, rich=True, internal=False, validate=True) -> tuple[TODJson, dict[str, int]]:
     """
         Convert a node to dict representation for serialization.
 
@@ -414,6 +438,10 @@ def node_todict(node, sort=False, rich=True, internal=False, validate=True):
             low-level format debugging
         validate: Set if the output JSON should be validated to check if the
             output is valid. Used to double check format.
+
+        Returns a tuple with the JSON dict and the object type mapping
+        str to int. The latter is for convenience when importing the JSON and
+        can be used for display purposes.
     """
 
     # Get the dict representation of the node object
@@ -682,14 +710,12 @@ def node_todict_parameter(obj, node, index):
     return obj
 
 
-def validate_nodeindex(node, index, obj):
+def validate_nodeindex(node: "Node", index: int, obj):
     """ Validate index dict contents (see Node.GetIndexDict). The purpose is to
         validate the assumptions in the data format.
 
-        NOTE: Do not implement two parallel validators. This function exists
-        to validate the data going into node_todict() in case the programmed
-        assumptions are wrong. For general data validation, see
-        validate_fromdict()
+        NOTE: This function exists to validate the node data in node_todict()
+        to verify that the programmed assumptions are not wrong.
     """
 
     groups = obj['groups']
@@ -835,7 +861,7 @@ def validate_nodeindex(node, index, obj):
         raise ValidationError(f"Unexpexted count of subindexes in mapping object, found {len(nbmax)}")
 
 
-def node_fromdict(jd, internal=False):
+def node_fromdict(jd: TODJson, internal=False) -> "Node":
     """ Convert a dict jd into a Node """
 
     # Remove all underscore keys from the file
@@ -917,8 +943,10 @@ def node_fromdict(jd, internal=False):
     return node
 
 
-def node_fromdict_parameter(obj, objtypes_s2i):
-    """ Convert a dict obj into a Node parameter """
+def node_fromdict_parameter(obj: TODObjJson, objtypes_s2i: dict[str, int]) -> TIndexEntry:
+    """ Convert a json OD object into an object adapted for load into a Node
+        object.
+    """
 
     # -- STEP 1a) --
     # Move 'definition' into individual mapping type category
@@ -1025,7 +1053,7 @@ def node_fromdict_parameter(obj, objtypes_s2i):
     return obj
 
 
-def validate_fromdict(jsonobj, objtypes_i2s=None, objtypes_s2i=None):
+def validate_fromdict(jsonobj: TODJson, objtypes_i2s: dict[int, str]|None = None, objtypes_s2i: dict[str, int]|None = None):
     """ Validate that jsonobj is a properly formatted dictionary that may
         be imported to the internal OD-format
     """
@@ -1098,13 +1126,13 @@ def validate_fromdict(jsonobj, objtypes_i2s=None, objtypes_s2i=None):
         # Validate "nbmax" if parsing the "each" sub
         member_compare(obj.keys(), {'nbmax'}, only_if=idx == -1)
 
-        # Default parameter precense
+        # Default object presense
         defs = 'must'   # Parameter definition (FIELDS_MAPVALS_*)
         params = 'opt'  # User parameters (FIELDS_PARAMS)
         value = 'no'    # User value (FIELDS_VALUE)
 
         # Set what parameters should be present, optional or not present
-        if idx == -1:  # Checking "each" section. No parameter or value
+        if idx == -1:  # Checking "each" section. No object or value
             params = 'no'
 
         elif is_repeat:  # Object repeat = defined elsewhere. No definition needed.
@@ -1305,7 +1333,7 @@ def validate_fromdict(jsonobj, objtypes_i2s=None, objtypes_s2i=None):
             raise
 
 
-def diff_nodes(node1, node2, as_dict=True, validate=True):
+def diff_nodes(node1: "Node", node2: "Node", as_dict=True, validate=True) -> TDiffNodes:
     """Compare two nodes and return the differences."""
 
     diffs = {}

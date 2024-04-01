@@ -18,12 +18,18 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 # USA
 
+from typing import cast
+
 import wx
 
 from objdictgen.ui import commondialogs as cdia
 from objdictgen.ui import nodeeditortemplate as net
 from objdictgen.ui import subindextable as sit
+from objdictgen.nodelist import NodeList
+from objdictgen.ui.commondialogs import AddSlaveDialog
 from objdictgen.ui.exception import display_exception_dialog
+from objdictgen.ui.nodeeditortemplate import NodeEditorTemplate
+from objdictgen.ui.subindextable import EditingPanel, EditingPanelNotebook
 
 [
     ID_NETWORKEDITNETWORKNODES,
@@ -35,11 +41,12 @@ class NetworkEditorTemplate(net.NodeEditorTemplate):
     # pylint: disable=attribute-defined-outside-init
 
     def _init_ctrls(self, prnt):
-        self.NetworkNodes = wx.Notebook(
+        # FIXME: This cast is to define right type hints of attributes for this specific instance
+        self.NetworkNodes = cast(EditingPanelNotebook, wx.Notebook(
             id=ID_NETWORKEDITNETWORKNODES,
             name='NetworkNodes', parent=prnt, pos=wx.Point(0, 0),
             size=wx.Size(0, 0), style=wx.NB_LEFT,
-        )
+        ))
         self.NetworkNodes.Bind(
             wx.EVT_NOTEBOOK_PAGE_CHANGED,
             self.OnNodeSelectedChanged, id=ID_NETWORKEDITNETWORKNODES
@@ -153,6 +160,6 @@ class NetworkEditorTemplate(net.NodeEditorTemplate):
         except Exception:  # pylint: disable=broad-except
             display_exception_dialog(self.Frame)
 
-    def OpenMasterDCFDialog(self, node_id):
+    def OpenMasterDCFDialog(self, node_id: int):
         self.NetworkNodes.SetSelection(0)
         self.NetworkNodes.GetPage(0).OpenDCFDialog(node_id)

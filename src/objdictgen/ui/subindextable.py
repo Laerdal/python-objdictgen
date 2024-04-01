@@ -25,8 +25,11 @@ import wx.grid
 
 from objdictgen import maps
 from objdictgen.maps import OD
+from objdictgen.nodemanager import NodeManager
+from objdictgen.ui import commondialogs as common
 from objdictgen.ui import commondialogs as cdia
 from objdictgen.ui.exception import display_error_dialog
+from objdictgen.ui.nodeeditortemplate import NodeEditorTemplate
 
 COL_SIZES = [75, 250, 150, 125, 100, 60, 250, 60]
 COL_ALIGNMENTS = [
@@ -108,7 +111,11 @@ class SubindexTable(wx.grid.GridTableBase):
     """
     A custom wxGrid Table using user supplied data
     """
-    def __init__(self, parent, data, editors, colnames):
+
+    # Typing definitions
+    CurrentIndex: int
+
+    def __init__(self, parent: "EditingPanel", data, editors, colnames):
         # The base class must be initialized *first*
         wx.grid.GridTableBase.__init__(self)
         self.data = data
@@ -140,7 +147,7 @@ class SubindexTable(wx.grid.GridTableBase):
             return self.colnames[col]
         return None
 
-    def GetValue(self, row, col, translate=True):  # pylint: disable=unused-argument
+    def GetValue(self, row, col, translate=True) -> str|None:  # pylint: disable=unused-argument
         if row < self.GetNumberRows():
             colname = self.GetColLabelValue(col, False)
             value = str(self.data[row].get(colname, ""))
@@ -168,7 +175,7 @@ class SubindexTable(wx.grid.GridTableBase):
                 value = "None"
             self.data[row][colname] = value
 
-    def ResetView(self, grid):
+    def ResetView(self, grid: wx.grid.Grid):
         """
         (wx.grid.Grid) -> Reset the grid view.   Call this to
         update the grid if rows and columns have been added or deleted
@@ -201,14 +208,14 @@ class SubindexTable(wx.grid.GridTableBase):
         grid.AdjustScrollbars()
         grid.ForceRefresh()
 
-    def UpdateValues(self, grid):
+    def UpdateValues(self, grid: wx.grid.Grid):
         """Update all displayed values"""
         # This sends an event to the grid table to update all of the values
         # FIXME: This symbols is not defined in wx no more. Investigate.
         msg = wx.grid.GridTableMessage(self, wx.grid.GRIDTABLE_REQUEST_VIEW_GET_VALUES)
         grid.ProcessTableMessage(msg)
 
-    def _updateColAttrs(self, grid):
+    def _updateColAttrs(self, grid: wx.grid.Grid):
         """
         wx.grid.Grid -> update the column attributes to add the
         appropriate renderer given the column name.
@@ -233,7 +240,7 @@ class SubindexTable(wx.grid.GridTableBase):
                 grid.SetRowMinimalHeight(row, 28)
             grid.AutoSizeRow(row, False)
             for col in range(self.GetNumberCols()):
-                editor = None
+                editor: wx.grid.GridCellTextEditor|wx.grid.GridCellChoiceEditor|None = None
                 renderer = None
 
                 colname = self.GetColLabelValue(col, False)
@@ -295,7 +302,7 @@ class SubindexTable(wx.grid.GridTableBase):
     def GetCurrentIndex(self):
         return self.CurrentIndex
 
-    def SetCurrentIndex(self, index):
+    def SetCurrentIndex(self, index: int):
         self.CurrentIndex = index
 
     def Empty(self):
@@ -326,6 +333,9 @@ class SubindexTable(wx.grid.GridTableBase):
 class EditingPanel(wx.SplitterWindow):
     """UI for the Object Dictionary Editor."""
     # pylint: disable=attribute-defined-outside-init
+
+    # Typing definitions
+    Manager: NodeManager
 
     def _init_coll_AddToListSizer_Items(self, parent):
         parent.Add(self.AddButton, 0, border=0, flag=0)
@@ -479,15 +489,15 @@ class EditingPanel(wx.SplitterWindow):
 
         self._init_sizers()
 
-    def __init__(self, parent, window, manager, editable=True):
+    def __init__(self, parent, window: NodeEditorTemplate, manager: NodeManager, editable=True):
         self.Editable = editable
         self._init_ctrls(parent)
         self.ParentWindow = window
         self.Manager = manager
-        self.ListIndex = []
-        self.ChoiceIndex = []
+        self.ListIndex: list[int] = []
+        self.ChoiceIndex: list[int] = []
         self.FirstCall = False
-        self.Index = None
+        self.Index: int = None
 
         for values in maps.INDEX_RANGES:
             text = f"   0x{values['min']:04X}-0x{values['max']:04X}      {values['description']}"
@@ -843,7 +853,7 @@ class EditingPanel(wx.SplitterWindow):
                         # FIXME: Exists in NetworkEditorTemplate, not in NodeEditorTemplate
                         self.ParentWindow.OpenMasterDCFDialog(node_id)
 
-    def OpenDCFDialog(self, node_id):
+    def OpenDCFDialog(self, node_id: int):
         self.PartList.SetSelection(7)
         self.RefreshIndexList()
         self.IndexList.SetSelection(self.ListIndex.index(0x1F22))
@@ -944,3 +954,9 @@ class EditingPanel(wx.SplitterWindow):
                     self.Manager.SetCurrentEntryToDefault(index, row)
                     self.ParentWindow.RefreshBufferState()
                     self.RefreshIndexList()
+
+
+# This class essentially only exists to provide type hints
+class EditingPanelNotebook(wx.Notebook):
+    """Type override for wx.Notebook."""
+    def GetPage(self, page) -> EditingPanel: ...  # type: ignore[empty-body]

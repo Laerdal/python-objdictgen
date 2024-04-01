@@ -31,7 +31,13 @@ from objdictgen.ui import commondialogs as cdia
 from objdictgen.ui import nodeeditortemplate as net
 from objdictgen.ui import subindextable as sit
 from objdictgen.ui.exception import (add_except_hook, display_error_dialog,
+from objdictgen.nodemanager import NodeManager
+from objdictgen.typing import TPath
+from objdictgen.ui.commondialogs import CreateNodeDialog
+from objdictgen.ui.exception import (add_except_hook, display_error_dialog,
                                      display_exception_dialog)
+from objdictgen.ui.nodeeditortemplate import NodeEditorTemplate
+from objdictgen.ui.subindextable import EditingPanel, EditingPanelNotebook
 
 log = logging.getLogger('objdictgen')
 
@@ -207,11 +213,12 @@ class ObjdictEdit(wx.Frame, net.NodeEditorTemplate):
             accel = wx.AcceleratorTable([wx.AcceleratorEntry(wx.ACCEL_CTRL, 83, wx.ID_SAVE)])
             self.SetAcceleratorTable(accel)
 
-        self.FileOpened = wx.Notebook(
+        # FIXME: This cast is to define right type hints of attributes for this specific instance
+        self.FileOpened = cast(EditingPanelNotebook, wx.Notebook(
             id=ID_OBJDICTEDITFILEOPENED,
             name='FileOpened', parent=self, pos=wx.Point(0, 0),
             size=wx.Size(0, 0), style=0,
-        )
+        ))
         self.FileOpened.Bind(
             wx.EVT_NOTEBOOK_PAGE_CHANGED,
             self.OnFileSelectedChanged, id=ID_OBJDICTEDITFILEOPENED,
@@ -224,7 +231,7 @@ class ObjdictEdit(wx.Frame, net.NodeEditorTemplate):
         self._init_coll_HelpBar_Fields(self.HelpBar)
         self.SetStatusBar(self.HelpBar)
 
-    def __init__(self, parent, manager=None, filesopen=None):
+    def __init__(self, parent, manager: NodeManager|None = None, filesopen: list[TPath]|None = None):
         filesopen = filesopen or []
         if manager is None:
             net.NodeEditorTemplate.__init__(self, nodemanager.NodeManager(), self, True)
