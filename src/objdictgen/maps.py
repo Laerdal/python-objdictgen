@@ -135,11 +135,415 @@ INDEX_RANGES = [
 ]
 
 # ------------------------------------------------------------------------------
+#                      Evaluation of values
+# ------------------------------------------------------------------------------
+
+# Used to match strings such as 'Additional Server SDO %d Parameter %d[(idx, sub)]'
+# This example matches to two groups
+# ['Additional Server SDO %d Parameter %d', 'idx, sub']
+RE_NAME_SYNTAX = re.compile(r'(.*)\[[(](.*)[)]\]')
+
+# Regular expression to match $NODEID in a string
+RE_NODEID = re.compile(r'\$NODEID\b', re.IGNORECASE)
+
+
+@staticmethod
+def eval_value(value, base, nodeid, compute=True):
+    """
+    Evaluate the value. They can be strings that needs additional
+    parsing. Such as "'$NODEID+0x600'" and
+    "'{True:"$NODEID+0x%X00"%(base+2),False:0x80000000}[base<4]'".
+    """
+
+    # Non-string and strings that doens't contain $NODEID can return as-is
+    if not (isinstance(value, str) and RE_NODEID.search(value)):
+        return value
+
+    # This will remove any surrouning quotes on strings ('"$NODEID+0x20"')
+    # and will resolve "{True:"$NODEID..." expressions.
+    value = Node.evaluate_expression(value,
+        {   # These are the vars that can be used within the string
+            'base': base,
+        }
+    )
+
+    if compute and isinstance(value, str):
+        # Replace $NODEID with 'nodeid' so it can be evaluated.
+        value = RE_NODEID.sub("nodeid", value)
+
+        # This will resolve '$NODEID' expressions
+        value = Node.evaluate_expression(value,
+            {   # These are the vars that can be used within the string
+                'nodeid': nodeid,
+            }
+        )
+
+    return value
+
+@staticmethod
+def eval_name(text, idx, sub):
+    """
+    Format the text given with the index and subindex defined.
+    Used to parse dynamic values such as
+    "Additional Server SDO %d Parameter[(idx)]"
+    """
+    result = RE_NAME_SYNTAX.match(text)
+    if not result:
+        return text
+
+    # NOTE: Legacy Python2 format evaluations are baked
+    #       into the OD and must be supported for legacy
+    return result.group(1) % Node.evaluate_expression(
+        result.group(2).strip(),
+        {   # These are the vars that can be used in the string
+            'idx': idx,
+            'sub': sub,
+        }
+    )
+
+@staticmethod
+def evaluate_expression(expression: str, localvars: dict[str, Any]|None = None):
+    """Parses a string expression and attempts to calculate the result
+    Supports:
+        - Binary operations: addition, subtraction, multiplication, modulo
+        - Comparisons: less than
+        - Subscripting: (i.e. "a[1]")
+        - Constants: int, float, complex, str, boolean
+        - Variable names: from the localvars dict
+        - Function calls: from the localvars dict
+        - Tuples: (i.e. "(1, 2, 3)")
+        - Dicts: (i.e. "{1: 2, 3: 4}")
+    Parameters:
+        expression (str): string to parse
+        localvars (dict): dictionary of local variables and functions to
+            access in the expression
+    """
+    localvars = localvars or {}
+
+    def _evnode(node: ast.AST):
+        """
+        Recursively parses ast.Node objects to evaluate arithmatic expressions
+        """
+        if isinstance(node, ast.BinOp):
+            if isinstance(node.op, ast.Add):
+                return _evnode(node.left) + _evnode(node.right)
+            if isinstance(node.op, ast.Sub):
+                return _evnode(node.left) - _evnode(node.right)
+            if isinstance(node.op, ast.Mult):
+                return _evnode(node.left) * _evnode(node.right)
+            if isinstance(node.op, ast.Mod):
+                return _evnode(node.left) % _evnode(node.right)
+            raise SyntaxError(f"Unsupported arithmetic operation {type(node.op)}")
+        if isinstance(node, ast.Compare):
+            if len(node.ops) != 1 or len(node.comparators) != 1:
+                raise SyntaxError(f"Chained comparisons not supported")
+            if isinstance(node.ops[0], ast.Lt):
+                return _evnode(node.left) < _evnode(node.comparators[0])
+            raise SyntaxError(f"Unsupported comparison operation {type(node.ops[0])}")
+        if isinstance(node, ast.Subscript):
+            return _evnode(node.value)[_evnode(node.slice)]
+        if isinstance(node, ast.Constant):
+            if isinstance(node.value, int | float | complex | str):
+                return node.value
+            raise TypeError(f"Unsupported constant {node.value}")
+        if isinstance(node, ast.Name):
+            if node.id not in localvars:
+                raise NameError(f"Name '{node.id}' is not defined")
+            return localvars[node.id]
+        if isinstance(node, ast.Call):
+            return _evnode(node.func)(
+                *[_evnode(arg) for arg in node.args],
+                **{k.arg: _evnode(k.value) for k in node.keywords}
+            )
+        if isinstance(node, ast.Tuple):
+            return tuple(_evnode(elt) for elt in node.elts)
+        if isinstance(node, ast.Dict):
+            return {_evnode(k): _evnode(v) for k, v in zip(node.keys, node.values)}
+        raise TypeError(f"Unsupported syntax of type {type(node)}")
+
+    try:
+        tree = ast.parse(expression, mode="eval")
+        return _evnode(tree.body)
+    except Exception as exc:
+        raise type(exc)(f"{exc.args[0]} in parsing of expression '{expression}'"
+                        ).with_traceback(exc.__traceback__) from None
+
+
+# ------------------------------------------------------------------------------
+#                      Misc functions
+# ------------------------------------------------------------------------------
+
+@staticmethod
+def ImportProfile(profilename):
+
+    # Test if the profilename is a filepath which can be used directly. If not
+    # treat it as the name
+    # The UI use full filenames, while all other uses use profile names
+    profilepath = Path(profilename)
+    if not profilepath.exists():
+        fname = f"{profilename}.prf"
+
+        try:
+            profilepath = next(
+                base / fname
+                for base in objdictgen.PROFILE_DIRECTORIES
+                if (base / fname).exists()
+            )
+        except StopIteration:
+            raise ValueError(
+                f"Unable to load profile '{profilename}': '{fname}': No such file or directory"
+            ) from None
+
+    # Mapping and AddMenuEntries are expected to be defined by the execfile
+    # The profiles requires some vars to be set
+    # pylint: disable=unused-variable
+    try:
+        with open(profilepath, "r", encoding="utf-8") as f:
+            log.debug("EXECFILE %s", profilepath)
+            code = compile(f.read(), profilepath, 'exec')
+            exec(code, globals(), locals())  # FIXME: Using exec is unsafe
+            # pylint: disable=undefined-variable
+            return Mapping, AddMenuEntries  # pyright: ignore  # noqa: F821
+    except Exception as exc:  # pylint: disable=broad-except
+        log.debug("EXECFILE FAILED: %s", exc)
+        log.debug(traceback.format_exc())
+        raise ValueError(f"Loading profile '{profilepath}' failed: {exc}") from exc
+
+
+@staticmethod
+def get_index_range(index):
+    for irange in maps.INDEX_RANGES:
+        if irange["min"] <= index <= irange["max"]:
+            return irange
+    raise ValueError(f"Cannot find index range for value '0x{index:x}'")
+
+
+@staticmethod
+def be_to_le(value):
+    """
+    Convert Big Endian to Little Endian
+    @param value: value expressed in Big Endian
+    @param size: number of bytes generated
+    @return: a string containing the value converted
+    """
+
+    # FIXME: This function is used in assosciation with DCF files, but have
+    # not been able to figure out how that work. It is very likely that this
+    # function is not working properly after the py2 -> py3 conversion
+    raise NotImplementedError("be_to_le() may be broken in py3")
+
+    # FIXME: The function title is confusing as the input data type (str) is
+    # different than the output (int)
+    return int("".join([f"{ord(char):02X}" for char in reversed(value)]), 16)
+
+@staticmethod
+def le_to_be(value, size):
+    """
+    Convert Little Endian to Big Endian
+    @param value: value expressed in integer
+    @param size: number of bytes generated
+    @return: a string containing the value converted
+    """
+
+    # FIXME: This function is used in assosciation with DCF files, but have
+    # not been able to figure out how that work. It is very likely that this
+    # function is not working properly after the py2 -> py3 conversion due to
+    # the change of chr() behavior
+    raise NotImplementedError("le_to_be() is broken in py3")
+
+    # FIXME: The function title is confusing as the input data type (int) is
+    # different than the output (str)
+    data = ("%" + str(size * 2) + "." + str(size * 2) + "X") % value
+    list_car = [data[i:i + 2] for i in range(0, len(data), 2)]
+    list_car.reverse()
+    return "".join([chr(int(car, 16)) for car in list_car])
+
+
+# ------------------------------------------------------------------------------
 #                      Objects and mapping
 # ------------------------------------------------------------------------------
 
 class ODMapping(UserDict[int, TODObj]):
     """Object Dictionary Mapping."""
+
+    @staticmethod
+    def FindTypeIndex(typename, mappingdictionary):
+        """
+        Return the index of the typename given by searching in mappingdictionary
+        """
+        return {
+            values["name"]: index
+            for index, values in mappingdictionary.items()
+            if index < 0x1000
+        }.get(typename)
+
+    @staticmethod
+    def FindTypeName(typeindex, mappingdictionary):
+        """
+        Return the name of the type by searching in mappingdictionary
+        """
+        if typeindex < 0x1000 and typeindex in mappingdictionary:
+            return mappingdictionary[typeindex]["name"]
+        return None
+
+    @staticmethod
+    def FindTypeDefaultValue(typeindex, mappingdictionary):
+        """
+        Return the default value of the type by searching in mappingdictionary
+        """
+        if typeindex < 0x1000 and typeindex in mappingdictionary:
+            return mappingdictionary[typeindex]["default"]
+        return None
+
+    @staticmethod
+    def FindTypeList(mappingdictionary):
+        """
+        Return the list of types defined in mappingdictionary
+        """
+        return [
+            mappingdictionary[index]["name"]
+            for index in mappingdictionary
+            if index < 0x1000
+        ]
+
+    @staticmethod
+    def FindEntryName(index, mappingdictionary, compute=True):
+        """
+        Return the name of an entry by searching in mappingdictionary
+        """
+        base_index = Node.FindIndex(index, mappingdictionary)
+        if base_index:
+            infos = mappingdictionary[base_index]
+            if infos["struct"] & OD.IdenticalIndexes and compute:
+                return Node.eval_name(
+                    infos["name"], idx=(index - base_index) // infos["incr"] + 1, sub=0
+                )
+            return infos["name"]
+        return None
+
+    @staticmethod
+    def FindEntryInfos(index, mappingdictionary, compute=True):
+        """
+        Return the informations of one entry by searching in mappingdictionary
+        """
+        base_index = Node.FindIndex(index, mappingdictionary)
+        if base_index:
+            obj = mappingdictionary[base_index].copy()
+            if obj["struct"] & OD.IdenticalIndexes and compute:
+                obj["name"] = Node.eval_name(
+                    obj["name"], idx=(index - base_index) // obj["incr"] + 1, sub=0
+                )
+            obj.pop("values")
+            return obj
+        return None
+
+    @staticmethod
+    def FindSubentryInfos(index, subindex, mappingdictionary, compute=True):
+        """
+        Return the informations of one subentry of an entry by searching in mappingdictionary
+        """
+        base_index = Node.FindIndex(index, mappingdictionary)
+        if base_index:
+            struct = mappingdictionary[base_index]["struct"]
+            if struct & OD.Subindex:
+                infos = None
+                if struct & OD.IdenticalSubindexes:
+                    if subindex == 0:
+                        infos = mappingdictionary[base_index]["values"][0].copy()
+                    elif 0 < subindex <= mappingdictionary[base_index]["values"][1]["nbmax"]:
+                        infos = mappingdictionary[base_index]["values"][1].copy()
+                elif struct & OD.MultipleSubindexes:
+                    idx = 0
+                    for subindex_infos in mappingdictionary[base_index]["values"]:
+                        if "nbmax" in subindex_infos:
+                            if idx <= subindex < idx + subindex_infos["nbmax"]:
+                                infos = subindex_infos.copy()
+                                break
+                            idx += subindex_infos["nbmax"]
+                        else:
+                            if subindex == idx:
+                                infos = subindex_infos.copy()
+                                break
+                            idx += 1
+                elif subindex == 0:
+                    infos = mappingdictionary[base_index]["values"][0].copy()
+
+                if infos is not None and compute:
+                    if struct & OD.IdenticalIndexes:
+                        incr = mappingdictionary[base_index]["incr"]
+                    else:
+                        incr = 1
+                    infos["name"] = Node.eval_name(
+                        infos["name"], idx=(index - base_index) // incr + 1, sub=subindex
+                    )
+
+                return infos
+        return None
+
+    @staticmethod
+    def FindMapVariableList(mappingdictionary, node, compute=True):
+        """
+        Return the list of variables that can be mapped defined in mappingdictionary
+        """
+        for index in mappingdictionary:
+            if node.IsEntry(index):
+                for subindex, values in enumerate(mappingdictionary[index]["values"]):
+                    if mappingdictionary[index]["values"][subindex]["pdo"]:
+                        infos = node.GetEntryInfos(mappingdictionary[index]["values"][subindex]["type"])
+                        name = mappingdictionary[index]["values"][subindex]["name"]
+                        if mappingdictionary[index]["struct"] & OD.IdenticalSubindexes:
+                            values = node.GetEntry(index)
+                            for i in range(len(values) - 1):
+                                computed_name = name
+                                if compute:
+                                    computed_name = Node.eval_name(computed_name, idx=1, sub=i + 1)
+                                yield (index, i + 1, infos["size"], computed_name)
+                        else:
+                            computed_name = name
+                            if compute:
+                                computed_name = Node.eval_name(computed_name, idx=1, sub=subindex)
+                            yield (index, subindex, infos["size"], computed_name)
+
+    @staticmethod
+    def FindMandatoryIndexes(mappingdictionary):
+        """
+        Return the list of mandatory indexes defined in mappingdictionary
+        """
+        return [
+            index
+            for index in mappingdictionary
+            if index >= 0x1000 and mappingdictionary[index]["need"]
+        ]
+
+    @staticmethod
+    def FindIndex(index, mappingdictionary):
+        """
+        Return the index of the informations in the Object Dictionary in case of identical
+        indexes
+        """
+        if index in mappingdictionary:
+            return index
+        listpluri = [
+            idx for idx, mapping in mappingdictionary.items()
+            if mapping["struct"] & OD.IdenticalIndexes
+        ]
+        for idx in sorted(listpluri):
+            nb_max = mappingdictionary[idx]["nbmax"]
+            incr = mappingdictionary[idx]["incr"]
+            if idx < index < idx + incr * nb_max and (index - idx) % incr == 0:
+                return idx
+        return None
+
+    #
+    # HELPERS
+    #
+
+    def find(self, predicate: Callable[[int, TODObj], bool|int]) -> Generator[tuple[int, TODObj], None, None]:
+        """Return the first object that matches the function"""
+        for index, obj in self.items():
+            if predicate(index, obj):
+                yield index, obj
+
 
 class ODMappingList(UserList[ODMapping]):
     """List of Object Dictionary Mappings."""
