@@ -24,11 +24,18 @@ import logging
 import sys
 from dataclasses import dataclass, field
 from pprint import pformat
+from typing import TYPE_CHECKING, Callable, Sequence, TypeVar
 
 from colorama import Fore, Style, init
 
 import objdictgen
 from objdictgen import jsonod
+from objdictgen.typing import TDiffEntries, TDiffNodes, TPath
+
+T = TypeVar('T')
+
+if TYPE_CHECKING:
+    from objdictgen.node import Node
 
 # For colored output
 init()
@@ -44,18 +51,18 @@ class DebugOpts:
     """ Options for main to control the debug_wrapper """
     show_debug: bool = field(default=False)
 
-    def set_debug(self, dbg):
+    def set_debug(self, dbg: bool) -> None:
         """Set debug level"""
         self.show_debug = dbg
 
         log.setLevel(logging.DEBUG)
 
 
-def debug_wrapper():
+def debug_wrapper() -> Callable[[Callable[..., T]], Callable[..., T]]:
     """ Wrapper to catch all exceptions and supress the output unless debug
         is set
     """
-    def decorator(fn):
+    def decorator(fn: Callable[..., T]) -> Callable[..., T]:
         @functools.wraps(fn)
         def inner(*args, **kw):
             opts = DebugOpts()
@@ -70,7 +77,7 @@ def debug_wrapper():
     return decorator
 
 
-def open_od(fname, validate=True, fix=False):
+def open_od(fname: TPath|str, validate=True, fix=False) -> "Node":
     """ Open and validate the OD file"""
 
     try:
@@ -85,14 +92,14 @@ def open_od(fname, validate=True, fix=False):
         raise
 
 
-def print_diffs(diffs, show=False):
+def print_diffs(diffs: TDiffNodes, show=False):
     """ Print the differences between two object dictionaries"""
 
-    def _pprint(text):
+    def _pprint(text: str):
         for line in pformat(text).splitlines():
             print("       ", line)
 
-    def _printlines(entries):
+    def _printlines(entries: TDiffEntries):
         for chtype, change, path in entries:
             if 'removed' in chtype:
                 print(f"<<<     {path} only in LEFT")
@@ -118,7 +125,7 @@ def print_diffs(diffs, show=False):
 
 
 @debug_wrapper()
-def main(debugopts, args=None):
+def main(debugopts: DebugOpts, args: Sequence[str]|None = None):
     """ Main command dispatcher """
 
     parser = argparse.ArgumentParser(
@@ -142,19 +149,19 @@ def main(debugopts, args=None):
     opt_od = dict(metavar='od', default=None, help="Object dictionary")
 
     parser.add_argument('--version', action='version', version='%(prog)s ' + objdictgen.__version__)
-    parser.add_argument('-D', '--debug', **opt_debug)
+    parser.add_argument('-D', '--debug', **opt_debug)  # type: ignore[arg-type]
 
     # -- HELP --
     subp = subparser.add_parser('help', help="""
         Show help of all commands
     """)
-    subp.add_argument('-D', '--debug', **opt_debug)
+    subp.add_argument('-D', '--debug', **opt_debug)  # type: ignore[arg-type]
 
     # -- CONVERT --
     subp = subparser.add_parser('convert', help="""
         Generate
     """, aliases=['gen', 'conv'])
-    subp.add_argument('od', **opt_od)
+    subp.add_argument('od', **opt_od)  # type: ignore[arg-type]
     subp.add_argument('out', default=None, help="Output file")
     subp.add_argument('-i', '--index', action="append",
                         help="OD Index to include. Filter out the rest.")
@@ -170,26 +177,26 @@ def main(debugopts, args=None):
                         help="Don't order of parameters in output OD")
     subp.add_argument('--novalidate', action="store_true",
                         help="Don't validate files before conversion")
-    subp.add_argument('-D', '--debug', **opt_debug)
+    subp.add_argument('-D', '--debug', **opt_debug)  # type: ignore[arg-type]
 
     # -- DIFF --
     subp = subparser.add_parser('diff', help="""
         Compare OD files
     """, aliases=['compare'])
-    subp.add_argument('od1', **opt_od)
-    subp.add_argument('od2', **opt_od)
+    subp.add_argument('od1', **opt_od)  # type: ignore[arg-type]
+    subp.add_argument('od2', **opt_od)  # type: ignore[arg-type]
     subp.add_argument('--internal', action="store_true", help="Diff internal object")
     subp.add_argument('--novalidate', action="store_true",
                         help="Don't validate input files before diff")
     subp.add_argument('--show', action="store_true", help="Show difference data")
-    subp.add_argument('-D', '--debug', **opt_debug)
+    subp.add_argument('-D', '--debug', **opt_debug)  # type: ignore[arg-type]
 
     # -- EDIT --
     subp = subparser.add_parser('edit', help="""
         Edit OD (UI)
     """)
     subp.add_argument('od', nargs="*", help="Object dictionary")
-    subp.add_argument('-D', '--debug', **opt_debug)
+    subp.add_argument('-D', '--debug', **opt_debug)  # type: ignore[arg-type]
 
     # -- LIST --
     subp = subparser.add_parser('list', help="""
@@ -205,21 +212,21 @@ def main(debugopts, args=None):
     subp.add_argument('--raw', action="store_true", help="Show raw parameter values")
     subp.add_argument('--short', action="store_true", help="Do not list sub-index")
     subp.add_argument('--unused', action="store_true", help="Include unused profile parameters")
-    subp.add_argument('-D', '--debug', **opt_debug)
+    subp.add_argument('-D', '--debug', **opt_debug)  # type: ignore[arg-type]
 
     # -- NETWORK --
     subp = subparser.add_parser('network', help="""
         Edit network (UI)
     """)
     subp.add_argument('dir', nargs="?", help="Project directory")
-    subp.add_argument('-D', '--debug', **opt_debug)
+    subp.add_argument('-D', '--debug', **opt_debug)  # type: ignore[arg-type]
 
     # -- NODELIST --
     subp = subparser.add_parser('nodelist', help="""
         List project nodes
     """)
     subp.add_argument('dir', nargs="?", help="Project directory")
-    subp.add_argument('-D', '--debug', **opt_debug)
+    subp.add_argument('-D', '--debug', **opt_debug)  # type: ignore[arg-type]
 
 
     # -- COMMON --
@@ -243,7 +250,8 @@ def main(debugopts, args=None):
         ):
             for choice, subparser in subparsers_action.choices.items():
                 print(f"command '{choice}'")
-                for info in subparser.format_help().split('\n'):
+                # FIXME: Not sure why mypy doesn't know about format_help
+                for info in subparser.format_help().split('\n'):  # type: ignore[attr-defined]
                     print("    " + info)
 
 
@@ -252,7 +260,7 @@ def main(debugopts, args=None):
 
         od = open_od(opts.od, fix=opts.fix)
 
-        to_remove = set()
+        to_remove: set[int] = set()
 
         # Drop excluded parameters
         if opts.exclude:
@@ -449,4 +457,4 @@ def main_objdictedit():
 # To support -m objdictgen
 if __name__ == '__main__':
     # pylint: disable=no-value-for-parameter
-    main()  # type: ignore
+    main()

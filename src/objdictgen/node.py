@@ -24,12 +24,16 @@ import logging
 import re
 import traceback
 from pathlib import Path
+from typing import Any, Generator, Iterable, Iterator, Self
 
 import colorama
 
 import objdictgen
+# The following import needs care when importing node
 from objdictgen import eds_utils, gen_cfile, jsonod, maps, nosis
-from objdictgen.maps import OD
+from objdictgen.maps import OD, ODMapping, ODMappingList
+from objdictgen.typing import (NodeProtocol, TIndexEntry, TODObj, TODSubObj,
+                               TODValue, TParamEntry, TPath, TProfileMenu)
 
 log = logging.getLogger('objdictgen')
 
@@ -49,52 +53,98 @@ RE_NODEID = re.compile(r'\$NODEID\b', re.IGNORECASE)
 #                          Definition of Node Object
 # ------------------------------------------------------------------------------
 
-class Node:
+class Node(NodeProtocol):
     """
-    Class recording the Object Dictionary entries. It checks at each modification
-    that the structure of the Object Dictionary stay coherent
+    A Object Dictionary representation of a CAN node.
     """
 
-    DefaultStringSize = 10
+    Name: str
+    """Name of the node"""
+
+    Type: str
+    """Type of the node. Should be 'slave' or 'master'"""
+
+    ID: int
+    """Node ID"""
+
+    Description: str
+    """Description of the node"""
+
+    Dictionary: dict[int, TODValue|list[TODValue]]
+    """Object dictionary of the node. The key is the index and the value is the
+    literal value. For objects that have multiple subindexes, the object
+    is a list of values."""
+
+    ParamsDictionary: dict[int, TParamEntry|dict[int, TParamEntry]]
+    """Dictionary of parameters for the node. The key is the index and the value
+    contains the parameter for the index object. It can be a dict of subindexes.
+    """
+    # FIXME: The type definition on ParamsDictionary is not precisely accurate.
+    # When self.Dictionary is not a list, ParamsDictionary is TParamEntry.
+    # When self.Dictionary is a list, ParamsDictionary is a dict with
+    # int subindexes as keys and "TParamEntryN" (a type without callback) as
+    # values. The subindex dict also may contain the "callback" key.
+
+    Profile: ODMapping
+    """Profile object dictionary mapping"""
+
+    DS302: ODMapping
+    """DS-302 object dictionary mapping"""
+
+    UserMapping: ODMapping
+    """Custom user object dictionary mapping"""
+
+    ProfileName: str
+    """Name of the loaded profile. If no profile is loaded, it should be 'None'
+    """
+
+    SpecificMenu: TProfileMenu
+    """Specific menu for the profile"""
+
+    IndexOrder: list[int]
+    """Order of the indexes in the object dictionary to preserve the order"""
+
+    DefaultStringSize: int = 10
+    """Default string size for the node"""
 
     def __init__(
-            self, name="", type="slave", id=0, description="",
-            profilename="None", profile=None,
-            specificmenu=None,
-    ):  # pylint: disable=redefined-builtin
-        self.Name = name
-        self.Type = type
-        self.ID = id
-        self.Description = description
-        self.ProfileName = profilename
-        self.Profile = profile or {}
-        self.SpecificMenu = specificmenu or []
-        self.Dictionary = {}
-        self.ParamsDictionary = {}
-        self.DS302 = {}
-        self.UserMapping = {}
-        self.IndexOrder = []
+            self, name: str = "", type: str = "slave", id: int = 0,
+            description: str = "", profilename: str = "None",
+            profile: ODMapping | None = None, specificmenu: TProfileMenu | None = None,
+    ):
+        self.Name: str = name
+        self.Type: str = type
+        self.ID: int = id
+        self.Description: str = description
+        self.ProfileName: str = profilename
+        self.Profile: ODMapping = profile or ODMapping()
+        self.SpecificMenu: TProfileMenu = specificmenu or []
+        self.Dictionary: dict[int, TODValue|list[TODValue]] = {}
+        self.ParamsDictionary: dict[int, TParamEntry|dict[int, TParamEntry]] = {}
+        self.DS302: ODMapping = ODMapping()
+        self.UserMapping: ODMapping = ODMapping()
+        self.IndexOrder: list[int] = []
 
     # --------------------------------------------------------------------------
     #                      Node Input/Output
     # --------------------------------------------------------------------------
 
     @staticmethod
-    def isXml(filepath):
+    def isXml(filepath: TPath) -> bool:
         """Check if the file is an XML file"""
         with open(filepath, 'r', encoding="utf-8") as f:
             header = f.read(5)
             return header == "<?xml"
 
     @staticmethod
-    def isEds(filepath):
+    def isEds(filepath: TPath) -> bool:
         """Check if the file is an EDS file"""
         with open(filepath, 'r', encoding="utf-8") as f:
             header = f.readline().rstrip()
             return header == "[FileInfo]"
 
     @staticmethod
-    def LoadFile(filepath: str) -> "Node":
+    def LoadFile(filepath: TPath) -> "Node":
         """ Open a file and create a new node """
         if Node.isXml(filepath):
             log.debug("Loading XML OD '%s'", filepath)
@@ -110,11 +160,11 @@ class Node:
             return Node.LoadJson(f.read())
 
     @staticmethod
-    def LoadJson(contents):
+    def LoadJson(contents: str) -> "Node":
         """ Import a new Node from a JSON string """
         return jsonod.generate_node(contents)
 
-    def DumpFile(self, filepath, filetype="json", **kwargs):
+    def DumpFile(self, filepath: TPath, filetype: str = "json", **kwargs):
         """ Save node into file """
         if filetype == 'od':
             log.debug("Writing XML OD '%s'", filepath)
@@ -144,7 +194,7 @@ class Node:
 
         raise ValueError("Unknown file suffix, unable to write file")
 
-    def DumpJson(self, compact=False, sort=False, internal=False, validate=True):
+    def DumpJson(self, compact=False, sort=False, internal=False, validate=True) -> str:
         """ Dump the node into a JSON string """
         return jsonod.generate_json(
             self, compact=compact, sort=sort, internal=internal, validate=validate
@@ -154,15 +204,13 @@ class Node:
     #                      Node Informations Functions
     # --------------------------------------------------------------------------
 
-    def GetMappings(self, userdefinedtoo=True):
-        """
-        Function which return the different Mappings available for this node
-        """
+    def GetMappings(self, userdefinedtoo: bool=True) -> ODMappingList:
+        """Return the different Mappings available for this node"""
         if userdefinedtoo:
             return [self.Profile, self.DS302, self.UserMapping]
         return [self.Profile, self.DS302]
 
-    def AddEntry(self, index, subindex=None, value=None):
+    def AddEntry(self, index: int, subindex: int|None = None, value: TODValue|list[TODValue]|None = None) -> bool:
         """
         Add a new entry in the Object Dictionary
         """
@@ -179,10 +227,8 @@ class Node:
             return True
         return False
 
-    def SetEntry(self, index, subindex=None, value=None):
-        """
-        Warning ! Modifies an existing entry in the Object Dictionary. Can't add a new one.
-        """
+    def SetEntry(self, index: int, subindex: int|None = None, value: TODValue|None = None) -> bool:
+        """Modify an existing entry in the Object Dictionary"""
         if index not in self.Dictionary:
             return False
         if not subindex:
@@ -195,7 +241,8 @@ class Node:
             return True
         return False
 
-    def SetParamsEntry(self, index, subindex=None, comment=None, buffer_size=None, save=None, callback=None):
+    def SetParamsEntry(self, index: int, subindex: int|None = None, comment=None, buffer_size=None, save=None, callback=None) -> bool:
+        """Set parameter values for an entry in the Object Dictionary."""
         if index not in self.Dictionary:
             return False
         if ((comment is not None or save is not None or callback is not None or buffer_size is not None)
@@ -226,7 +273,7 @@ class Node:
             return True
         return False
 
-    def RemoveEntry(self, index, subindex=None):
+    def RemoveEntry(self, index: int, subindex: int|None = None) -> bool:
         """
         Removes an existing entry in the Object Dictionary. If a subindex is specified
         it will remove this subindex only if it's the last of the index. If no subindex
@@ -253,9 +300,9 @@ class Node:
             return True
         return False
 
-    def IsEntry(self, index, subindex=None):
+    def IsEntry(self, index: int, subindex: int=0) -> bool:
         """
-        Check if an entry exists in the Object Dictionary and returns the answer.
+        Check if an entry exists in the Object Dictionary
         """
         if index in self.Dictionary:
             if not subindex:
@@ -263,10 +310,11 @@ class Node:
             return subindex <= len(self.Dictionary[index])
         return False
 
-    def GetEntry(self, index, subindex=None, compute=True, aslist=False):
+    def GetEntry(self, index: int, subindex: int|None = None, compute=True, aslist=False) -> list[TODValue]|TODValue:
         """
-        Returns the value of the entry asked. If the entry has the value "count", it
-        returns the number of subindex in the entry except the first.
+        Returns the value of the entry specified by the index and subindex. If
+        subindex is None, it will return the value or the list of values of the
+        entire index. If aslist is True, it will always return a list.
         """
         if index not in self.Dictionary:
             raise KeyError(f"Index 0x{index:04x} does not exist")
@@ -291,7 +339,8 @@ class Node:
             return self.eval_value(self.Dictionary[index][subindex - 1], base, nodeid, compute)
         raise ValueError(f"Invalid subindex {subindex} for index 0x{index:04x}")
 
-    def GetParamsEntry(self, index, subindex=None, aslist=False):
+    def GetParamsEntry(self, index: int, subindex: int|None = None,
+                        aslist: bool = False) -> TParamEntry|list[TParamEntry]:
         """
         Returns the value of the entry asked. If the entry has the value "count", it
         returns the number of subindex in the entry except the first.
@@ -328,7 +377,8 @@ class Node:
             return result
         raise ValueError(f"Invalid subindex {subindex} for index 0x{index:04x}")
 
-    def HasEntryCallbacks(self, index):
+    def HasEntryCallbacks(self, index: int) -> bool:
+        """Check if entry has the callback flag defined."""
         entry_infos = self.GetEntryInfos(index)
         if entry_infos and "callback" in entry_infos:
             return entry_infos["callback"]
@@ -336,14 +386,14 @@ class Node:
             return self.ParamsDictionary[index]["callback"]
         return False
 
-    def IsMappingEntry(self, index):
+    def IsMappingEntry(self, index: int) -> bool:
         """
         Check if an entry exists in the User Mapping Dictionary and returns the answer.
         """
         return index in self.UserMapping
 
-    def AddMappingEntry(self, index, subindex=None, name="Undefined", struct=0, size=None, nbmax=None,
-                        default=None, values=None):
+    def AddMappingEntry(self, index: int, subindex: int|None = None, name="Undefined", struct=0, size=None, nbmax=None,
+                        default=None, values=None) -> bool:
         """
         Add a new entry in the User Mapping Dictionary
         """
@@ -366,10 +416,9 @@ class Node:
             return True
         return False
 
-    def SetMappingEntry(self, index, subindex=None, name=None, struct=None, size=None, nbmax=None,
-                        default=None, values=None):
+    def SetMappingEntry(self, index: int, subindex: int|None = None, name=None, struct=None, size=None, nbmax=None, default=None, values=None) -> bool:
         """
-        Warning ! Modifies an existing entry in the User Mapping Dictionary. Can't add a new one.
+        Modify an existing entry in the User Mapping Dictionary
         """
         if index not in self.UserMapping:
             return False
@@ -433,7 +482,7 @@ class Node:
             return True
         return False
 
-    def RemoveMappingEntry(self, index, subindex=None):
+    def RemoveMappingEntry(self, index: int, subindex: int|None = None) -> bool:
         """
         Removes an existing entry in the User Mapping Dictionary. If a subindex is specified
         it will remove this subindex only if it's the last of the index. If no subindex
@@ -448,7 +497,10 @@ class Node:
                 return True
         return False
 
-    def RemoveMapVariable(self, index, subindex=None):
+    def RemoveMapVariable(self, index: int, subindex: int = 0):
+        """
+        Remove all PDO mappings references to the specificed index and subindex.
+        """
         model = index << 16
         mask = 0xFFFF << 16
         if subindex:
@@ -460,7 +512,11 @@ class Node:
                     if (value & mask) == model:
                         self.Dictionary[i][j] = 0
 
-    def UpdateMapVariable(self, index, subindex, size):
+    def UpdateMapVariable(self, index: int, subindex: int, size: int):
+        """
+        Update the PDO mappings references to the specificed index and subindex
+        and set the size value.
+        """
         model = index << 16
         mask = 0xFFFF << 16
         if subindex:
@@ -472,25 +528,28 @@ class Node:
                     if (value & mask) == model:
                         self.Dictionary[i][j] = model + size
 
-    def RemoveLine(self, index, max_, incr=1):
+    def RemoveLine(self, index: int, max_: int, incr: int = 1):
+        """ Remove the given index and shift all the following indexes """
+        # FIXME: This function is called from NodeManager.RemoveCurrentVariable()
+        # but uncertain on how it is used.
         i = index
         while i < max_ and self.IsEntry(i + incr):
             self.Dictionary[i] = self.Dictionary[i + incr]
             i += incr
         self.Dictionary.pop(i)
 
-    def Copy(self):
+    def Copy(self) -> Self:
         """
         Return a copy of the node
         """
         return copy.deepcopy(self)
 
-    def GetDict(self):
+    def GetDict(self) -> dict[str, Any]:
         """ Return the class data as a dict """
         return copy.deepcopy(self.__dict__)
 
-    def GetIndexDict(self, index):
-        """ Return a dict representation of the index """
+    def GetIndexDict(self, index: int) -> TIndexEntry:
+        """ Return a full and raw representation of the index """
         obj = {}
         if index in self.Dictionary:
             obj['dictionary'] = self.Dictionary[index]
@@ -519,7 +578,7 @@ class Node:
     #                      Node Informations Functions
     # --------------------------------------------------------------------------
 
-    def GetBaseIndex(self, index):
+    def GetBaseIndex(self, index: int) -> int:
         """ Return the index number of the base object """
         for mapping in self.GetMappings():
             result = self.FindIndex(index, mapping)
@@ -527,7 +586,7 @@ class Node:
                 return result
         return self.FindIndex(index, maps.MAPPING_DICTIONARY)
 
-    def GetBaseIndexNumber(self, index):
+    def GetBaseIndexNumber(self, index: int) -> int:
         """ Return the index number from the base object """
         for mapping in self.GetMappings():
             result = self.FindIndex(index, mapping)
@@ -538,12 +597,16 @@ class Node:
             return (index - result) // maps.MAPPING_DICTIONARY[result].get("incr", 1)
         return 0
 
-    def GetCustomisedTypeValues(self, index):
+    def GetCustomisedTypeValues(self, index: int) -> tuple[list[TODValue], int]:
+        """Return the customization struct type from the index. It returns
+        a tuple containing the entry value and the int of the type of the object.
+        0 indicates numerical value, 1 indicates string value."""
         values = self.GetEntry(index)
         customisabletypes = self.GetCustomisableTypes()
         return values, customisabletypes[values[1]][1]  # type: ignore
 
-    def GetEntryName(self, index, compute=True):
+    def GetEntryName(self, index: int, compute=True) -> str:
+        """Return the entry name for the given index"""
         result = None
         mappings = self.GetMappings()
         i = 0
@@ -554,7 +617,8 @@ class Node:
             result = self.FindEntryName(index, maps.MAPPING_DICTIONARY, compute)
         return result
 
-    def GetEntryInfos(self, index, compute=True):
+    def GetEntryInfos(self, index: int, compute=True) -> TODObj:
+        """Return the entry infos for the given index"""
         result = None
         mappings = self.GetMappings()
         i = 0
@@ -568,7 +632,8 @@ class Node:
             return r301
         return result
 
-    def GetSubentryInfos(self, index, subindex, compute=True):
+    def GetSubentryInfos(self, index: int, subindex: int, compute: bool = True) -> TODSubObj:
+        """Return the subentry infos for the given index and subindex"""
         result = None
         mappings = self.GetMappings()
         i = 0
@@ -586,7 +651,8 @@ class Node:
             return r301
         return result
 
-    def GetEntryFlags(self, index):
+    def GetEntryFlags(self, index: int) -> set[str]:
+        """Return the flags for the given index"""
         flags = []
         info = self.GetEntryInfos(index)
         if not info:
@@ -623,7 +689,8 @@ class Node:
             info.update(entry)
             yield info
 
-    def GetTypeIndex(self, typename):
+    def GetTypeIndex(self, typename: str) -> int:
+        """Return the type index for the given type name."""
         result = None
         mappings = self.GetMappings()
         i = 0
@@ -634,7 +701,8 @@ class Node:
             result = self.FindTypeIndex(typename, maps.MAPPING_DICTIONARY)
         return result
 
-    def GetTypeName(self, typeindex):
+    def GetTypeName(self, typeindex: int) -> str:
+        """Return the type name for the given type index."""
         result = None
         mappings = self.GetMappings()
         i = 0
@@ -645,7 +713,8 @@ class Node:
             result = self.FindTypeName(typeindex, maps.MAPPING_DICTIONARY)
         return result
 
-    def GetTypeDefaultValue(self, typeindex):
+    def GetTypeDefaultValue(self, typeindex: int) -> TODValue:
+        """Return the default value for the given type index."""
         result = None
         mappings = self.GetMappings()
         i = 0
@@ -656,20 +725,25 @@ class Node:
             result = self.FindTypeDefaultValue(typeindex, maps.MAPPING_DICTIONARY)
         return result
 
-    def GetMapVariableList(self, compute=True):
+    def GetMapVariableList(self, compute=True) -> list[tuple[int, int, int, str]]:
+        """Return a list of all objects and subobjects available for mapping into
+        pdos. Returns a list of tuples with the index, subindex, size and name of the object."""
         list_ = list(self.FindMapVariableList(maps.MAPPING_DICTIONARY, self, compute))
         for mapping in self.GetMappings():
             list_.extend(self.FindMapVariableList(mapping, self, compute))
         list_.sort()
         return list_
 
-    def GetMandatoryIndexes(self, node=None):  # pylint: disable=unused-argument
+    def GetMandatoryIndexes(self, node: "Node|None" = None) -> list[int]:  # pylint: disable=unused-argument
+        """Return the mandatory indexes for the node."""
         list_ = self.FindMandatoryIndexes(maps.MAPPING_DICTIONARY)
         for mapping in self.GetMappings():
             list_.extend(self.FindMandatoryIndexes(mapping))
         return list_
 
-    def GetCustomisableTypes(self):
+    def GetCustomisableTypes(self) -> dict[int, tuple[str, int]]:
+        """ Return the customisable types. It returns a dict by the index number.
+        The value is a tuple with the type name and the size of the type."""
         return {
             index: (self.GetTypeName(index), valuetype)
             for index, valuetype in maps.CUSTOMISABLE_TYPES
@@ -679,7 +753,8 @@ class Node:
     #                      Type helper functions
     # --------------------------------------------------------------------------
 
-    def IsStringType(self, index):
+    def IsStringType(self, index: int) -> bool:
+        """Is the object index a string type?"""
         if index in (0x9, 0xA, 0xB, 0xF):
             return True
         if 0xA0 <= index < 0x100:
@@ -688,7 +763,8 @@ class Node:
                 return True
         return False
 
-    def IsRealType(self, index):
+    def IsRealType(self, index: int) -> bool:
+        """Is the object index a real (float) type?"""
         if index in (0x8, 0x11):
             return True
         if 0xA0 <= index < 0x100:
@@ -701,16 +777,19 @@ class Node:
     #                      Type and Map Variable Lists
     # --------------------------------------------------------------------------
 
-    def GetTypeList(self):
+    def GetTypeList(self) -> list[str]:
+        """Return a list of all object types available for the current node"""
         list_ = self.FindTypeList(maps.MAPPING_DICTIONARY)
         for mapping in self.GetMappings():
             list_.extend(self.FindTypeList(mapping))
         return list_
 
-    def GenerateMapName(self, name, index, subindex):  # pylint: disable=unused-argument
+    def GenerateMapName(self, name: str, index: int, subindex: int) -> str:
+        """Return how a mapping object should be named in UI"""
         return f"{name} (0x{index:04X})"
 
-    def GetMapValue(self, mapname):
+    def GetMapValue(self, mapname: str) -> int:
+        """Return the mapping value from the given printable name"""
         if mapname == "None":
             return 0
 
@@ -743,7 +822,8 @@ class Node:
                 return (index << 16) + (subindex << 8) + size
         return None
 
-    def GetMapIndex(self, value):
+    def GetMapIndex(self, value: int) -> tuple[int, int, int]:
+        """Return the index, subindex, size from a map value"""
         if value:
             index = value >> 16
             subindex = (value >> 8) % (1 << 8)
@@ -751,7 +831,8 @@ class Node:
             return index, subindex, size
         return 0, 0, 0
 
-    def GetMapName(self, value):
+    def GetMapName(self, value: int) -> str:
+        """Return the printable name for the given map value."""
         index, subindex, _ = self.GetMapIndex(value)
         if value:
             result = self.GetSubentryInfos(index, subindex)
@@ -759,9 +840,9 @@ class Node:
                 return self.GenerateMapName(result["name"], index, subindex)
         return "None"
 
-    def GetMapList(self):
+    def GetMapList(self) -> list[str]:
         """
-        Return the list of variables that can be mapped for the current node
+        Return the list of variables that can be mapped into pdos for the current node
         """
         list_ = ["None"] + [
             self.GenerateMapName(name, index, subindex)
@@ -769,9 +850,11 @@ class Node:
         ]
         return list_
 
-    def GetAllParameters(self, sort=False):
-        """ Get a list of all the parameters """
-
+    def GetAllParameters(self, sort=False) -> list[int]:
+        """ Get a list of all indices. If node maintains a sort order,
+            it will be used. Otherwise if sort is False, the order
+            will be arbitrary. If sort is True they will be sorted.
+        """
         order = list(self.UserMapping)
         order += [k for k in self.Dictionary if k not in order]
         order += [k for k in self.ParamsDictionary if k not in order]
@@ -801,8 +884,8 @@ class Node:
             if k not in self.Dictionary
         ]
 
-    def RemoveIndex(self, index):
-        """ Remove the given index """
+    def RemoveIndex(self, index: int) -> None:
+        """ Remove the given index"""
         self.UserMapping.pop(index, None)
         self.Dictionary.pop(index, None)
         self.ParamsDictionary.pop(index, None)
@@ -821,7 +904,7 @@ class Node:
         """ Verify any inconsistencies when loading an OD. The function will
             attempt to fix the data if the correct flag is enabled.
         """
-        def _warn(text):
+        def _warn(text: str):
             name = self.GetEntryName(index)
             log.warning("WARNING: 0x%04x (%d) '%s': %s", index, index, name, text)
 
@@ -891,7 +974,7 @@ class Node:
     #                      Printing and output
     # --------------------------------------------------------------------------
 
-    def GetPrintLine(self, index, unused=False, compact=False):
+    def GetPrintLine(self, index: int, unused=False, compact=False):
 
         obj = self.GetEntryInfos(index)
         if not obj:

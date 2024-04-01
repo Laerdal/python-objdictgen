@@ -17,6 +17,10 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 # USA
+from collections import UserDict, UserList
+from objdictgen.typing import (TODObj, TODSubObj, TODValue, TParamEntry, TPath,
+                               TProfileMenu)
+
 
 #
 # Dictionary of translation between access symbol and their signification
@@ -24,12 +28,16 @@
 ACCESS_TYPE = {"ro": "Read Only", "wo": "Write Only", "rw": "Read/Write"}
 BOOL_TYPE = {True: "True", False: "False"}
 OPTION_TYPE = {True: "Yes", False: "No"}
-CUSTOMISABLE_TYPES = [
+
+# The first value is the type of the object, the second is the type of the subobject
+# 0 indicates a numerical value, 1 indicates a non-numerical value such as strings
+CUSTOMISABLE_TYPES: list[tuple[int, int]] = [
     (0x02, 0), (0x03, 0), (0x04, 0), (0x05, 0), (0x06, 0), (0x07, 0), (0x08, 0),
     (0x09, 1), (0x0A, 1), (0x0B, 1), (0x10, 0), (0x11, 0), (0x12, 0), (0x13, 0),
     (0x14, 0), (0x15, 0), (0x16, 0), (0x18, 0), (0x19, 0), (0x1A, 0), (0x1B, 0),
 ]
-DEFAULT_PARAMS = {"comment": None, "save": False, "buffer_size": None}
+# FIXME: Using None is not to the type of these fields. Consider changing this
+DEFAULT_PARAMS: TParamEntry = {"comment": None, "save": False, "buffer_size": None}
 
 
 # ------------------------------------------------------------------------------
@@ -62,7 +70,7 @@ class ODStructTypes:
     #
     # Mapping against name and structure number
     #
-    STRINGS = {
+    STRINGS: dict[int, str|None] = {
         NOSUB: None,
         VAR: "var",
         RECORD: "record",
@@ -71,17 +79,17 @@ class ODStructTypes:
         NRECORD: "nrecord",
         NARRAY: "narray",
     }
+    # FIXME: Having None here should be avoided. Look into setting this to
+    # an empty string instead. It will simplify the typing for to_string and from_string
 
     @classmethod
-    def to_string(cls, val, default=''):
+    def to_string(cls: type["ODStructTypes"], val: int, default: str = '') -> str|None:
         """Return the string representation of the structure value."""
-        # type: (type[ODStructTypes], int, str) -> str
         return cls.STRINGS.get(val, default)
 
     @classmethod
-    def from_string(cls, val, default=None):
+    def from_string(cls: type["ODStructTypes"], val: str, default: int|None = None) -> int|None:
         """Return the structure value from the string representation."""
-        # type: (type[ODStructTypes], str, int|None) -> int|None
         try:
             return next(k for k, v in cls.STRINGS.items() if v == val)
         except StopIteration:
@@ -108,13 +116,25 @@ INDEX_RANGES = [
     {"min": 0xA000, "max": 0xBFFF, "name": "sip", "description": "Standardized Interface Profile"},
 ]
 
+# ------------------------------------------------------------------------------
+#                      Objects and mapping
+# ------------------------------------------------------------------------------
+
+class ODMapping(UserDict[int, TODObj]):
+    """Object Dictionary Mapping."""
+
+class ODMappingList(UserList[ODMapping]):
+    """List of Object Dictionary Mappings."""
+
+
 #
 # MAPPING_DICTIONARY is the structure used for writing a good organised Object
 # Dictionary. It follows the specifications of the CANOpen standard.
 # Change the informations within it if there is a mistake. But don't modify the
 # organisation of this object, it will involve in a malfunction of the application.
 #
-MAPPING_DICTIONARY = {
+# FIXME: Move this to a separate json file
+MAPPING_DICTIONARY = ODMapping({
     # -- Static Data Types
     0x0001: {"name": "BOOLEAN", "struct": OD.NOSUB, "size": 1, "default": False, "values": []},
     0x0002: {"name": "INTEGER8", "struct": OD.NOSUB, "size": 8, "default": 0, "values": []},
@@ -287,4 +307,4 @@ MAPPING_DICTIONARY = {
     0x1A00: {"name": "Transmit PDO %d Mapping[(idx)]", "struct": OD.NARRAY, "incr": 1, "nbmax": 0x200, "need": False, "values": [
         {"name": "Number of Entries", "type": 0x05, "access": 'rw', "pdo": False},
         {"name": "PDO %d Mapping for a process data variable %d[(idx,sub)]", "type": 0x07, "access": 'rw', "pdo": False, "nbmin": 0, "nbmax": 0x40}]},
-}
+})
