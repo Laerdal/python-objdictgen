@@ -264,7 +264,7 @@ def main(debugopts: DebugOpts, args: Sequence[str]|None = None):
 
         # Drop excluded parameters
         if opts.exclude:
-            to_remove |= set(jsonod.str_to_number(i) for i in opts.exclude)
+            to_remove |= set(jsonod.str_to_int(i) for i in opts.exclude)
 
         # Drop unused parameters
         if opts.drop_unused:
@@ -272,7 +272,7 @@ def main(debugopts: DebugOpts, args: Sequence[str]|None = None):
 
         # Drop all other indexes than specified
         if opts.index:
-            index = [jsonod.str_to_number(i) for i in opts.index]
+            index = [jsonod.str_to_int(i) for i in opts.index]
             to_remove |= (set(od.GetAllParameters()) - set(index))
 
         # Have any parameters to delete?
@@ -339,7 +339,7 @@ def main(debugopts: DebugOpts, args: Sequence[str]|None = None):
             # Get the indexes to print and determine the order
             keys = od.GetAllParameters(sort=not opts.asis)
             if opts.index:
-                indexp = [jsonod.str_to_number(i) for i in opts.index]
+                indexp = [jsonod.str_to_int(i) for i in opts.index]
                 keysp = [k for k in keys if k in indexp]
                 missing = ", ".join((str(k) for k in indexp if k not in keysp))
                 if missing:

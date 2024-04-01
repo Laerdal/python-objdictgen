@@ -196,7 +196,7 @@ class Node(NodeProtocol):
 
     def DumpJson(self, compact=False, sort=False, internal=False, validate=True) -> str:
         """ Dump the node into a JSON string """
-        return jsonod.generate_json(
+        return jsonod.generate_jsonc(
             self, compact=compact, sort=sort, internal=internal, validate=validate
         )
 
@@ -204,11 +204,14 @@ class Node(NodeProtocol):
     #                      Node Informations Functions
     # --------------------------------------------------------------------------
 
-    def GetMappings(self, userdefinedtoo: bool=True) -> ODMappingList:
+    def GetMappings(self, userdefinedtoo: bool=True, withmapping=False) -> ODMappingList:
         """Return the different Mappings available for this node"""
+        mapping = ODMappingList([self.Profile, self.DS302])
         if userdefinedtoo:
-            return [self.Profile, self.DS302, self.UserMapping]
-        return [self.Profile, self.DS302]
+            mapping.append(self.UserMapping)
+        if withmapping:
+            mapping.append(maps.MAPPING_DICTIONARY)
+        return mapping
 
     def AddEntry(self, index: int, subindex: int|None = None, value: TODValue|list[TODValue]|None = None) -> bool:
         """
@@ -554,21 +557,39 @@ class Node(NodeProtocol):
 
     def GetIndexDict(self, index: int) -> TIndexEntry:
         """ Return a full and raw representation of the index """
-        obj = {}
+
+        def _mapping_for_index(index: int) -> Generator[tuple[str, TODObj], None, None]:
+            for n, o in (
+                ('profile', self.Profile),
+                ('ds302', self.DS302),
+                ('user', self.UserMapping),
+                ('built-in', maps.MAPPING_DICTIONARY),
+            ):
+                if index in o:
+                    yield n, o[index]
+
+        objmaps = list(_mapping_for_index(index))
+        firstobj: TODObj = objmaps[0][1] if objmaps else {}
+
+        obj: TIndexEntry = {
+            "index": index,
+            "groups": list(n for n, _ in objmaps),
+        }
+
+        if firstobj:   # Safe to assume False here is not just an empty ODObj
+            obj['object'] = firstobj
         if index in self.Dictionary:
             obj['dictionary'] = self.Dictionary[index]
         if index in self.ParamsDictionary:
             obj['params'] = self.ParamsDictionary[index]
-        if index in self.Profile:
-            obj['profile'] = self.Profile[index]
-        if index in self.DS302:
-            obj['ds302'] = self.DS302[index]
-        if index in self.UserMapping:
-            obj['user'] = self.UserMapping[index]
-        if index in maps.MAPPING_DICTIONARY:
-            obj['built-in'] = maps.MAPPING_DICTIONARY[index]
-        obj['base'] = self.GetBaseIndex(index)
-        obj['groups'] = tuple(g for g in ('profile', 'ds302', 'user', 'built-in') if g in obj)
+
+        baseindex = self.GetBaseIndex(index)
+        if index != baseindex:
+            obj['base'] = baseindex
+            baseobject = next(_mapping_for_index(baseindex))
+            obj['basestruct'] = baseobject[1]["struct"]
+
+        # Ensure that the object is safe to mutate
         return copy.deepcopy(obj)
 
     def GetIndexes(self):
