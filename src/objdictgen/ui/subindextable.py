@@ -147,12 +147,12 @@ class SubindexTable(wx.grid.GridTableBase):
             return self.colnames[col]
         return None
 
-    def GetValue(self, row, col, translate=True) -> str|None:  # pylint: disable=unused-argument
+    def GetValue(self, row, col, translate=True) -> str:  # pylint: disable=unused-argument
         if row < self.GetNumberRows():
             colname = self.GetColLabelValue(col, False)
             value = str(self.data[row].get(colname, ""))
             return value
-        return None
+        return ""
 
     def GetEditor(self, row, col):
         if row < self.GetNumberRows():
@@ -417,9 +417,9 @@ class EditingPanel(wx.SplitterWindow):
         self.SubindexGridPanel.SetSizer(self.SubindexGridSizer)
         self.IndexListPanel.SetSizer(self.IndexListSizer)
 
-    def _init_ctrls(self, prnt):
+    def _init_ctrls(self, parent):
         wx.SplitterWindow.__init__(self, id=ID_EDITINGPANEL,
-            name='MainSplitter', parent=prnt, pos=wx.Point(0, 0),
+            name='MainSplitter', parent=parent, pos=wx.Point(0, 0),
             size=wx.Size(-1, -1), style=wx.SP_3D)
         self._init_utils()
 
@@ -497,7 +497,7 @@ class EditingPanel(wx.SplitterWindow):
         self.ListIndex: list[int] = []
         self.ChoiceIndex: list[int] = []
         self.FirstCall = False
-        self.Index: int = None
+        self.Index: int = 0
 
         for values in maps.INDEX_RANGES:
             text = f"   0x{values['min']:04X}-0x{values['max']:04X}      {values['description']}"
@@ -718,7 +718,7 @@ class EditingPanel(wx.SplitterWindow):
             if selected != wx.NOT_FOUND:
                 index = self.ListIndex[selected]
                 if self.Manager.IsCurrentEntry(index):
-                    dialog = cdia.DCFEntryValuesDialog(self, self.Editable)
+                    dialog = common.DCFEntryValuesDialog(self, self.Editable)
                     dialog.SetValues(codecs.decode(self.Table.GetValue(row, col), "hex_codec"))
                     if dialog.ShowModal() == wx.ID_OK and self.Editable:
                         value = dialog.GetValues()
@@ -891,8 +891,8 @@ class EditingPanel(wx.SplitterWindow):
                     elif valuetype == 1:
                         dialog.SetValues(length=values[2])
                     if dialog.ShowModal() == wx.ID_OK:
-                        type_, min_, max_, length = dialog.GetValues()
-                        self.Manager.SetCurrentUserType(index, type_, min_, max_, length)
+                        otype, omin, omax, olength = dialog.GetValues()
+                        self.Manager.SetCurrentUserType(index, otype, omin, omax, olength)
                         self.ParentWindow.RefreshBufferState()
                         self.RefreshIndexList()
 

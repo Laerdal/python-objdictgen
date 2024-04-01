@@ -121,9 +121,9 @@ class CommunicationDialog(wx.Dialog):
 
         self.SetSizer(self.flexGridSizer1)
 
-    def _init_ctrls(self, prnt):
+    def _init_ctrls(self, parent):
         wx.Dialog.__init__(self, id=ID_COMMUNICATIONDIALOG,
-            name='CommunicationDialog', parent=prnt, pos=wx.Point(234, 216),
+            name='CommunicationDialog', parent=parent, pos=wx.Point(234, 216),
             size=wx.Size(726, 437), style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER,
             title='Edit Communication Profile')
         self.SetClientSize(wx.Size(726, 437))
@@ -177,9 +177,9 @@ class CommunicationDialog(wx.Dialog):
     def SetIndexDictionary(self, dictionary: dict[int, tuple[str, bool]]):
         self.IndexDictionary = dictionary
 
-    def SetCurrentList(self, list_: list[int]):
+    def SetCurrentList(self, currentlist: list[int]):
         self.CurrentList = []
-        self.CurrentList.extend(list_)
+        self.CurrentList.extend(currentlist)
         self.CurrentList.sort()
 
     def GetCurrentList(self) -> list[int]:
@@ -290,9 +290,9 @@ class MapVariableDialog(wx.Dialog):
 
         self.SetSizer(self.flexGridSizer1)
 
-    def _init_ctrls(self, prnt):
+    def _init_ctrls(self, parent):
         wx.Dialog.__init__(self, id=ID_MAPVARIABLEDIALOG,
-            name='CommunicationDialog', parent=prnt, pos=wx.Point(376, 223),
+            name='CommunicationDialog', parent=parent, pos=wx.Point(376, 223),
             size=wx.Size(444, 186), style=wx.DEFAULT_DIALOG_STYLE,
             title='Add Map Variable',
         )
@@ -522,9 +522,9 @@ class UserTypeDialog(wx.Dialog):
 
         self.SetSizer(self.flexGridSizer1)
 
-    def _init_ctrls(self, prnt):
+    def _init_ctrls(self, parent):
         wx.Dialog.__init__(self, id=ID_USERTYPEDIALOG, name='UserTypeDialog',
-            parent=prnt, pos=wx.Point(376, 223), size=wx.Size(444, 210),
+            parent=parent, pos=wx.Point(376, 223), size=wx.Size(444, 210),
             style=wx.DEFAULT_DIALOG_STYLE, title='Add User Type',
         )
         self.SetClientSize(wx.Size(444, 210))
@@ -639,16 +639,16 @@ class UserTypeDialog(wx.Dialog):
         if length is not None:
             self.Length.SetValue(str(length))
 
-    def SetTypeList(self, typedic, type_=None):
+    def SetTypeList(self, typedic, objtype=None):
         self.Type.Clear()
-        list_ = []
+        typelist = []
         for index, (name, valuetype) in typedic.items():
             self.TypeDictionary[name] = (index, valuetype)
-            list_.append((index, name))
-        for index, name in sorted(list_):
+            typelist.append((index, name))
+        for index, name in sorted(typelist):
             self.Type.Append(name)
-        if type_ is not None:
-            self.Type.SetStringSelection(typedic[type_][0])
+        if objtype is not None:
+            self.Type.SetStringSelection(typedic[objtype][0])
         self.RefreshValues()
 
     def OnTypeChoice(self, event):
@@ -683,11 +683,11 @@ class UserTypeDialog(wx.Dialog):
 
     def GetValues(self):
         name = self.Type.GetStringSelection()
-        type_ = self.TypeDictionary[name][0]
-        min_ = int(self.Min.GetValue())
-        max_ = int(self.Max.GetValue())
+        objtype = self.TypeDictionary[name][0]
+        minval = int(self.Min.GetValue())
+        maxval = int(self.Max.GetValue())
         length = int(self.Length.GetValue())
-        return type_, min_, max_, length
+        return objtype, minval, maxval, length
 
 
 # ------------------------------------------------------------------------------
@@ -749,9 +749,9 @@ class NodeInfosDialog(wx.Dialog):
 
         self.SetSizer(self.flexGridSizer1)
 
-    def _init_ctrls(self, prnt):
+    def _init_ctrls(self, parent):
         wx.Dialog.__init__(self, id=ID_NODEINFOSDIALOG,
-            name='NodeInfosDialog', parent=prnt, pos=wx.Point(376, 223),
+            name='NodeInfosDialog', parent=parent, pos=wx.Point(376, 223),
             size=wx.Size(300, 280), style=wx.DEFAULT_DIALOG_STYLE,
             title='Node infos',
         )
@@ -845,20 +845,20 @@ class NodeInfosDialog(wx.Dialog):
         else:
             self.EndModal(wx.ID_OK)
 
-    def SetValues(self, name, id_, type_, description, defaultstringsize):
+    def SetValues(self, name, nodeid, nodetype, description, defaultstringsize):
         self.NodeName.SetValue(name)
-        self.NodeID.SetValue(f"0x{id_:02X}")
-        self.Type.SetStringSelection(type_)
+        self.NodeID.SetValue(f"0x{nodeid:02X}")
+        self.Type.SetStringSelection(nodetype)
         self.Description.SetValue(description)
         self.DefaultStringSize.SetValue(defaultstringsize)
 
     def GetValues(self):
         name = self.NodeName.GetValue()
         nodeid = int(self.NodeID.GetValue(), 16)
-        type_ = NODE_TYPES_DICT[self.Type.GetStringSelection()]
+        nodetype = NODE_TYPES_DICT[self.Type.GetStringSelection()]
         description = self.Description.GetValue()
         defaultstringsize = self.DefaultStringSize.GetValue()
-        return name, nodeid, type_, description, defaultstringsize
+        return name, nodeid, nodetype, description, defaultstringsize
 
 
 # ------------------------------------------------------------------------------
@@ -970,9 +970,9 @@ class CreateNodeDialog(wx.Dialog):
 
         self.SetSizer(self.flexGridSizer1)
 
-    def _init_ctrls(self, prnt, buttons):
+    def _init_ctrls(self, parent, buttons):
         wx.Dialog.__init__(self, id=ID_CREATENODEDIALOG,
-            name='CreateNodeDialog', parent=prnt, pos=wx.Point(376, 223),
+            name='CreateNodeDialog', parent=parent, pos=wx.Point(376, 223),
             size=wx.Size(450, 350), style=wx.DEFAULT_DIALOG_STYLE,
             title='Create a new Node',
         )
@@ -1151,9 +1151,9 @@ class CreateNodeDialog(wx.Dialog):
         nodeid = 0
         if self.NodeID.GetValue():
             nodeid = int(self.NodeID.GetValue(), 16)
-        type_ = NODE_TYPES_DICT[self.Type.GetStringSelection()]
+        nodetype = NODE_TYPES_DICT[self.Type.GetStringSelection()]
         description = self.Description.GetValue()
-        return name, nodeid, type_, description
+        return name, nodeid, nodetype, description
 
     def GetProfile(self):
         name = self.Profile.GetStringSelection()
@@ -1166,7 +1166,7 @@ class CreateNodeDialog(wx.Dialog):
             return "NodeGuarding"
         if self.NMT_Heartbeat.GetValue():
             return "Heartbeat"
-        return None
+        return ""
 
     def GetOptions(self) -> list[str]:
         options: list[str] = []
@@ -1258,9 +1258,9 @@ class AddSlaveDialog(wx.Dialog):
 
         self.SetSizer(self.flexGridSizer1)
 
-    def _init_ctrls(self, prnt):
+    def _init_ctrls(self, parent):
         wx.Dialog.__init__(self, id=ID_ADDSLAVEDIALOG,
-            name='AddSlaveDialog', parent=prnt, pos=wx.Point(376, 223),
+            name='AddSlaveDialog', parent=parent, pos=wx.Point(376, 223),
             size=wx.Size(300, 250), style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER,
             title='Add a slave to nodelist',
         )
@@ -1334,11 +1334,11 @@ class AddSlaveDialog(wx.Dialog):
             display_error_dialog(self, f"Form isn't complete. {text} must be filled!")
         else:
             try:
-                nodeid = self.SlaveNodeID.GetValue()
-                if "x" in nodeid:
-                    nodeid = int(nodeid, 16)
+                nodestr = self.SlaveNodeID.GetValue()
+                if "x" in nodestr:
+                    nodeid = int(nodestr, 16)
                 else:
-                    nodeid = int(nodeid)
+                    nodeid = int(nodestr)
             except ValueError as exc:
                 log.debug("ValueError: '%s': %s", self.SlaveNodeID.GetValue(), exc)
                 display_error_dialog(self, "Slave Node ID must be a value in decimal or hexadecimal!")
@@ -1390,11 +1390,11 @@ class AddSlaveDialog(wx.Dialog):
     def GetValues(self) -> TGetValues:
         values: TGetValues = {}
         values["slaveName"] = self.SlaveName.GetValue()
-        nodeid = self.SlaveNodeID.GetValue()
-        if "x" in nodeid:
-            values["slaveNodeID"] = int(nodeid, 16)
+        nodestr = self.SlaveNodeID.GetValue()
+        if "x" in nodestr:
+            values["slaveNodeID"] = int(nodestr, 16)
         else:
-            values["slaveNodeID"] = int(nodeid)
+            values["slaveNodeID"] = int(nodestr)
         values["edsFile"] = self.EDSFile.GetStringSelection()
         return values
 
@@ -1563,9 +1563,9 @@ class DCFEntryValuesDialog(wx.Dialog):
 
         self.SetSizer(self.MainSizer)
 
-    def _init_ctrls(self, prnt):
+    def _init_ctrls(self, parent):
         wx.Dialog.__init__(self, id=ID_DCFENTRYVALUESDIALOG,
-            name='DCFEntryValuesDialog', parent=prnt, pos=wx.Point(376, 223),
+            name='DCFEntryValuesDialog', parent=parent, pos=wx.Point(376, 223),
             size=wx.Size(400, 300), style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER,
             title='Edit DCF Entry Values',
         )

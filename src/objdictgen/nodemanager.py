@@ -61,34 +61,31 @@ class UndoBuffer(Generic[T]):
     Class implementing a buffer of changes made on the current editing Object Dictionary
     """
 
-    def __init__(self, currentstate: T|None = None, issaved: bool = False):
+    def __init__(self, state: T|None = None, issaved: bool = False):
         """
         Constructor initialising buffer
         """
-        self.Buffer: list[T|None] = []
+        self.Buffer: list[T|None] = [state if not i else None for i in range(UNDO_BUFFER_LENGTH)]
         self.CurrentIndex: int = -1
         self.MinIndex: int = -1
         self.MaxIndex: int = -1
         # if current state is defined
-        if currentstate:
+        if state is not None:
             self.CurrentIndex = 0
             self.MinIndex = 0
             self.MaxIndex = 0
-        # Initialising buffer with currentstate at the first place
-        for i in range(UNDO_BUFFER_LENGTH):
-            self.Buffer.append(currentstate if not i else None)
         # Initialising index of state saved
         if issaved:
             self.LastSave = 0
         else:
             self.LastSave = -1
 
-    def Buffering(self, currentstate: T):
+    def Buffering(self, state: T):
         """
         Add a new state in buffer
         """
         self.CurrentIndex = (self.CurrentIndex + 1) % UNDO_BUFFER_LENGTH
-        self.Buffer[self.CurrentIndex] = currentstate
+        self.Buffer[self.CurrentIndex] = state
         # Actualising buffer limits
         self.MaxIndex = self.CurrentIndex
         if self.MinIndex == self.CurrentIndex:
@@ -195,7 +192,7 @@ class NodeManager:
         Create a new node and add a new buffer for storing it
         """
         # Create a new node
-        node = nodelib.Node()
+        node = Node()
         # Load profile given
         if profile != "None":
             # Import profile
@@ -206,7 +203,7 @@ class NodeManager:
         else:
             # Default profile
             node.ProfileName = "None"
-            node.Profile = {}
+            node.Profile = ODMapping()
             node.SpecificMenu = []
         # Initialising node
         self.CurrentNode = node
@@ -238,9 +235,9 @@ class NodeManager:
             # add default SDO server
             addindexlist.append(0x1200)
             # add default 4 receive and 4 transmit PDO
-            for comm, mapping in [(0x1400, 0x1600), (0x1800, 0x1A00)]:
-                firstparamindex = self.GetLineFromIndex(comm)
-                firstmappingindex = self.GetLineFromIndex(mapping)
+            for paramindex, mapindex in [(0x1400, 0x1600), (0x1800, 0x1A00)]:
+                firstparamindex = self.GetLineFromIndex(paramindex)
+                firstmappingindex = self.GetLineFromIndex(mapindex)
                 addindexlist.extend(list(range(firstparamindex, firstparamindex + 4)))
                 for idx in range(firstmappingindex, firstmappingindex + 4):
                     addindexlist.append(idx)
@@ -259,7 +256,7 @@ class NodeManager:
         """
         Open a file and store it in a new buffer
         """
-        node = nodelib.Node.LoadFile(filepath)
+        node = Node.LoadFile(filepath)
 
         self.CurrentNode = node
         node.ID = 0
@@ -332,9 +329,10 @@ class NodeManager:
         disable_buffer = node is not None
         if node is None:
             node = self.CurrentNode
-        assert node  # For mypy
         # Informations about entry
         length = node.GetEntry(index, 0)
+        # FIXME: This code assumes that subindex 0 is the length of the entry
+        assert isinstance(length, int)
         infos = node.GetEntryInfos(index)
         subentry_infos = node.GetSubentryInfos(index, 1)
         # Get default value for subindex
@@ -351,7 +349,7 @@ class NodeManager:
             return
         # Second case entry is record (and array), only possible for manufacturer specific
         if infos["struct"] & OD.MultipleSubindexes and 0x2000 <= index <= 0x5FFF:
-            values = {"name": "Undefined", "type": 5, "access": "rw", "pdo": True}
+            values: TODSubObj = {"name": "Undefined", "type": 5, "access": "rw", "pdo": True}
             for i in range(1, min(number, 0xFE - length) + 1):
                 node.AddMappingEntry(index, length + i, values=values.copy())
                 node.AddEntry(index, length + i, 0)
@@ -366,6 +364,8 @@ class NodeManager:
         # Informations about entry
         infos = self.GetEntryInfos(index)
         length = self.CurrentNode.GetEntry(index, 0)
+        # FIXME: This code assumes that subindex 0 is the length of the entry
+        assert isinstance(length, int)
         if "nbmin" in infos:
             nbmin = infos["nbmin"]
         else:
@@ -547,14 +547,14 @@ class NodeManager:
             node.RemoveLine(index + 0x200, 0x1BFF)
         else:
             found = False
-            for _, list_ in node.SpecificMenu:
-                for i in list_:
+            for _, menulist in node.SpecificMenu:
+                for i in menulist:
                     iinfos = self.GetEntryInfos(i)
                     indexes = [i + incr * iinfos["incr"] for incr in range(iinfos["nbmax"])]
                     if index in indexes:
                         found = True
                         diff = index - i
-                        for j in list_:
+                        for j in menulist:
                             jinfos = self.GetEntryInfos(j)
                             node.RemoveLine(
                                 j + diff, j + jinfos["incr"] * jinfos["nbmax"], jinfos["incr"]
@@ -572,12 +572,11 @@ class NodeManager:
             disable_buffer = node is not None
             if node is None:
                 node = self.CurrentNode
-            assert node  # For mypy
             if node.IsEntry(index):
                 raise ValueError(f"Index 0x{index:04X} already defined!")
             node.AddMappingEntry(index, name=name, struct=struct)
             if struct == OD.VAR:
-                values = {"name": name, "type": 0x05, "access": "rw", "pdo": True}
+                values: TODSubObj = {"name": name, "type": 0x05, "access": "rw", "pdo": True}
                 node.AddMappingEntry(index, 0, values=values)
                 node.AddEntry(index, 0, 0)
             else:
@@ -601,8 +600,7 @@ class NodeManager:
             return
         raise ValueError(f"Index 0x{index:04X} isn't a valid index for Map Variable!")
 
-    def AddUserTypeToCurrent(self, type_: int, min_: int, max_: int, length: int):
-        assert self.CurrentNode  # For mypy
+    def AddUserTypeToCurrent(self, objtype: int, minval: int, maxval: int, length: int):
         node = self.CurrentNode
         index = 0xA0
         while index < 0x100 and node.IsEntry(index):
@@ -867,11 +865,11 @@ class NodeManager:
     # --------------------------------------------------------------------------
 
     def GetCurrentCommunicationLists(self) -> tuple[dict[int, tuple[str, bool]], list[int]]:
-        list_ = []
+        commlist = []
         for index in maps.MAPPING_DICTIONARY:
             if 0x1000 <= index < 0x1200:
-                list_.append(index)
-        return self.GetProfileLists(maps.MAPPING_DICTIONARY, list_)
+                commlist.append(index)
+        return self.GetProfileLists(maps.MAPPING_DICTIONARY, commlist)
 
     def GetCurrentDS302Lists(self) -> tuple[dict[int, tuple[str, bool]], list[int]]:
         return self.GetSpecificProfileLists(self.CurrentNode.DS302)
@@ -882,18 +880,18 @@ class NodeManager:
     def GetSpecificProfileLists(self, mappingdictionary: ODMapping) -> tuple[dict[int, tuple[str, bool]], list[int]]:
         validlist = []
         exclusionlist = []
-        for _, list_ in self.CurrentNode.SpecificMenu:
-            exclusionlist.extend(list_)
+        for _, menulist in self.CurrentNode.SpecificMenu:
+            exclusionlist.extend(menulist)
         for index in mappingdictionary:
             if index not in exclusionlist:
                 validlist.append(index)
         return self.GetProfileLists(mappingdictionary, validlist)
 
     def GetProfileLists(self, mappingdictionary: ODMapping,
-                        list_: list[int]) -> tuple[dict[int, tuple[str, bool]], list[int]]:
-        dictionary = {}
-        current = []
-        for index in list_:
+                        profilelist: list[int]) -> tuple[dict[int, tuple[str, bool]], list[int]]:
+        dictionary: dict[int, tuple[str, bool]] = {}
+        current: list[int] = []
+        for index in profilelist:
             dictionary[index] = (mappingdictionary[index]["name"], mappingdictionary[index]["need"])
             if self.CurrentNode.IsEntry(index):
                 current.append(index)
@@ -945,16 +943,16 @@ class NodeManager:
     def GetCurrentNodeInfos(self) -> tuple[str, int, str, str]:
         node = self.CurrentNode
         name = node.Name
-        id_ = node.ID
-        type_ = node.Type
-        description = node.Description or ""
-        return name, id_, type_, description
+        nodeid = node.ID
+        nodetype = node.Type
+        description = node.Description
+        return name, nodeid, nodetype, description
 
-    def SetCurrentNodeInfos(self, name: str, id_: int, type_: str, description: str):
-        node = self.CurrentNode
+    def SetCurrentNodeInfos(self, name: str, nodeid: int, nodetype: str, description: str):
+        node = self.current
         node.Name = name
-        node.ID = id_
-        node.Type = type_
+        node.ID = nodeid
+        node.Type = nodetype
         node.Description = description
         self.BufferCurrentNode()
 
@@ -979,11 +977,11 @@ class NodeManager:
             return self.CurrentNode.IsEntry(index)
         return False
 
-    def GetCurrentValidIndexes(self, min_: int, max_: int) -> list[tuple[str, int]]:
+    def GetCurrentValidIndexes(self, minval: int, maxval: int) -> list[tuple[str, int]]:
         return [
             (self.GetEntryName(index), index)
             for index in self.CurrentNode.GetIndexes()
-            if min_ <= index <= max_
+            if minval <= index <= maxval
         ]
 
     def GetCurrentValidChoices(self, min_: int, max_: int) -> list[tuple[str, int|None],]:
@@ -993,7 +991,7 @@ class NodeManager:
             exclusionlist.extend(indexes)
             good = True
             for index in indexes:
-                good &= min_ <= index <= max_
+                good &= minval <= index <= maxval
             if good:
                 validchoices.append((menu, None))
         list_ = [index for index in maps.MAPPING_DICTIONARY if index >= 0x1000]
@@ -1020,17 +1018,18 @@ class NodeManager:
     def GetNodeEntryValues(self, node: Node, index: int) -> tuple[list[dict], list[dict]]|None:
         if node and node.IsEntry(index):
             entry_infos = node.GetEntryInfos(index)
-            data = []
-            editors = []
+            # FIXME: data and editors must be described better as they are returned from this function
+            data: list[dict] = []
+            editors: list[dict] = []
             values = node.GetEntry(index, compute=False)
             params = node.GetParamsEntry(index)
             if isinstance(values, list):
                 for i, value in enumerate(values):
                     data.append({"value": value})
-                    data[-1].update(params[i])
+                    data[-1].update(params[i])  # type: ignore[literal-required]
             else:
                 data.append({"value": values})
-                data[-1].update(params)
+                data[-1].update(params)  # type: ignore[arg-type]
             for i, dic in enumerate(data):
                 dic["comment"] = dic["comment"] or ""
                 dic["buffer_size"] = dic["buffer_size"] or ""
@@ -1056,6 +1055,7 @@ class NodeManager:
                     if 0x1600 <= index <= 0x17FF or 0x1A00 <= index <= 0x1C00:
                         editor["access"] = "raccess"
                 else:
+                    # FIXME: Currently node.GetSubentryInfos(index, i) incorrectly adds this
                     if infos["user_defined"]:
                         if entry_infos["struct"] & OD.IdenticalSubindexes:
                             if i == 1:
@@ -1073,6 +1073,8 @@ class NodeManager:
                         editor["value"] = "map"
                         dic["value"] = node.GetMapName(dic["value"])
                     else:
+                        # FIXME: dic["type"] is a string by design
+                        assert isinstance(dic["type"], str)
                         if (dic["type"].startswith("VISIBLE_STRING")
                             or dic["type"].startswith("OCTET_STRING")
                         ):
@@ -1091,13 +1093,12 @@ class NodeManager:
                             dic["buffer_size"] = ""
                         result = type_model.match(dic["type"])
                         if result:
-                            values = result.groups()
-                            if values[0] == "UNSIGNED":
+                            if result[1] == "UNSIGNED":
                                 dic["buffer_size"] = ""
                                 try:
-                                    fmt = "0x{:0" + str(int(values[1]) // 4) + "X}"
+                                    fmt = "0x{:0" + str(int(result[2]) // 4) + "X}"
                                 except ValueError as exc:
-                                    log.debug("ValueError: '%s': %s", values[1], exc)
+                                    log.debug("ValueError: '%s': %s", result[2], exc)
                                     raise  # FIXME: Originial code swallows exception
                                 try:
                                     dic["value"] = fmt.format(dic["value"])
@@ -1105,28 +1106,27 @@ class NodeManager:
                                     log.debug("ValueError: '%s': %s", dic["value"], exc)
                                     # FIXME: dict["value"] can contain $NODEID for PDOs i.e. $NODEID+0x200
                                 editor["value"] = "string"
-                            if values[0] == "INTEGER":
+                            if result[1] == "INTEGER":
                                 editor["value"] = "number"
                                 dic["buffer_size"] = ""
-                            elif values[0] == "REAL":
+                            elif result[1] == "REAL":
                                 editor["value"] = "float"
                                 dic["buffer_size"] = ""
-                            elif values[0] in ["VISIBLE_STRING", "OCTET_STRING"]:
-                                editor["length"] = values[0]
+                            elif result[1] in ["VISIBLE_STRING", "OCTET_STRING"]:
+                                editor["length"] = result[1]
                         result = range_model.match(dic["type"])
                         if result:
-                            values = result.groups()
-                            if values[0] in ["UNSIGNED", "INTEGER", "REAL"]:
-                                editor["min"] = values[2]
-                                editor["max"] = values[3]
+                            if result[1] in ["UNSIGNED", "INTEGER", "REAL"]:
+                                editor["min"] = result[3]
+                                editor["max"] = result[4]
                                 dic["buffer_size"] = ""
                 editors.append(editor)
             return data, editors
         return None
 
     def AddToDCF(self, node_id: int, index: int, subindex: int, size: int, value: int):
-        if self.CurrentNode.IsEntry(0x1F22, node_id):
-            dcf_value = self.CurrentNode.GetEntry(0x1F22, node_id)
+            # FIXME: This code assumes that the DCF value is a list
+            assert isinstance(dcf_value, list)
             if dcf_value:
                 nbparams = nodelib.Node.be_to_le(dcf_value[:4])
             else:

@@ -165,21 +165,19 @@ SUBINDEX0 = {
     'pdo': False,
 }
 
+# Remove jsonc annotations
+# Copied from https://github.com/NickolaiBeloguzov/jsonc-parser/blob/master/jsonc_parser/parser.py#L11-L39
+RE_JSONC = re.compile(r"(\".*?\"|\'.*?\')|(/\*.*?\*/|//[^\r\n]*$)", re.MULTILINE | re.DOTALL)
+
 
 def remove_jasonc(text: str) -> str:
     """ Remove jsonc annotations """
-    # Copied from https://github.com/NickolaiBeloguzov/jsonc-parser/blob/master/jsonc_parser/parser.py#L11-L39
-    def __re_sub(match):
+    def _re_sub(match: re.Match[str]) -> str:
         if match.group(2) is not None:
             return ""
         return match.group(1)
 
-    return re.sub(
-        r"(\".*?\"|\'.*?\')|(/\*.*?\*/|//[^\r\n]*$)",
-        __re_sub,
-        text,
-        flags=re.MULTILINE | re.DOTALL
-    )
+    return RE_JSONC.sub(_re_sub, text,)
 
 
 # FIXME: Move to generic utils/funcs?
@@ -238,7 +236,7 @@ def remove_underscore(d: T) -> T:
 
 
 def member_compare(
-        a: Iterable[str],
+        a: Iterable[str], *,
         must: set[str]|None = None,
         optional: set[str]|None = None,
         not_want: set[str]|None = None,
@@ -737,7 +735,7 @@ def validate_nodeindex(node: "Node", index: int, obj):
         # B) Check baseobj object members is present
         member_compare(
             baseobj.keys(),
-            FIELDS_MAPPING_MUST, FIELDS_MAPPING_OPT | FIELDS_PARAMS_PROMOTE,
+            must=FIELDS_MAPPING_MUST, optional=FIELDS_MAPPING_OPT | FIELDS_PARAMS_PROMOTE,
             msg=' in mapping object'
         )
 
@@ -769,7 +767,7 @@ def validate_nodeindex(node: "Node", index: int, obj):
     for val in baseobj.get('values', []):
         member_compare(
             val.keys(),
-            FIELDS_MAPVALS_MUST, FIELDS_MAPVALS_OPT,
+            must=FIELDS_MAPVALS_MUST, optional=FIELDS_MAPVALS_OPT,
             msg=' in mapping values'
         )
 
@@ -805,8 +803,8 @@ def validate_nodeindex(node: "Node", index: int, obj):
         if isinstance(param, int):
             # Check that there are no unexpected fields in numbered param
             member_compare(params[param].keys(),
-                {},
-                FIELDS_PARAMS,
+                must=set(),
+                optional=FIELDS_PARAMS,
                 not_want=FIELDS_PARAMS_PROMOTE | FIELDS_MAPVALS_MUST | FIELDS_MAPVALS_OPT,
                 msg=' in params'
             )
@@ -819,7 +817,7 @@ def validate_nodeindex(node: "Node", index: int, obj):
         raise ValidationError(f"Excessive params, or too few dictionary values: {excessive}")
 
     # Find all non-numbered params and check them against
-    promote = {k for k in params if not isinstance(k, int)}
+    promote: set[str] = {k for k in params if not isinstance(k, int)}
     if promote:
         member_compare(promote, optional=FIELDS_PARAMS_PROMOTE, msg=' in params')
 
@@ -1095,7 +1093,7 @@ def validate_fromdict(jsonobj: TODJson, objtypes_i2s: dict[int, str]|None = None
         return
 
     # Verify that we have the expected members
-    member_compare(jsonobj.keys(), FIELDS_DATA_MUST, FIELDS_DATA_OPT)
+    member_compare(jsonobj.keys(), must=FIELDS_DATA_MUST, optional=FIELDS_DATA_OPT)
 
     def _validate_sub(obj, idx=0, is_var=False, is_repeat=False, is_each=False):
 
@@ -1124,7 +1122,7 @@ def validate_fromdict(jsonobj: TODJson, objtypes_i2s: dict[int, str]|None = None
             member_compare(obj.keys(), not_want=FIELDS_VALUE)
 
         # Validate "nbmax" if parsing the "each" sub
-        member_compare(obj.keys(), {'nbmax'}, only_if=idx == -1)
+        member_compare(obj.keys(), must={'nbmax'}, only_if=idx == -1)
 
         # Default object presense
         defs = 'must'   # Parameter definition (FIELDS_MAPVALS_*)
@@ -1170,7 +1168,7 @@ def validate_fromdict(jsonobj: TODJson, objtypes_i2s: dict[int, str]|None = None
             opts |= FIELDS_VALUE
 
         # Verify parameters
-        member_compare(obj.keys(), must, opts)
+        member_compare(obj.keys(), must=must, optional=opts)
 
         # Validate "name"
         if 'name' in obj and not obj['name']:
@@ -1208,12 +1206,15 @@ def validate_fromdict(jsonobj: TODJson, objtypes_i2s: dict[int, str]|None = None
 
         # Validate all present fields
         if is_repeat:
-            member_compare(obj.keys(), FIELDS_DICT_REPEAT_MUST, FIELDS_DICT_REPEAT_OPT,
-                           msg=' in dictionary')
-
+            member_compare(obj.keys(),
+                must=FIELDS_DICT_REPEAT_MUST, optional=FIELDS_DICT_REPEAT_OPT,
+                msg=' in dictionary'
+            )
         else:
-            member_compare(obj.keys(), FIELDS_DICT_MUST, FIELDS_DICT_OPT,
-                           msg=' in dictionary')
+            member_compare(obj.keys(),
+                must=FIELDS_DICT_MUST, optional=FIELDS_DICT_OPT,
+                msg=' in dictionary'
+            )
 
         # Validate "index" (must)
         if not isinstance(index, int):
@@ -1243,7 +1244,7 @@ def validate_fromdict(jsonobj: TODJson, objtypes_i2s: dict[int, str]|None = None
 
         # Validate that "nbmax" and "incr" is only present in right struct type
         need_nbmax = not is_repeat and struct in (OD.NVAR, OD.NARRAY, OD.NRECORD)
-        member_compare(obj.keys(), {'nbmax', 'incr'}, only_if=need_nbmax)
+        member_compare(obj.keys(), must={'nbmax', 'incr'}, only_if=need_nbmax)
 
         subitems = obj['sub']
         if not isinstance(subitems, list):
@@ -1333,17 +1334,22 @@ def validate_fromdict(jsonobj: TODJson, objtypes_i2s: dict[int, str]|None = None
             raise
 
 
-def diff_nodes(node1: "Node", node2: "Node", as_dict=True, validate=True) -> TDiffNodes:
+def diff_nodes(node1: "Node", node2: "Node", asdict=True, validate=True) -> TDiffNodes:
     """Compare two nodes and return the differences."""
 
-    diffs = {}
+    diffs: dict[int|str, list] = {}
 
-    if as_dict:
+    if asdict:
         jd1, _ = node_todict(node1, sort=True, validate=validate)
         jd2, _ = node_todict(node2, sort=True, validate=validate)
 
         dt = datetime.isoformat(datetime.now())
         jd1['$date'] = jd2['$date'] = dt
+
+        # DeepDiff does not have typing, but the diff object is a dict-like object
+        #   DeepDiff[str, deepdiff.model.PrettyOrderedSet].
+        # PrettyOrderedSet is a list-like object
+        #   PrettyOrderedSet[deepdiff.model.DiffLevel]
 
         diff = deepdiff.DeepDiff(jd1, jd2, exclude_paths=[
             "root['dictionary']"

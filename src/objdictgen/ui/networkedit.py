@@ -64,7 +64,7 @@ def usage():
 ] = [wx.NewId() for _ in range(6)]
 
 
-class NetworkEdit(wx.Frame, NetworkEditorTemplate):
+class NetworkEdit(NetworkEditorTemplate):
     """Network Editor UI."""
     # pylint: disable=attribute-defined-outside-init
 
@@ -193,10 +193,10 @@ class NetworkEdit(wx.Frame, NetworkEditorTemplate):
         self._init_coll_EditMenu_Items(self.EditMenu)
         self._init_coll_AddMenu_Items(self.AddMenu)
 
-    def _init_ctrls(self, prnt):
+    def _init_ctrls(self, parent):
         wx.Frame.__init__(
             self, id=ID_NETWORKEDIT, name='networkedit',
-            parent=prnt, pos=wx.Point(149, 178), size=wx.Size(1000, 700),
+            parent=parent, pos=wx.Point(149, 178), size=wx.Size(1000, 700),
             style=wx.DEFAULT_FRAME_STYLE, title='Networkedit',
         )
         self._init_utils()
@@ -219,9 +219,9 @@ class NetworkEdit(wx.Frame, NetworkEditorTemplate):
 
     def __init__(self, parent, nodelist: nl.NodeList|None = None, projectOpen=None):
         if nodelist is None:
-            NetworkEditorTemplate.__init__(self, NodeList(NodeManager()), self, True)
+            NetworkEditorTemplate.__init__(self, nl.NodeList(NodeManager()), True)
         else:
-            NetworkEditorTemplate.__init__(self, nodelist, self, False)
+            NetworkEditorTemplate.__init__(self, nodelist, False)
         self._init_ctrls(parent)
 
         icon = wx.Icon(
@@ -254,8 +254,6 @@ class NetworkEdit(wx.Frame, NetworkEditorTemplate):
 
     def OnCloseFrame(self, event):
         self.Closing = True
-        if not self.ModeSolo and getattr(self, "_onclose", None) is not None:
-            self._onclose()
         event.Skip()
 
     def OnQuitMenu(self, event):  # pylint: disable=unused-argument
@@ -280,7 +278,7 @@ class NetworkEdit(wx.Frame, NetworkEditorTemplate):
 
         if os.path.isdir(projectpath) and len(os.listdir(projectpath)) == 0:
             manager = NodeManager()
-            nodelist = NodeList(manager)
+            nodelist = nl.NodeList(manager)
             try:
                 nodelist.LoadProject(projectpath)
 
@@ -310,7 +308,7 @@ class NetworkEdit(wx.Frame, NetworkEditorTemplate):
 
         if os.path.isdir(projectpath):
             manager = NodeManager()
-            nodelist = NodeList(manager)
+            nodelist = nl.NodeList(manager)
             try:
                 nodelist.LoadProject(projectpath)
 
@@ -327,13 +325,10 @@ class NetworkEdit(wx.Frame, NetworkEditorTemplate):
                 display_exception_dialog(self)
 
     def OnSaveProjectMenu(self, event):  # pylint: disable=unused-argument
-        if not self.ModeSolo and getattr(self, "_onsave", None) is not None:
-            self._onsave()
-        else:
-            try:
-                self.NodeList.SaveProject()
-            except Exception:  # pylint: disable=broad-except
-                display_exception_dialog(self)
+        try:
+            self.NodeList.SaveProject()
+        except Exception:  # pylint: disable=broad-except
+            display_exception_dialog(self)
 
     def OnCloseProjectMenu(self, event):  # pylint: disable=unused-argument
         if self.NodeList:

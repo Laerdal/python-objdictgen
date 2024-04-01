@@ -97,16 +97,20 @@ def get_valid_type_infos(context, typename, items=None):
     return typeinfos
 
 
-def compute_value(type_: str, value: TODValue) -> tuple[str, str]:
+def compute_value(ctype: str, value: TODValue) -> tuple[str, str]:
     """Compute value for C file."""
-    if type_ == "visible_string":
+    if ctype == "visible_string":
         return f'"{value}"', ""
-    if type_ == "domain":
+    if ctype == "domain":
+        # FIXME: This ctype assumes the value type
+        assert isinstance(value, str)
         tp = ''.join([f"\\x{ord(char):02x}" for char in value])
         return f'"{tp}"', ""
-    if type_.startswith("real"):
+    if ctype.startswith("real"):
         return str(value), ""
-    # value is integer; make sure to handle negative numbers correctly
+    # FIXME: Assume value is an integer
+    assert not isinstance(value, str)
+    # Make sure to handle negative numbers correctly
     if value < 0:
         return f"-0x{-value:X}", f"\t/* {value} */"
     return f"0x{value:X}", f"\t/* {value} */"
@@ -173,11 +177,17 @@ def generate_file_content(node: NodeProtocol, headerfile: str, pointers_dict=Non
         if result:
             num += 1
             typeindex = node.GetEntry(index, 1)
+            # FIXME: It is assumed that rangelist contains propery formatted entries
+            #        where index 1 is the object type as int
+            assert isinstance(typeindex, int)
             typename = node.GetTypeName(typeindex)
             typeinfos = get_valid_type_infos(context, typename)
             context.internal_types[rangename] = (typeinfos[0], typeinfos[1], f"valueRange_{num}")
             minvalue = node.GetEntry(index, 2)
             maxvalue = node.GetEntry(index, 3)
+            # FIXME: It assumed the data is properly formatted
+            assert isinstance(minvalue, int)
+            assert isinstance(maxvalue, int)
             strDefine += (
                 f"\n#define valueRange_{num} 0x{index:02X} "
                 f"/* Type {typeinfos[0]}, {minvalue} < value < {maxvalue} */"
@@ -358,6 +368,7 @@ def generate_file_content(node: NodeProtocol, headerfile: str, pointers_dict=Non
                                 "_obj%(index)04X_%(name)s%(suffix)s = "
                                 "%(value)s;%(comment)s\n"
                             ) % texts
+
         headerObjectDefinitionContent += (
             f"\n#define {RE_NOTW.sub('_', texts['NodeName'])}"
             f"_{RE_NOTW.sub('_', texts['EntryName'])}_Idx {texts['index']:#04x}\n"
@@ -373,6 +384,8 @@ def generate_file_content(node: NodeProtocol, headerfile: str, pointers_dict=Non
         for subindex, _ in enumerate(values):
             subentry_infos = node.GetSubentryInfos(index, subindex)
             params_infos = node.GetParamsEntry(index, subindex)
+            # FIXME: As subindex is non-zero, params can't be a list
+            assert not isinstance(params_infos, list)
             if subindex < len(values) - 1:
                 sep = ","
             else:
@@ -414,6 +427,8 @@ def generate_file_content(node: NodeProtocol, headerfile: str, pointers_dict=Non
             else:
                 sizeof = f"sizeof ({typeinfos[0]})"
             params = node.GetParamsEntry(index, subindex)
+            # FIXME: As subindex is non-zero, params can't be a list
+            assert not isinstance(params, list)
             if params["save"]:
                 save = "|TO_BE_SAVE"
             else:

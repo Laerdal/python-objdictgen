@@ -22,6 +22,7 @@ import getopt
 import logging
 import os
 import sys
+from typing import cast
 
 import wx
 
@@ -72,7 +73,7 @@ def usage():
 ] = [wx.NewId() for _ in range(6)]
 
 
-class ObjdictEdit(wx.Frame, net.NodeEditorTemplate):
+class ObjdictEdit(NodeEditorTemplate):
     """Main frame for the object dictionary editor."""
     # pylint: disable=attribute-defined-outside-init
 
@@ -198,10 +199,10 @@ class ObjdictEdit(wx.Frame, net.NodeEditorTemplate):
         self._init_coll_EditMenu_Items(self.EditMenu)
         self._init_coll_AddMenu_Items(self.AddMenu)
 
-    def _init_ctrls(self, prnt):
+    def _init_ctrls(self, parent):
         wx.Frame.__init__(
             self, id=ID_OBJDICTEDIT, name='objdictedit',
-            parent=prnt, pos=wx.Point(149, 178), size=wx.Size(1000, 700),
+            parent=parent, pos=wx.Point(149, 178), size=wx.Size(1000, 700),
             style=wx.DEFAULT_FRAME_STYLE, title='Objdictedit',
         )
         self._init_utils()
@@ -234,9 +235,9 @@ class ObjdictEdit(wx.Frame, net.NodeEditorTemplate):
     def __init__(self, parent, manager: NodeManager|None = None, filesopen: list[TPath]|None = None):
         filesopen = filesopen or []
         if manager is None:
-            net.NodeEditorTemplate.__init__(self, nodemanager.NodeManager(), self, True)
+            NodeEditorTemplate.__init__(self, NodeManager(), True)
         else:
-            net.NodeEditorTemplate.__init__(self, manager, self, False)
+            NodeEditorTemplate.__init__(self, manager, False)
         self._init_ctrls(parent)
 
         icon = wx.Icon(
@@ -249,15 +250,15 @@ class ObjdictEdit(wx.Frame, net.NodeEditorTemplate):
             for filepath in filesopen:
                 try:
                     index = self.Manager.OpenFileInCurrent(os.path.abspath(filepath))
-                    new_editingpanel = sit.EditingPanel(self.FileOpened, self, self.Manager)
+                    new_editingpanel = EditingPanel(self.FileOpened, self, self.Manager)
                     new_editingpanel.SetIndex(index)
                     self.FileOpened.AddPage(new_editingpanel, "")
                 except Exception as exc:  # Need this broad exception?
-                    log.debug("Swallowed Exception: %s", exc)
+                    log.warning("Swallowed Exception: %s", exc)
                     raise  # FIXME: Originial code swallows exception
         else:
             for index in self.Manager.GetBufferIndexes():
-                new_editingpanel = sit.EditingPanel(self.FileOpened, self, self.Manager)
+                new_editingpanel = EditingPanel(self.FileOpened, self, self.Manager)
                 new_editingpanel.SetIndex(index)
                 self.FileOpened.AddPage(new_editingpanel, "")
 
@@ -296,8 +297,6 @@ class ObjdictEdit(wx.Frame, net.NodeEditorTemplate):
     def OnCloseFrame(self, event):
         self.Closing = True
         if not self.ModeSolo:
-            if getattr(self, "_onclose", None) is not None:
-                self._onclose()
             event.Skip()
         elif self.Manager.OneFileHasChanged():
             with wx.MessageDialog(
@@ -394,20 +393,20 @@ class ObjdictEdit(wx.Frame, net.NodeEditorTemplate):
 
     def OnNewMenu(self, event):  # pylint: disable=unused-argument
         # self.FilePath = ""
-        with cdia.CreateNodeDialog(self) as dialog:
+        with CreateNodeDialog(self) as dialog:
             if dialog.ShowModal() != wx.ID_OK:
                 return
-            name, id_, nodetype, description = dialog.GetValues()
+            name, nodeid, nodetype, description = dialog.GetValues()
             profile, filepath = dialog.GetProfile()
             nmt = dialog.GetNMTManagement()
             options = dialog.GetOptions()
 
         try:
             index = self.Manager.CreateNewNode(
-                name=name, id=id_, type=nodetype, description=description,
+                name=name, id=nodeid, type=nodetype, description=description,
                 profile=profile, filepath=filepath, nmt=nmt, options=options,
             )
-            new_editingpanel = sit.EditingPanel(self.FileOpened, self, self.Manager)
+            new_editingpanel = EditingPanel(self.FileOpened, self, self.Manager)
             new_editingpanel.SetIndex(index)
             self.FileOpened.AddPage(new_editingpanel, "")
             self.FileOpened.SetSelection(self.FileOpened.GetPageCount() - 1)
@@ -439,7 +438,7 @@ class ObjdictEdit(wx.Frame, net.NodeEditorTemplate):
         if os.path.isfile(filepath):
             try:
                 index = self.Manager.OpenFileInCurrent(filepath)
-                new_editingpanel = sit.EditingPanel(self.FileOpened, self, self.Manager)
+                new_editingpanel = EditingPanel(self.FileOpened, self, self.Manager)
                 new_editingpanel.SetIndex(index)
                 self.FileOpened.AddPage(new_editingpanel, "")
                 self.FileOpened.SetSelection(self.FileOpened.GetPageCount() - 1)
@@ -455,11 +454,7 @@ class ObjdictEdit(wx.Frame, net.NodeEditorTemplate):
                 display_exception_dialog(self)
 
     def OnSaveMenu(self, event):  # pylint: disable=unused-argument
-        if not self.ModeSolo and getattr(self, "_onsave", None) is not None:
-            self._onsave()
-            self.RefreshBufferState()
-        else:
-            self.Save()
+        self.Save()
 
     def OnSaveAsMenu(self, event):  # pylint: disable=unused-argument
         self.SaveAs()
@@ -545,7 +540,7 @@ class ObjdictEdit(wx.Frame, net.NodeEditorTemplate):
         if os.path.isfile(filepath):
             try:
                 index = self.Manager.OpenFileInCurrent(filepath, load=False)
-                new_editingpanel = sit.EditingPanel(self.FileOpened, self, self.Manager)
+                new_editingpanel = EditingPanel(self.FileOpened, self, self.Manager)
                 new_editingpanel.SetIndex(index)
                 self.FileOpened.AddPage(new_editingpanel, "")
                 self.FileOpened.SetSelection(self.FileOpened.GetPageCount() - 1)

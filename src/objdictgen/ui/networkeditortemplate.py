@@ -36,15 +36,15 @@ from objdictgen.ui.subindextable import EditingPanel, EditingPanelNotebook
 ] = [wx.NewId() for _ in range(1)]
 
 
-class NetworkEditorTemplate(net.NodeEditorTemplate):
+class NetworkEditorTemplate(NodeEditorTemplate):
     """Network Editor Template."""
     # pylint: disable=attribute-defined-outside-init
 
-    def _init_ctrls(self, prnt):
+    def _init_ctrls(self, parent):
         # FIXME: This cast is to define right type hints of attributes for this specific instance
         self.NetworkNodes = cast(EditingPanelNotebook, wx.Notebook(
             id=ID_NETWORKEDITNETWORKNODES,
-            name='NetworkNodes', parent=prnt, pos=wx.Point(0, 0),
+            name='NetworkNodes', parent=parent, pos=wx.Point(0, 0),
             size=wx.Size(0, 0), style=wx.NB_LEFT,
         ))
         self.NetworkNodes.Bind(
@@ -52,9 +52,9 @@ class NetworkEditorTemplate(net.NodeEditorTemplate):
             self.OnNodeSelectedChanged, id=ID_NETWORKEDITNETWORKNODES
         )
 
-    def __init__(self, manager, frame, mode_solo):
-        self.NodeList = manager
-        net.NodeEditorTemplate.__init__(self, self.NodeList.Manager, frame, mode_solo)
+    def __init__(self, nodelist: NodeList, mode_solo: bool):
+        self.NodeList = nodelist
+        NodeEditorTemplate.__init__(self, self.NodeList.Manager, mode_solo)
 
     def GetCurrentNodeId(self):
         selected = self.NetworkNodes.GetSelection()
@@ -74,12 +74,12 @@ class NetworkEditorTemplate(net.NodeEditorTemplate):
         if self.NetworkNodes.GetPageCount() > 0:
             self.NetworkNodes.DeleteAllPages()
         if self.NodeList:
-            new_editingpanel = sit.EditingPanel(self.NetworkNodes, self, self.Manager)
+            new_editingpanel = EditingPanel(self.NetworkNodes, self, self.Manager)
             new_editingpanel.SetIndex(self.Manager.GetCurrentNodeID())
             self.NetworkNodes.AddPage(new_editingpanel, "")
             for idx in self.NodeList.GetSlaveIDs():
                 # FIXME: Why is NodeList used where NodeManager is expected?
-                new_editingpanel = sit.EditingPanel(self.NetworkNodes, self, self.NodeList, False)
+                new_editingpanel = EditingPanel(self.NetworkNodes, self, self.NodeList, False)
                 new_editingpanel.SetIndex(idx)
                 self.NetworkNodes.AddPage(new_editingpanel, "")
 
@@ -90,9 +90,10 @@ class NetworkEditorTemplate(net.NodeEditorTemplate):
             if selected >= 0:
                 window = self.NetworkNodes.GetPage(selected)
                 self.NodeList.CurrentSelected = window.GetIndex()
-            raise NotImplementedError("Missing unknown symbol. Please report this issue.")
-            # wx.CallAfter(self.RefreshMainMenu)  # FIXME: Missing symbol. From where?
-            wx.CallAfter(self.RefreshStatusBar)
+            raise NotImplementedError("Unimplemented symbol.")
+            # FIXME: Missing symbol in the original code. Delete?
+            # wx.CallAfter(self.RefreshMainMenu)
+            # wx.CallAfter(self.RefreshStatusBar)
         event.Skip()
 
     # --------------------------------------------------------------------------
@@ -115,7 +116,7 @@ class NetworkEditorTemplate(net.NodeEditorTemplate):
     # --------------------------------------------------------------------------
 
     def OnAddSlaveMenu(self, event):  # pylint: disable=unused-argument
-        with cdia.AddSlaveDialog(self.Frame) as dialog:
+        with AddSlaveDialog(self.Frame) as dialog:
             dialog.SetNodeList(self.NodeList)
             if dialog.ShowModal() != wx.ID_OK:
                 return
@@ -126,7 +127,7 @@ class NetworkEditorTemplate(net.NodeEditorTemplate):
                 values["slaveName"], values["slaveNodeID"], values["edsFile"],
             )
             # FIXME: Why is NodeList used where NodeManager is expected?
-            new_editingpanel = sit.EditingPanel(self.NetworkNodes, self, self.NodeList, False)
+            new_editingpanel = EditingPanel(self.NetworkNodes, self, self.NodeList, False)
             new_editingpanel.SetIndex(values["slaveNodeID"])
             idx = self.NodeList.GetOrderNumber(values["slaveNodeID"])
             self.NetworkNodes.InsertPage(idx, new_editingpanel, "")

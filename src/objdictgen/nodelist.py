@@ -265,8 +265,8 @@ def main(projectdir):
         for line in node.GetPrintParams(raw=True):
             print(line)
     print()
-    for nodeid, node in nodelist.SlaveNodes.items():
-        print(f"SlaveNode name={node['Name']} id=0x{nodeid:02X} :")
-        for line in node["Node"].GetPrintParams():
+    for nodeid, nodeinfo in nodelist.SlaveNodes.items():
+        print(f"SlaveNode name={nodeinfo['Name']} id=0x{nodeid:02X} :")
+        for line in nodeinfo["Node"].GetPrintParams():
             print(line)
         print()

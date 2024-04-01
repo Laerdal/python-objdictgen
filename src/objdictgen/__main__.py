@@ -282,8 +282,8 @@ def main(debugopts: DebugOpts, args: Sequence[str]|None = None):
                 od.GetPrintLine(k, unused=True)
                 for k in sorted(to_remove)
             ]
-            for index in to_remove:
-                od.RemoveIndex(index)
+            for idx in to_remove:
+                od.RemoveIndex(idx)
             for line, fmt in info:
                 print(line.format(**fmt))
 
@@ -300,7 +300,7 @@ def main(debugopts: DebugOpts, args: Sequence[str]|None = None):
         od2 = open_od(opts.od2, validate=not opts.novalidate)
 
         diffs = jsonod.diff_nodes(
-            od1, od2, as_dict=not opts.internal,
+            od1, od2, asdict=not opts.internal,
             validate=not opts.novalidate,
         )
 
@@ -339,9 +339,9 @@ def main(debugopts: DebugOpts, args: Sequence[str]|None = None):
             # Get the indexes to print and determine the order
             keys = od.GetAllParameters(sort=not opts.asis)
             if opts.index:
-                index = tuple(jsonod.str_to_number(i) for i in opts.index)
-                keys = tuple(k for k in keys if k in index)
-                missing = ", ".join((str(k) for k in index if k not in keys))
+                indexp = [jsonod.str_to_number(i) for i in opts.index]
+                keysp = [k for k in keys if k in indexp]
+                missing = ", ".join((str(k) for k in indexp if k not in keysp))
                 if missing:
                     parser.error(f"Unknown index {missing}")
 

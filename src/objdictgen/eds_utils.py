@@ -210,7 +210,7 @@ def parse_cpj_file(filepath: TPath):
                         nodedcfname_result = RE_NODEDCFNAME.match(keyname.upper())
 
                         if keyname.upper() == "NETNAME":
-                            if not is_string(computed_value):
+                            if not isinstance(computed_value, str):
                                 raise ValueError(
                                     f"Invalid value '{value}' for keyname '{keyname}' "
                                     f"of section '[{section_name}]'"
@@ -218,7 +218,7 @@ def parse_cpj_file(filepath: TPath):
                             topology["Name"] = computed_value
 
                         elif keyname.upper() == "NODES":
-                            if not is_integer(computed_value):
+                            if not isinstance(computed_value, int):
                                 raise ValueError(
                                     f"Invalid value '{value}' for keyname '{keyname}' "
                                     f"of section '[{section_name}]'"
@@ -226,7 +226,7 @@ def parse_cpj_file(filepath: TPath):
                             topology["Number"] = computed_value
 
                         elif keyname.upper() == "EDSBASENAME":
-                            if not is_string(computed_value):
+                            if not isinstance(computed_value, str):
                                 raise ValueError(
                                     f"Invalid value '{value}' for keyname '{keyname}' "
                                     f"of section '[{section_name}]'"
@@ -234,34 +234,34 @@ def parse_cpj_file(filepath: TPath):
                             topology["Path"] = computed_value
 
                         elif nodepresent_result:
-                            if not is_boolean(computed_value):
+                            if not isinstance(computed_value, bool):
                                 raise ValueError(
                                     f"Invalid value '{value}' for keyname '{keyname}' "
                                     "of section '[{section_name}]'"
                                 )
-                            nodeid = int(nodepresent_result.groups()[0])
+                            nodeid = int(nodepresent_result[1])
                             if nodeid not in topology["Nodes"]:
                                 topology["Nodes"][nodeid] = {}
                             topology["Nodes"][nodeid]["Present"] = computed_value
 
                         elif nodename_result:
-                            if not is_string(value):
+                            if not isinstance(computed_value, str):
                                 raise ValueError(
                                     f"Invalid value '{value}' for keyname '{keyname}' "
                                     f"of section '[{section_name}]'"
                                 )
-                            nodeid = int(nodename_result.groups()[0])
+                            nodeid = int(nodename_result[1])
                             if nodeid not in topology["Nodes"]:
                                 topology["Nodes"][nodeid] = {}
                             topology["Nodes"][nodeid]["Name"] = computed_value
 
                         elif nodedcfname_result:
-                            if not is_string(computed_value):
+                            if not isinstance(computed_value, str):
                                 raise ValueError(
                                     f"Invalid value '{value}' for keyname '{keyname}' "
                                     f"of section '[{section_name}]'"
                                 )
-                            nodeid = int(nodedcfname_result.groups()[0])
+                            nodeid = int(nodedcfname_result[1])
                             if nodeid not in topology["Nodes"]:
                                 topology["Nodes"][nodeid] = {}
                             topology["Nodes"][nodeid]["DCFName"] = computed_value
@@ -325,7 +325,7 @@ def parse_eds_file(filepath: TPath) -> dict[str|int, Any]:
         # Second case, section name is an index name
         elif index_result:
             # Extract index number
-            index = int(index_result.groups()[0], 16)
+            index = int(index_result[1], 16)
             # If index hasn't been referenced before, we add an entry into the dictionary
             if index not in eds_dict:
                 eds_dict[index] = values
@@ -509,7 +509,7 @@ def generate_eds_content(node: "Node", filepath: TPath):
     try:
         value = node.GetEntry(0x1018)
     except ValueError:
-        raise ValueError("Missing required Identity (0x1018) object")
+        raise ValueError("Missing required Identity (0x1018) object") from None
 
     # Generate FileInfo section
     fileContent = "[FileInfo]\n"
@@ -610,7 +610,7 @@ def generate_eds_content(node: "Node", filepath: TPath):
             text += f"DataType=0x{subentry_infos['type']:04X}\n"
             text += f"AccessType={subentry_infos['access']}\n"
             if subentry_infos["type"] == 1:
-                text += f"DefaultValue={BOOL_TRANSLATE[values]}\n"
+                text += f"DefaultValue={BOOL_TRANSLATE[bool(values)]}\n"
             else:
                 text += f"DefaultValue={values}\n"
             text += f"PDOMapping={BOOL_TRANSLATE[subentry_infos['pdo']]}\n"
@@ -638,7 +638,7 @@ def generate_eds_content(node: "Node", filepath: TPath):
                 subtext += f"DataType=0x{subentry_infos['type']:04X}\n"
                 subtext += f"AccessType={subentry_infos['access']}\n"
                 if subentry_infos["type"] == 1:
-                    subtext += f"DefaultValue={BOOL_TRANSLATE[value]}\n"
+                    subtext += f"DefaultValue={BOOL_TRANSLATE[bool(value)]}\n"
                 else:
                     subtext += f"DefaultValue={value}\n"
                 subtext += f"PDOMapping={BOOL_TRANSLATE[subentry_infos['pdo']]}\n"

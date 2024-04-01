@@ -29,7 +29,7 @@ from objdictgen.ui.exception import (display_error_dialog,
                                      display_exception_dialog)
 
 
-class NodeEditorTemplate:
+class NodeEditorTemplate(wx.Frame):
     """Template for the NodeEditor class."""
 
     EDITMENU_ID: int|None = None
@@ -39,12 +39,11 @@ class NodeEditorTemplate:
     EditMenu: wx.Menu
     AddMenu: wx.Menu
 
-    def __init__(self, manager: NodeManager, frame, mode_solo: bool):
+    def __init__(self, manager: NodeManager, mode_solo: bool):
         self.Manager: NodeManager = manager
-        self.Frame = frame
+        self.Frame = self
         self.ModeSolo = mode_solo
-
-        self.BusId = None
+        self.BusId = None  # FIXME: Is this used? EditingPanel.OnSubindexGridCellLeftClick can seem to indicate it is iterable
         self.Closing = False
 
     def GetBusId(self):
@@ -88,13 +87,13 @@ class NodeEditorTemplate:
     def RefreshStatusBar(self):
         pass
 
-    def SetStatusBarText(self, selection, manager):
+    def SetStatusBarText(self, selection, node: Node):
         if selection:
             index, subindex = selection
-            if manager.IsCurrentEntry(index):
+            if node.IsEntry(index):
                 self.Frame.HelpBar.SetStatusText(f"Index: 0x{index:04X}", 0)
                 self.Frame.HelpBar.SetStatusText(f"Subindex: 0x{subindex:02X}", 1)
-                entryinfos = manager.GetEntryInfos(index)
+                entryinfos = node.GetEntryInfos(index)
                 name = entryinfos["name"]
                 category = "Optional"
                 if entryinfos["need"]:
@@ -174,7 +173,7 @@ class NodeEditorTemplate:
         self.EditProfile(title, dictionary, current)
 
     def EditProfile(self, title: str, dictionary: dict[int, tuple[str, bool]], current: list[int]):
-        with cdia.CommunicationDialog(self.Frame) as dialog:
+        with common.CommunicationDialog(self.Frame) as dialog:
             dialog.SetTitle(title)
             dialog.SetIndexDictionary(dictionary)
             dialog.SetCurrentList(current)
@@ -205,13 +204,13 @@ class NodeEditorTemplate:
     # --------------------------------------------------------------------------
 
     def OnNodeInfosMenu(self, event):  # pylint: disable=unused-argument
-        dialog = cdia.NodeInfosDialog(self.Frame)
-        name, id_, type_, description = self.Manager.GetCurrentNodeInfos()
+        dialog = common.NodeInfosDialog(self.Frame)
+        name, nodeid, nodetype, description = self.Manager.GetCurrentNodeInfos()
         defaultstringsize = self.Manager.GetCurrentNodeDefaultStringSize()
-        dialog.SetValues(name, id_, type_, description, defaultstringsize)
+        dialog.SetValues(name, nodeid, nodetype, description, defaultstringsize)
         if dialog.ShowModal() == wx.ID_OK:
-            name, id_, type_, description, defaultstringsize = dialog.GetValues()
-            self.Manager.SetCurrentNodeInfos(name, id_, type_, description)
+            name, nodeid, nodetype, description, defaultstringsize = dialog.GetValues()
+            self.Manager.SetCurrentNodeInfos(name, nodeid, nodetype, description)
             self.Manager.SetCurrentNodeDefaultStringSize(defaultstringsize)
             self.RefreshBufferState()
             self.RefreshCurrentIndexList()
@@ -224,7 +223,7 @@ class NodeEditorTemplate:
     def AddMapVariable(self):
         index = self.Manager.GetCurrentNextMapIndex()
         if index:
-            with cdia.MapVariableDialog(self.Frame) as dialog:
+            with common.MapVariableDialog(self.Frame) as dialog:
                 dialog.SetIndex(index)
                 if dialog.ShowModal() == wx.ID_OK:
                     try:
@@ -237,7 +236,7 @@ class NodeEditorTemplate:
             display_error_dialog(self.Frame, "No map variable index left!")
 
     def AddUserType(self):
-        with cdia.UserTypeDialog(self) as dialog:
+        with common.UserTypeDialog(self) as dialog:
             dialog.SetTypeList(self.Manager.GetCustomisableTypes())
             if dialog.ShowModal() == wx.ID_OK:
                 try:

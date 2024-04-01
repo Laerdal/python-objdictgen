@@ -149,7 +149,7 @@ class Node(NodeProtocol):
         if Node.isXml(filepath):
             log.debug("Loading XML OD '%s'", filepath)
             with open(filepath, "r", encoding="utf-8") as f:
-                return nosis.xmlload(f)  # type: ignore
+                return nosis.xmlload(f)
 
         if Node.isEds(filepath):
             log.debug("Loading EDS '%s'", filepath)
@@ -307,7 +307,8 @@ class Node(NodeProtocol):
         if index in self.Dictionary:
             if not subindex:
                 return True
-            return subindex <= len(self.Dictionary[index])
+            dictval = self.Dictionary[index]
+            return isinstance(dictval, list) and subindex <= len(dictval)
         return False
 
     def GetEntry(self, index: int, subindex: int|None = None, compute=True, aslist=False) -> list[TODValue]|TODValue:
@@ -390,6 +391,9 @@ class Node(NodeProtocol):
         """
         Check if an entry exists in the User Mapping Dictionary and returns the answer.
         """
+        # FIXME: Is usermapping only used when defining custom objects?
+        # Come back to this and test if this is the case. If it is the function
+        # should probably be renamed to "IsUserEntry" or somesuch
         return index in self.UserMapping
 
     def AddMappingEntry(self, index: int, subindex: int|None = None, name="Undefined", struct=0, size=None, nbmax=None,
@@ -528,12 +532,12 @@ class Node(NodeProtocol):
                     if (value & mask) == model:
                         self.Dictionary[i][j] = model + size
 
-    def RemoveLine(self, index: int, max_: int, incr: int = 1):
+    def RemoveLine(self, index: int, maxval: int, incr: int = 1):
         """ Remove the given index and shift all the following indexes """
         # FIXME: This function is called from NodeManager.RemoveCurrentVariable()
         # but uncertain on how it is used.
         i = index
-        while i < max_ and self.IsEntry(i + incr):
+        while i < maxval and self.IsEntry(i + incr):
             self.Dictionary[i] = self.Dictionary[i + incr]
             i += incr
         self.Dictionary.pop(i)
@@ -653,26 +657,26 @@ class Node(NodeProtocol):
 
     def GetEntryFlags(self, index: int) -> set[str]:
         """Return the flags for the given index"""
-        flags = []
+        flags: set[str] = set()
         info = self.GetEntryInfos(index)
         if not info:
             return flags
 
         if info.get('need'):
-            flags.append("Mandatory")
+            flags.add("Mandatory")
         if index in self.UserMapping:
-            flags.append("User")
+            flags.add("User")
         if index in self.DS302:
-            flags.append("DS-302")
+            flags.add("DS-302")
         if index in self.Profile:
-            flags.append("Profile")
+            flags.add("Profile")
         if self.HasEntryCallbacks(index):
-            flags.append('CB')
+            flags.add('CB')
         if index not in self.Dictionary:
             if index in self.DS302 or index in self.Profile:
-                flags.append("Unused")
+                flags.add("Unused")
             else:
-                flags.append("Missing")
+                flags.add("Missing")
         return flags
 
     def GetAllSubentryInfos(self, index, compute=True):
@@ -755,9 +759,9 @@ class Node(NodeProtocol):
 
     def IsStringType(self, index: int) -> bool:
         """Is the object index a string type?"""
-        if index in (0x9, 0xA, 0xB, 0xF):
+        if index in (0x9, 0xA, 0xB, 0xF):  # VISIBLE_STRING, OCTET_STRING, UNICODE_STRING, DOMAIN
             return True
-        if 0xA0 <= index < 0x100:
+        if 0xA0 <= index < 0x100:  # Custom types
             result = self.GetEntry(index, 1)
             if result in (0x9, 0xA, 0xB):
                 return True
@@ -765,9 +769,9 @@ class Node(NodeProtocol):
 
     def IsRealType(self, index: int) -> bool:
         """Is the object index a real (float) type?"""
-        if index in (0x8, 0x11):
+        if index in (0x8, 0x11):  # REAL32, REAL64
             return True
-        if 0xA0 <= index < 0x100:
+        if 0xA0 <= index < 0x100:  # Custom types
             result = self.GetEntry(index, 1)
             if result in (0x8, 0x11):
                 return True
@@ -784,7 +788,8 @@ class Node(NodeProtocol):
             list_.extend(self.FindTypeList(mapping))
         return list_
 
-    def GenerateMapName(self, name: str, index: int, subindex: int) -> str:
+    @staticmethod
+    def GenerateMapName(name: str, index: int, subindex: int) -> str:
         """Return how a mapping object should be named in UI"""
         return f"{name} (0x{index:04X})"
 
@@ -822,7 +827,8 @@ class Node(NodeProtocol):
                 return (index << 16) + (subindex << 8) + size
         return None
 
-    def GetMapIndex(self, value: int) -> tuple[int, int, int]:
+    @staticmethod
+    def GetMapIndex(value: int) -> tuple[int, int, int]:
         """Return the index, subindex, size from a map value"""
         if value:
             index = value >> 16
@@ -844,11 +850,10 @@ class Node(NodeProtocol):
         """
         Return the list of variables that can be mapped into pdos for the current node
         """
-        list_ = ["None"] + [
+        return ["None"] + [
             self.GenerateMapName(name, index, subindex)
             for index, subindex, size, name in self.GetMapVariableList()
         ]
-        return list_
 
     def GetAllParameters(self, sort=False) -> list[int]:
         """ Get a list of all indices. If node maintains a sort order,
@@ -909,9 +914,7 @@ class Node(NodeProtocol):
             log.warning("WARNING: 0x%04x (%d) '%s': %s", index, index, name, text)
 
         # Iterate over all the values and user parameters
-        params = set(self.Dictionary)
-        params.update(self.ParamsDictionary)
-        for index in params:
+        for index in set(self.Dictionary) | set(self.ParamsDictionary):
 
             #
             # Test if ParamDictionary exists without Dictionary
@@ -924,7 +927,6 @@ class Node(NodeProtocol):
                 continue
 
             base = self.GetEntryInfos(index)
-            assert base  # For mypy
             is_var = base["struct"] in (OD.VAR, OD.NVAR)
 
             #
@@ -986,9 +988,10 @@ class Node(NodeProtocol):
             return '', {}
 
         # Replace flags for formatting
-        for i, flag in enumerate(flags):
+        for _, flag in enumerate(flags.copy()):
             if flag == 'Missing':
-                flags[i] = Fore.RED + ' *MISSING* ' + Style.RESET_ALL
+                flags.discard('Missing')
+                flags.add(Fore.RED + ' *MISSING* ' + Style.RESET_ALL)
 
         # Print formattings
         t_flags = ', '.join(flags)
