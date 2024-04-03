@@ -338,7 +338,7 @@ def compare_profile(profilename: TPath, params: ODMapping, menu: TProfileMenu|No
     identical is True if the profile is identical with the givens params.
     """
     try:
-        dsmap, menumap = nodelib.Node.ImportProfile(profilename)
+        dsmap, menumap = maps.import_profile(profilename)
         identical = all(
             k in dsmap and k in params and dsmap[k] == params[k]
             for k in set(dsmap) | set(params)

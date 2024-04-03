@@ -147,7 +147,6 @@ RE_NAME_SYNTAX = re.compile(r'(.*)\[[(](.*)[)]\]')
 RE_NODEID = re.compile(r'\$NODEID\b', re.IGNORECASE)
 
 
-@staticmethod
 def eval_value(value, base, nodeid, compute=True):
     """
     Evaluate the value. They can be strings that needs additional
@@ -161,7 +160,7 @@ def eval_value(value, base, nodeid, compute=True):
 
     # This will remove any surrouning quotes on strings ('"$NODEID+0x20"')
     # and will resolve "{True:"$NODEID..." expressions.
-    value = Node.evaluate_expression(value,
+    value = evaluate_expression(value,
         {   # These are the vars that can be used within the string
             'base': base,
         }
@@ -172,7 +171,7 @@ def eval_value(value, base, nodeid, compute=True):
         value = RE_NODEID.sub("nodeid", value)
 
         # This will resolve '$NODEID' expressions
-        value = Node.evaluate_expression(value,
+        value = evaluate_expression(value,
             {   # These are the vars that can be used within the string
                 'nodeid': nodeid,
             }
@@ -180,7 +179,6 @@ def eval_value(value, base, nodeid, compute=True):
 
     return value
 
-@staticmethod
 def eval_name(text, idx, sub):
     """
     Format the text given with the index and subindex defined.
@@ -193,7 +191,7 @@ def eval_name(text, idx, sub):
 
     # NOTE: Legacy Python2 format evaluations are baked
     #       into the OD and must be supported for legacy
-    return result.group(1) % Node.evaluate_expression(
+    return result.group(1) % evaluate_expression(
         result.group(2).strip(),
         {   # These are the vars that can be used in the string
             'idx': idx,
@@ -201,7 +199,6 @@ def eval_name(text, idx, sub):
         }
     )
 
-@staticmethod
 def evaluate_expression(expression: str, localvars: dict[str, Any]|None = None):
     """Parses a string expression and attempts to calculate the result
     Supports:
@@ -273,8 +270,7 @@ def evaluate_expression(expression: str, localvars: dict[str, Any]|None = None):
 #                      Misc functions
 # ------------------------------------------------------------------------------
 
-@staticmethod
-def ImportProfile(profilename):
+def import_profile(profilename):
 
     # Test if the profilename is a filepath which can be used directly. If not
     # treat it as the name
@@ -309,16 +305,12 @@ def ImportProfile(profilename):
         log.debug(traceback.format_exc())
         raise ValueError(f"Loading profile '{profilepath}' failed: {exc}") from exc
 
-
-@staticmethod
 def get_index_range(index):
-    for irange in maps.INDEX_RANGES:
+    for irange in INDEX_RANGES:
         if irange["min"] <= index <= irange["max"]:
             return irange
     raise ValueError(f"Cannot find index range for value '0x{index:x}'")
 
-
-@staticmethod
 def be_to_le(value):
     """
     Convert Big Endian to Little Endian
@@ -336,7 +328,6 @@ def be_to_le(value):
     # different than the output (int)
     return int("".join([f"{ord(char):02X}" for char in reversed(value)]), 16)
 
-@staticmethod
 def le_to_be(value, size):
     """
     Convert Little Endian to Big Endian
@@ -411,11 +402,11 @@ class ODMapping(UserDict[int, TODObj]):
         """
         Return the name of an entry by searching in mappingdictionary
         """
-        base_index = Node.FindIndex(index, mappingdictionary)
+        base_index = ODMapping.FindIndex(index, mappingdictionary)
         if base_index:
             infos = mappingdictionary[base_index]
             if infos["struct"] & OD.IdenticalIndexes and compute:
-                return Node.eval_name(
+                return eval_name(
                     infos["name"], idx=(index - base_index) // infos["incr"] + 1, sub=0
                 )
             return infos["name"]
@@ -426,11 +417,11 @@ class ODMapping(UserDict[int, TODObj]):
         """
         Return the informations of one entry by searching in mappingdictionary
         """
-        base_index = Node.FindIndex(index, mappingdictionary)
+        base_index = ODMapping.FindIndex(index, mappingdictionary)
         if base_index:
             obj = mappingdictionary[base_index].copy()
             if obj["struct"] & OD.IdenticalIndexes and compute:
-                obj["name"] = Node.eval_name(
+                obj["name"] = eval_name(
                     obj["name"], idx=(index - base_index) // obj["incr"] + 1, sub=0
                 )
             obj.pop("values")
@@ -442,7 +433,7 @@ class ODMapping(UserDict[int, TODObj]):
         """
         Return the informations of one subentry of an entry by searching in mappingdictionary
         """
-        base_index = Node.FindIndex(index, mappingdictionary)
+        base_index = ODMapping.FindIndex(index, mappingdictionary)
         if base_index:
             struct = mappingdictionary[base_index]["struct"]
             if struct & OD.Subindex:
@@ -473,7 +464,7 @@ class ODMapping(UserDict[int, TODObj]):
                         incr = mappingdictionary[base_index]["incr"]
                     else:
                         incr = 1
-                    infos["name"] = Node.eval_name(
+                    infos["name"] = eval_name(
                         infos["name"], idx=(index - base_index) // incr + 1, sub=subindex
                     )
 
@@ -496,12 +487,12 @@ class ODMapping(UserDict[int, TODObj]):
                             for i in range(len(values) - 1):
                                 computed_name = name
                                 if compute:
-                                    computed_name = Node.eval_name(computed_name, idx=1, sub=i + 1)
+                                    computed_name = eval_name(computed_name, idx=1, sub=i + 1)
                                 yield (index, i + 1, infos["size"], computed_name)
                         else:
                             computed_name = name
                             if compute:
-                                computed_name = Node.eval_name(computed_name, idx=1, sub=subindex)
+                                computed_name = eval_name(computed_name, idx=1, sub=subindex)
                             yield (index, subindex, infos["size"], computed_name)
 
     @staticmethod

@@ -314,10 +314,10 @@ class Node(NodeProtocol):
         if subindex is None:
             if isinstance(self.Dictionary[index], list):
                 return [len(self.Dictionary[index])] + [
-                    self.eval_value(value, base, nodeid, compute)
+                    maps.eval_value(value, base, nodeid, compute)
                     for value in self.Dictionary[index]
                 ]
-            result = self.eval_value(self.Dictionary[index], base, nodeid, compute)
+            result = maps.eval_value(self.Dictionary[index], base, nodeid, compute)
             # This option ensures that the function consistently returns a list
             if aslist:
                 return [result]
@@ -325,9 +325,9 @@ class Node(NodeProtocol):
         if subindex == 0:
             if isinstance(self.Dictionary[index], list):
                 return len(self.Dictionary[index])
-            return self.eval_value(self.Dictionary[index], base, nodeid, compute)
+            return maps.eval_value(self.Dictionary[index], base, nodeid, compute)
         if isinstance(self.Dictionary[index], list) and 0 < subindex <= len(self.Dictionary[index]):
-            return self.eval_value(self.Dictionary[index][subindex - 1], base, nodeid, compute)
+            return maps.eval_value(self.Dictionary[index][subindex - 1], base, nodeid, compute)
         raise ValueError(f"Invalid subindex {subindex} for index 0x{index:04x}")
 
     def GetParamsEntry(self, index: int, subindex: int|None = None,
@@ -593,18 +593,18 @@ class Node(NodeProtocol):
     def GetBaseIndex(self, index: int) -> int:
         """ Return the index number of the base object """
         for mapping in self.GetMappings():
-            result = self.FindIndex(index, mapping)
+            result = ODMapping.FindIndex(index, mapping)
             if result:
                 return result
-        return self.FindIndex(index, maps.MAPPING_DICTIONARY)
+        return ODMapping.FindIndex(index, maps.MAPPING_DICTIONARY)
 
     def GetBaseIndexNumber(self, index: int) -> int:
         """ Return the index number from the base object """
         for mapping in self.GetMappings():
-            result = self.FindIndex(index, mapping)
+            result = ODMapping.FindIndex(index, mapping)
             if result is not None:
                 return (index - result) // mapping[result].get("incr", 1)
-        result = self.FindIndex(index, maps.MAPPING_DICTIONARY)
+        result = ODMapping.FindIndex(index, maps.MAPPING_DICTIONARY)
         if result is not None:
             return (index - result) // maps.MAPPING_DICTIONARY[result].get("incr", 1)
         return 0
@@ -623,10 +623,10 @@ class Node(NodeProtocol):
         mappings = self.GetMappings()
         i = 0
         while not result and i < len(mappings):
-            result = self.FindEntryName(index, mappings[i], compute)
+            result = ODMapping.FindEntryName(index, mappings[i], compute)
             i += 1
         if result is None:
-            result = self.FindEntryName(index, maps.MAPPING_DICTIONARY, compute)
+            result = ODMapping.FindEntryName(index, maps.MAPPING_DICTIONARY, compute)
         return result
 
     def GetEntryInfos(self, index: int, compute=True) -> TODObj:
@@ -635,9 +635,9 @@ class Node(NodeProtocol):
         mappings = self.GetMappings()
         i = 0
         while not result and i < len(mappings):
-            result = self.FindEntryInfos(index, mappings[i], compute)
+            result = ODMapping.FindEntryInfos(index, mappings[i], compute)
             i += 1
-        r301 = self.FindEntryInfos(index, maps.MAPPING_DICTIONARY, compute)
+        r301 = ODMapping.FindEntryInfos(index, maps.MAPPING_DICTIONARY, compute)
         if r301:
             if result is not None:
                 r301.update(result)
@@ -650,11 +650,11 @@ class Node(NodeProtocol):
         mappings = self.GetMappings()
         i = 0
         while not result and i < len(mappings):
-            result = self.FindSubentryInfos(index, subindex, mappings[i], compute)
+            result = ODMapping.FindSubentryInfos(index, subindex, mappings[i], compute)
             if result:
                 result["user_defined"] = i == len(mappings) - 1 and index >= 0x1000
             i += 1
-        r301 = self.FindSubentryInfos(index, subindex, maps.MAPPING_DICTIONARY, compute)
+        r301 = ODMapping.FindSubentryInfos(index, subindex, maps.MAPPING_DICTIONARY, compute)
         if r301:
             if result is not None:
                 r301.update(result)
@@ -707,10 +707,10 @@ class Node(NodeProtocol):
         mappings = self.GetMappings()
         i = 0
         while not result and i < len(mappings):
-            result = self.FindTypeIndex(typename, mappings[i])
+            result = ODMapping.FindTypeIndex(typename, mappings[i])
             i += 1
         if result is None:
-            result = self.FindTypeIndex(typename, maps.MAPPING_DICTIONARY)
+            result = ODMapping.FindTypeIndex(typename, maps.MAPPING_DICTIONARY)
         return result
 
     def GetTypeName(self, typeindex: int) -> str:
@@ -719,10 +719,10 @@ class Node(NodeProtocol):
         mappings = self.GetMappings()
         i = 0
         while not result and i < len(mappings):
-            result = self.FindTypeName(typeindex, mappings[i])
+            result = ODMapping.FindTypeName(typeindex, mappings[i])
             i += 1
         if result is None:
-            result = self.FindTypeName(typeindex, maps.MAPPING_DICTIONARY)
+            result = ODMapping.FindTypeName(typeindex, maps.MAPPING_DICTIONARY)
         return result
 
     def GetTypeDefaultValue(self, typeindex: int) -> TODValue:
@@ -731,26 +731,26 @@ class Node(NodeProtocol):
         mappings = self.GetMappings()
         i = 0
         while not result and i < len(mappings):
-            result = self.FindTypeDefaultValue(typeindex, mappings[i])
+            result = ODMapping.FindTypeDefaultValue(typeindex, mappings[i])
             i += 1
         if result is None:
-            result = self.FindTypeDefaultValue(typeindex, maps.MAPPING_DICTIONARY)
+            result = ODMapping.FindTypeDefaultValue(typeindex, maps.MAPPING_DICTIONARY)
         return result
 
     def GetMapVariableList(self, compute=True) -> list[tuple[int, int, int, str]]:
         """Return a list of all objects and subobjects available for mapping into
         pdos. Returns a list of tuples with the index, subindex, size and name of the object."""
-        list_ = list(self.FindMapVariableList(maps.MAPPING_DICTIONARY, self, compute))
+        list_ = list(ODMapping.FindMapVariableList(maps.MAPPING_DICTIONARY, self, compute))
         for mapping in self.GetMappings():
-            list_.extend(self.FindMapVariableList(mapping, self, compute))
+            list_.extend(ODMapping.FindMapVariableList(mapping, self, compute))
         list_.sort()
         return list_
 
     def GetMandatoryIndexes(self, node: "Node|None" = None) -> list[int]:  # pylint: disable=unused-argument
         """Return the mandatory indexes for the node."""
-        list_ = self.FindMandatoryIndexes(maps.MAPPING_DICTIONARY)
+        list_ = ODMapping.FindMandatoryIndexes(maps.MAPPING_DICTIONARY)
         for mapping in self.GetMappings():
-            list_.extend(self.FindMandatoryIndexes(mapping))
+            list_.extend(ODMapping.FindMandatoryIndexes(mapping))
         return list_
 
     def GetCustomisableTypes(self) -> dict[int, tuple[str, int]]:
@@ -791,9 +791,9 @@ class Node(NodeProtocol):
 
     def GetTypeList(self) -> list[str]:
         """Return a list of all object types available for the current node"""
-        list_ = self.FindTypeList(maps.MAPPING_DICTIONARY)
+        list_ = ODMapping.FindTypeList(maps.MAPPING_DICTIONARY)
         for mapping in self.GetMappings():
-            list_.extend(self.FindTypeList(mapping))
+            list_.extend(ODMapping.FindTypeList(mapping))
         return list_
 
     @staticmethod
@@ -1030,7 +1030,7 @@ class Node(NodeProtocol):
                 continue
 
             # Print the parameter range header
-            ir = self.get_index_range(k)
+            ir = maps.get_index_range(k)
             if index_range != ir:
                 index_range = ir
                 if not compact:

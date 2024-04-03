@@ -1,11 +1,11 @@
 import pytest
 
-from objdictgen.node import Node
+from objdictgen import maps
 
 
 def test_node_eval_value():
 
-    dut = Node.eval_value
+    dut = maps.eval_value
 
     assert dut("1234", 0, 0, True) == "1234"
     assert dut("'$NODEID+1'", 0, 0, False) == "$NODEID+1"
@@ -18,7 +18,7 @@ def test_node_eval_value():
 
 def test_node_eval_name():
 
-    dut = Node.eval_name
+    dut = maps.eval_name
 
     assert dut("Additional Server SDO %d Parameter[(idx)]", 5, 0) == "Additional Server SDO 5 Parameter"
     assert dut("Restore Manufacturer Defined Default Parameters %d[(sub - 3)]", 1, 5) == "Restore Manufacturer Defined Default Parameters 2"
@@ -45,7 +45,7 @@ def test_node_eval_name():
 
 def test_node_evaluate_expression():
 
-    dut = Node.evaluate_expression
+    dut = maps.evaluate_expression
 
     # BinOp
     assert dut("4+3") == 7

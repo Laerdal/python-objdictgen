@@ -196,7 +196,7 @@ class NodeManager:
         # Load profile given
         if profile != "None":
             # Import profile
-            mapping, menuentries = nodelib.Node.ImportProfile(filepath)
+            mapping, menuentries = maps.import_profile(filepath)
             node.ProfileName = profile
             node.Profile = mapping
             node.SpecificMenu = menuentries
@@ -220,7 +220,7 @@ class NodeManager:
         for option in options:
             if option == "DS302":
                 # Import profile
-                mapping, menuentries = nodelib.Node.ImportProfile("DS-302")
+                mapping, menuentries = maps.import_profile("DS-302")
                 node.DS302 = mapping
                 node.SpecificMenu.extend(menuentries)
             elif option == "GenSYNC":
@@ -1154,17 +1154,17 @@ class NodeManager:
     def GetEntryName(self, index, compute=True):
         if self.CurrentNode:
             return self.CurrentNode.GetEntryName(index, compute)
-        return nodelib.Node.FindEntryName(index, maps.MAPPING_DICTIONARY, compute)
+        return ODMapping.FindEntryName(index, maps.MAPPING_DICTIONARY, compute)
 
     def GetEntryInfos(self, index, compute=True):
         if self.CurrentNode:
             return self.CurrentNode.GetEntryInfos(index, compute)
-        return nodelib.Node.FindEntryInfos(index, maps.MAPPING_DICTIONARY, compute)
+        return ODMapping.FindEntryInfos(index, maps.MAPPING_DICTIONARY, compute)
 
     def GetSubentryInfos(self, index, subindex, compute=True):
         if self.CurrentNode:
             return self.CurrentNode.GetSubentryInfos(index, subindex, compute)
-        result = nodelib.Node.FindSubentryInfos(index, subindex, maps.MAPPING_DICTIONARY, compute)
+        result = ODMapping.FindSubentryInfos(index, subindex, maps.MAPPING_DICTIONARY, compute)
         if result:
             result["user_defined"] = False
         return result
@@ -1172,17 +1172,17 @@ class NodeManager:
     def GetTypeIndex(self, typename):
         if self.CurrentNode:
             return self.CurrentNode.GetTypeIndex(typename)
-        return nodelib.Node.FindTypeIndex(typename, maps.MAPPING_DICTIONARY)
+        return ODMapping.FindTypeIndex(typename, maps.MAPPING_DICTIONARY)
 
     def GetTypeName(self, typeindex):
         if self.CurrentNode:
             return self.CurrentNode.GetTypeName(typeindex)
-        return nodelib.Node.FindTypeName(typeindex, maps.MAPPING_DICTIONARY)
+        return ODMapping.FindTypeName(typeindex, maps.MAPPING_DICTIONARY)
 
     def GetTypeDefaultValue(self, typeindex):
         if self.CurrentNode:
             return self.CurrentNode.GetTypeDefaultValue(typeindex)
-        return nodelib.Node.FindTypeDefaultValue(typeindex, maps.MAPPING_DICTIONARY)
+        return ODMapping.FindTypeDefaultValue(typeindex, maps.MAPPING_DICTIONARY)
 
     def GetMapVariableList(self, compute=True):
         if self.CurrentNode:
@@ -1192,7 +1192,7 @@ class NodeManager:
     def GetMandatoryIndexes(self):
         if self.CurrentNode:
             return self.CurrentNode.GetMandatoryIndexes()
-        return nodelib.Node.FindMandatoryIndexes(maps.MAPPING_DICTIONARY)
+        return ODMapping.FindMandatoryIndexes(maps.MAPPING_DICTIONARY)
 
     def GetCustomisableTypes(self):
         return {

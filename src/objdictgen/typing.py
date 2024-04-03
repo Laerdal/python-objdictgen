@@ -57,7 +57,7 @@ TODObj = TypedDict('TODObj', {
 }, total=False)
 """Dict-like type for the object dictionary mappings."""
 
-# See Node.ImportProfile
+# See maps.import_profile
 TProfileMenu = list[tuple[str, list[int]]]
 """Type for the profile menu entries."""
 

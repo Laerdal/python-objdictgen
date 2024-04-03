@@ -736,7 +736,7 @@ def generate_node(filepath: TPath, nodeid: int = 0) -> "Node":
         try:
             # Import profile
             profilename = f"DS-{profilenb}"
-            mapping, menuentries = nodelib.Node.ImportProfile(profilename)
+            mapping, menuentries = maps.import_profile(profilename)
             node.ProfileName = profilename
             node.Profile = mapping
             node.SpecificMenu = menuentries
