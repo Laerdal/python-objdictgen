@@ -179,6 +179,7 @@ def eval_value(value, base, nodeid, compute=True):
 
     return value
 
+
 def eval_name(text, idx, sub):
     """
     Format the text given with the index and subindex defined.
@@ -198,6 +199,7 @@ def eval_name(text, idx, sub):
             'sub': sub,
         }
     )
+
 
 def evaluate_expression(expression: str, localvars: dict[str, Any]|None = None):
     """Parses a string expression and attempts to calculate the result
@@ -358,6 +360,25 @@ class ODMapping(UserDict[int, TODObj]):
     """Object Dictionary Mapping."""
 
     @staticmethod
+    def FindIndex(index, mappingdictionary):
+        """
+        Return the index of the informations in the Object Dictionary in case of identical
+        indexes
+        """
+        if index in mappingdictionary:
+            return index
+        listpluri = [
+            idx for idx, mapping in mappingdictionary.items()
+            if mapping["struct"] & OD.IdenticalIndexes
+        ]
+        for idx in sorted(listpluri):
+            nb_max = mappingdictionary[idx]["nbmax"]
+            incr = mappingdictionary[idx]["incr"]
+            if idx < index < idx + incr * nb_max and (index - idx) % incr == 0:
+                return idx
+        return None
+
+    @staticmethod
     def FindTypeIndex(typename, mappingdictionary):
         """
         Return the index of the typename given by searching in mappingdictionary
@@ -395,6 +416,17 @@ class ODMapping(UserDict[int, TODObj]):
             mappingdictionary[index]["name"]
             for index in mappingdictionary
             if index < 0x1000
+        ]
+
+    @staticmethod
+    def FindMandatoryIndexes(mappingdictionary):
+        """
+        Return the list of mandatory indexes defined in mappingdictionary
+        """
+        return [
+            index
+            for index in mappingdictionary
+            if index >= 0x1000 and mappingdictionary[index]["need"]
         ]
 
     @staticmethod
@@ -494,36 +526,6 @@ class ODMapping(UserDict[int, TODObj]):
                             if compute:
                                 computed_name = eval_name(computed_name, idx=1, sub=subindex)
                             yield (index, subindex, infos["size"], computed_name)
-
-    @staticmethod
-    def FindMandatoryIndexes(mappingdictionary):
-        """
-        Return the list of mandatory indexes defined in mappingdictionary
-        """
-        return [
-            index
-            for index in mappingdictionary
-            if index >= 0x1000 and mappingdictionary[index]["need"]
-        ]
-
-    @staticmethod
-    def FindIndex(index, mappingdictionary):
-        """
-        Return the index of the informations in the Object Dictionary in case of identical
-        indexes
-        """
-        if index in mappingdictionary:
-            return index
-        listpluri = [
-            idx for idx, mapping in mappingdictionary.items()
-            if mapping["struct"] & OD.IdenticalIndexes
-        ]
-        for idx in sorted(listpluri):
-            nb_max = mappingdictionary[idx]["nbmax"]
-            incr = mappingdictionary[idx]["incr"]
-            if idx < index < idx + incr * nb_max and (index - idx) % incr == 0:
-                return idx
-        return None
 
     #
     # HELPERS

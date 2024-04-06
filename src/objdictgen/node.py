@@ -112,6 +112,11 @@ class Node(NodeProtocol):
         self.UserMapping: ODMapping = ODMapping()
         self.IndexOrder: list[int] = []
 
+
+    # --------------------------------------------------------------------------
+    #                      Dunders
+    # --------------------------------------------------------------------------
+
     # --------------------------------------------------------------------------
     #                      Node Input/Output
     # --------------------------------------------------------------------------
@@ -187,6 +192,16 @@ class Node(NodeProtocol):
             self, compact=compact, sort=sort, internal=internal, validate=validate
         )
 
+    def GetDict(self) -> dict[str, Any]:
+        """ Return the class data as a dict """
+        return copy.deepcopy(self.__dict__)
+
+    def Copy(self) -> Self:
+        """
+        Return a copy of the node
+        """
+        return copy.deepcopy(self)
+
     # --------------------------------------------------------------------------
     #                      Node Informations Functions
     # --------------------------------------------------------------------------
@@ -199,107 +214,6 @@ class Node(NodeProtocol):
         if withmapping:
             mapping.append(maps.MAPPING_DICTIONARY)
         return mapping
-
-    def AddEntry(self, index: int, subindex: int|None = None, value: TODValue|list[TODValue]|None = None) -> bool:
-        """
-        Add a new entry in the Object Dictionary
-        """
-        if index not in self.Dictionary:
-            if not subindex:
-                self.Dictionary[index] = value
-                return True
-            if subindex == 1:
-                self.Dictionary[index] = [value]
-                return True
-        elif (subindex and isinstance(self.Dictionary[index], list)
-                and subindex == len(self.Dictionary[index]) + 1):
-            self.Dictionary[index].append(value)
-            return True
-        return False
-
-    def SetEntry(self, index: int, subindex: int|None = None, value: TODValue|None = None) -> bool:
-        """Modify an existing entry in the Object Dictionary"""
-        if index not in self.Dictionary:
-            return False
-        if not subindex:
-            if value is not None:
-                self.Dictionary[index] = value
-            return True
-        if isinstance(self.Dictionary[index], list) and 0 < subindex <= len(self.Dictionary[index]):
-            if value is not None:
-                self.Dictionary[index][subindex - 1] = value
-            return True
-        return False
-
-    def SetParamsEntry(self, index: int, subindex: int|None = None, comment=None, buffer_size=None, save=None, callback=None) -> bool:
-        """Set parameter values for an entry in the Object Dictionary."""
-        if index not in self.Dictionary:
-            return False
-        if ((comment is not None or save is not None or callback is not None or buffer_size is not None)
-            and index not in self.ParamsDictionary
-        ):
-            self.ParamsDictionary[index] = {}
-        if subindex is None or not isinstance(self.Dictionary[index], list) and subindex == 0:
-            if comment is not None:
-                self.ParamsDictionary[index]["comment"] = comment
-            if buffer_size is not None:
-                self.ParamsDictionary[index]["buffer_size"] = buffer_size
-            if save is not None:
-                self.ParamsDictionary[index]["save"] = save
-            if callback is not None:
-                self.ParamsDictionary[index]["callback"] = callback
-            return True
-        if isinstance(self.Dictionary[index], list) and 0 <= subindex <= len(self.Dictionary[index]):
-            if ((comment is not None or save is not None or callback is not None or buffer_size is not None)
-                and subindex not in self.ParamsDictionary[index]
-            ):
-                self.ParamsDictionary[index][subindex] = {}
-            if comment is not None:
-                self.ParamsDictionary[index][subindex]["comment"] = comment
-            if buffer_size is not None:
-                self.ParamsDictionary[index][subindex]["buffer_size"] = buffer_size
-            if save is not None:
-                self.ParamsDictionary[index][subindex]["save"] = save
-            return True
-        return False
-
-    def RemoveEntry(self, index: int, subindex: int|None = None) -> bool:
-        """
-        Removes an existing entry in the Object Dictionary. If a subindex is specified
-        it will remove this subindex only if it's the last of the index. If no subindex
-        is specified it removes the whole index and subIndexes from the Object Dictionary.
-        """
-        if index not in self.Dictionary:
-            return False
-        if not subindex:
-            self.Dictionary.pop(index)
-            if index in self.ParamsDictionary:
-                self.ParamsDictionary.pop(index)
-            return True
-        if isinstance(self.Dictionary[index], list) and subindex == len(self.Dictionary[index]):
-            self.Dictionary[index].pop(subindex - 1)
-            if index in self.ParamsDictionary:
-                if subindex in self.ParamsDictionary[index]:
-                    self.ParamsDictionary[index].pop(subindex)
-                if len(self.ParamsDictionary[index]) == 0:
-                    self.ParamsDictionary.pop(index)
-            if len(self.Dictionary[index]) == 0:
-                self.Dictionary.pop(index)
-                if index in self.ParamsDictionary:
-                    self.ParamsDictionary.pop(index)
-            return True
-        return False
-
-    def IsEntry(self, index: int, subindex: int=0) -> bool:
-        """
-        Check if an entry exists in the Object Dictionary
-        """
-        if index in self.Dictionary:
-            if not subindex:
-                return True
-            dictval = self.Dictionary[index]
-            return isinstance(dictval, list) and subindex <= len(dictval)
-        return False
 
     def GetEntry(self, index: int, subindex: int|None = None, compute=True, aslist=False) -> list[TODValue]|TODValue:
         """
@@ -368,180 +282,6 @@ class Node(NodeProtocol):
             return result
         raise ValueError(f"Invalid subindex {subindex} for index 0x{index:04x}")
 
-    def HasEntryCallbacks(self, index: int) -> bool:
-        """Check if entry has the callback flag defined."""
-        entry_infos = self.GetEntryInfos(index)
-        if entry_infos and "callback" in entry_infos:
-            return entry_infos["callback"]
-        if index in self.Dictionary and index in self.ParamsDictionary and "callback" in self.ParamsDictionary[index]:
-            return self.ParamsDictionary[index]["callback"]
-        return False
-
-    def IsMappingEntry(self, index: int) -> bool:
-        """
-        Check if an entry exists in the User Mapping Dictionary and returns the answer.
-        """
-        # FIXME: Is usermapping only used when defining custom objects?
-        # Come back to this and test if this is the case. If it is the function
-        # should probably be renamed to "IsUserEntry" or somesuch
-        return index in self.UserMapping
-
-    def AddMappingEntry(self, index: int, subindex: int|None = None, name="Undefined", struct=0, size=None, nbmax=None,
-                        default=None, values=None) -> bool:
-        """
-        Add a new entry in the User Mapping Dictionary
-        """
-        if index not in self.UserMapping:
-            if values is None:
-                values = []
-            if subindex is None:
-                self.UserMapping[index] = {"name": name, "struct": struct, "need": False, "values": values}
-                if size is not None:
-                    self.UserMapping[index]["size"] = size
-                if nbmax is not None:
-                    self.UserMapping[index]["nbmax"] = nbmax
-                if default is not None:
-                    self.UserMapping[index]["default"] = default
-                return True
-        elif subindex is not None and subindex == len(self.UserMapping[index]["values"]):
-            if values is None:
-                values = {}
-            self.UserMapping[index]["values"].append(values)
-            return True
-        return False
-
-    def SetMappingEntry(self, index: int, subindex: int|None = None, name=None, struct=None, size=None, nbmax=None, default=None, values=None) -> bool:
-        """
-        Modify an existing entry in the User Mapping Dictionary
-        """
-        if index not in self.UserMapping:
-            return False
-        if subindex is None:
-            if name is not None:
-                self.UserMapping[index]["name"] = name
-                if self.UserMapping[index]["struct"] & OD.IdenticalSubindexes:
-                    self.UserMapping[index]["values"][1]["name"] = name + " %d[(sub)]"
-                elif not self.UserMapping[index]["struct"] & OD.MultipleSubindexes:
-                    self.UserMapping[index]["values"][0]["name"] = name
-            if struct is not None:
-                self.UserMapping[index]["struct"] = struct
-            if size is not None:
-                self.UserMapping[index]["size"] = size
-            if nbmax is not None:
-                self.UserMapping[index]["nbmax"] = nbmax
-            if default is not None:
-                self.UserMapping[index]["default"] = default
-            if values is not None:
-                self.UserMapping[index]["values"] = values
-            return True
-        if 0 <= subindex < len(self.UserMapping[index]["values"]) and values is not None:
-            if "type" in values:
-                if self.UserMapping[index]["struct"] & OD.IdenticalSubindexes:
-                    if self.IsStringType(self.UserMapping[index]["values"][subindex]["type"]):
-                        if self.IsRealType(values["type"]):
-                            for i in range(len(self.Dictionary[index])):
-                                self.SetEntry(index, i + 1, 0.)
-                        elif not self.IsStringType(values["type"]):
-                            for i in range(len(self.Dictionary[index])):
-                                self.SetEntry(index, i + 1, 0)
-                    elif self.IsRealType(self.UserMapping[index]["values"][subindex]["type"]):
-                        if self.IsStringType(values["type"]):
-                            for i in range(len(self.Dictionary[index])):
-                                self.SetEntry(index, i + 1, "")
-                        elif not self.IsRealType(values["type"]):
-                            for i in range(len(self.Dictionary[index])):
-                                self.SetEntry(index, i + 1, 0)
-                    elif self.IsStringType(values["type"]):
-                        for i in range(len(self.Dictionary[index])):
-                            self.SetEntry(index, i + 1, "")
-                    elif self.IsRealType(values["type"]):
-                        for i in range(len(self.Dictionary[index])):
-                            self.SetEntry(index, i + 1, 0.)
-                else:
-                    if self.IsStringType(self.UserMapping[index]["values"][subindex]["type"]):
-                        if self.IsRealType(values["type"]):
-                            self.SetEntry(index, subindex, 0.)
-                        elif not self.IsStringType(values["type"]):
-                            self.SetEntry(index, subindex, 0)
-                    elif self.IsRealType(self.UserMapping[index]["values"][subindex]["type"]):
-                        if self.IsStringType(values["type"]):
-                            self.SetEntry(index, subindex, "")
-                        elif not self.IsRealType(values["type"]):
-                            self.SetEntry(index, subindex, 0)
-                    elif self.IsStringType(values["type"]):
-                        self.SetEntry(index, subindex, "")
-                    elif self.IsRealType(values["type"]):
-                        self.SetEntry(index, subindex, 0.)
-            self.UserMapping[index]["values"][subindex].update(values)
-            return True
-        return False
-
-    def RemoveMappingEntry(self, index: int, subindex: int|None = None) -> bool:
-        """
-        Removes an existing entry in the User Mapping Dictionary. If a subindex is specified
-        it will remove this subindex only if it's the last of the index. If no subindex
-        is specified it removes the whole index and subIndexes from the User Mapping Dictionary.
-        """
-        if index in self.UserMapping:
-            if subindex is None:
-                self.UserMapping.pop(index)
-                return True
-            if subindex == len(self.UserMapping[index]["values"]) - 1:
-                self.UserMapping[index]["values"].pop(subindex)
-                return True
-        return False
-
-    def RemoveMapVariable(self, index: int, subindex: int = 0):
-        """
-        Remove all PDO mappings references to the specificed index and subindex.
-        """
-        model = index << 16
-        mask = 0xFFFF << 16
-        if subindex:
-            model += subindex << 8
-            mask += 0xFF << 8
-        for i in self.Dictionary:  # pylint: disable=consider-using-dict-items
-            if 0x1600 <= i <= 0x17FF or 0x1A00 <= i <= 0x1BFF:
-                for j, value in enumerate(self.Dictionary[i]):
-                    if (value & mask) == model:
-                        self.Dictionary[i][j] = 0
-
-    def UpdateMapVariable(self, index: int, subindex: int, size: int):
-        """
-        Update the PDO mappings references to the specificed index and subindex
-        and set the size value.
-        """
-        model = index << 16
-        mask = 0xFFFF << 16
-        if subindex:
-            model += subindex << 8
-            mask = 0xFF << 8
-        for i in self.Dictionary:  # pylint: disable=consider-using-dict-items
-            if 0x1600 <= i <= 0x17FF or 0x1A00 <= i <= 0x1BFF:
-                for j, value in enumerate(self.Dictionary[i]):
-                    if (value & mask) == model:
-                        self.Dictionary[i][j] = model + size
-
-    def RemoveLine(self, index: int, maxval: int, incr: int = 1):
-        """ Remove the given index and shift all the following indexes """
-        # FIXME: This function is called from NodeManager.RemoveCurrentVariable()
-        # but uncertain on how it is used.
-        i = index
-        while i < maxval and self.IsEntry(i + incr):
-            self.Dictionary[i] = self.Dictionary[i + incr]
-            i += incr
-        self.Dictionary.pop(i)
-
-    def Copy(self) -> Self:
-        """
-        Return a copy of the node
-        """
-        return copy.deepcopy(self)
-
-    def GetDict(self) -> dict[str, Any]:
-        """ Return the class data as a dict """
-        return copy.deepcopy(self.__dict__)
-
     def GetIndexDict(self, index: int) -> TIndexEntry:
         """ Return a full and raw representation of the index """
 
@@ -584,11 +324,6 @@ class Node(NodeProtocol):
         Return a sorted list of indexes in Object Dictionary
         """
         return list(sorted(self.Dictionary))
-
-
-    # --------------------------------------------------------------------------
-    #                      Node Informations Functions
-    # --------------------------------------------------------------------------
 
     def GetBaseIndex(self, index: int) -> int:
         """ Return the index number of the base object """
@@ -761,34 +496,6 @@ class Node(NodeProtocol):
             for index, valuetype in maps.CUSTOMISABLE_TYPES
         }
 
-    # --------------------------------------------------------------------------
-    #                      Type helper functions
-    # --------------------------------------------------------------------------
-
-    def IsStringType(self, index: int) -> bool:
-        """Is the object index a string type?"""
-        if index in (0x9, 0xA, 0xB, 0xF):  # VISIBLE_STRING, OCTET_STRING, UNICODE_STRING, DOMAIN
-            return True
-        if 0xA0 <= index < 0x100:  # Custom types
-            result = self.GetEntry(index, 1)
-            if result in (0x9, 0xA, 0xB):
-                return True
-        return False
-
-    def IsRealType(self, index: int) -> bool:
-        """Is the object index a real (float) type?"""
-        if index in (0x8, 0x11):  # REAL32, REAL64
-            return True
-        if 0xA0 <= index < 0x100:  # Custom types
-            result = self.GetEntry(index, 1)
-            if result in (0x8, 0x11):
-                return True
-        return False
-
-    # --------------------------------------------------------------------------
-    #                      Type and Map Variable Lists
-    # --------------------------------------------------------------------------
-
     def GetTypeList(self) -> list[str]:
         """Return a list of all object types available for the current node"""
         list_ = ODMapping.FindTypeList(maps.MAPPING_DICTIONARY)
@@ -896,6 +603,299 @@ class Node(NodeProtocol):
             k for k in self.GetAllParameters()
             if k not in self.Dictionary
         ]
+
+    # --------------------------------------------------------------------------
+    #                      Type helper functions
+    # --------------------------------------------------------------------------
+
+    def IsStringType(self, index: int) -> bool:
+        """Is the object index a string type?"""
+        if index in (0x9, 0xA, 0xB, 0xF):  # VISIBLE_STRING, OCTET_STRING, UNICODE_STRING, DOMAIN
+            return True
+        if 0xA0 <= index < 0x100:  # Custom types
+            result = self.GetEntry(index, 1)
+            if result in (0x9, 0xA, 0xB):
+                return True
+        return False
+
+    def IsRealType(self, index: int) -> bool:
+        """Is the object index a real (float) type?"""
+        if index in (0x8, 0x11):  # REAL32, REAL64
+            return True
+        if 0xA0 <= index < 0x100:  # Custom types
+            result = self.GetEntry(index, 1)
+            if result in (0x8, 0x11):
+                return True
+        return False
+
+    def IsMappingEntry(self, index: int) -> bool:
+        """
+        Check if an entry exists in the User Mapping Dictionary and returns the answer.
+        """
+        # FIXME: Is usermapping only used when defining custom objects?
+        # Come back to this and test if this is the case. If it is the function
+        # should probably be renamed to "IsUserEntry" or somesuch
+        return index in self.UserMapping
+
+    def IsEntry(self, index: int, subindex: int=0) -> bool:
+        """
+        Check if an entry exists in the Object Dictionary
+        """
+        if index in self.Dictionary:
+            if not subindex:
+                return True
+            dictval = self.Dictionary[index]
+            return isinstance(dictval, list) and subindex <= len(dictval)
+        return False
+
+    def HasEntryCallbacks(self, index: int) -> bool:
+        """Check if entry has the callback flag defined."""
+        entry_infos = self.GetEntryInfos(index)
+        if entry_infos and "callback" in entry_infos:
+            return entry_infos["callback"]
+        if index in self.Dictionary and index in self.ParamsDictionary and "callback" in self.ParamsDictionary[index]:
+            return self.ParamsDictionary[index]["callback"]
+        return False
+
+    # --------------------------------------------------------------------------
+    #                      Node mutuation functions
+    # --------------------------------------------------------------------------
+
+    def AddEntry(self, index: int, subindex: int|None = None, value: TODValue|list[TODValue]|None = None) -> bool:
+        """
+        Add a new entry in the Object Dictionary
+        """
+        if index not in self.Dictionary:
+            if not subindex:
+                self.Dictionary[index] = value
+                return True
+            if subindex == 1:
+                self.Dictionary[index] = [value]
+                return True
+        elif (subindex and isinstance(self.Dictionary[index], list)
+                and subindex == len(self.Dictionary[index]) + 1):
+            self.Dictionary[index].append(value)
+            return True
+        return False
+
+    def SetEntry(self, index: int, subindex: int|None = None, value: TODValue|None = None) -> bool:
+        """Modify an existing entry in the Object Dictionary"""
+        if index not in self.Dictionary:
+            return False
+        if not subindex:
+            if value is not None:
+                self.Dictionary[index] = value
+            return True
+        if isinstance(self.Dictionary[index], list) and 0 < subindex <= len(self.Dictionary[index]):
+            if value is not None:
+                self.Dictionary[index][subindex - 1] = value
+            return True
+        return False
+
+    def SetParamsEntry(self, index: int, subindex: int|None = None, comment=None, buffer_size=None, save=None, callback=None) -> bool:
+        """Set parameter values for an entry in the Object Dictionary."""
+        if index not in self.Dictionary:
+            return False
+        if ((comment is not None or save is not None or callback is not None or buffer_size is not None)
+            and index not in self.ParamsDictionary
+        ):
+            self.ParamsDictionary[index] = {}
+        if subindex is None or not isinstance(self.Dictionary[index], list) and subindex == 0:
+            if comment is not None:
+                self.ParamsDictionary[index]["comment"] = comment
+            if buffer_size is not None:
+                self.ParamsDictionary[index]["buffer_size"] = buffer_size
+            if save is not None:
+                self.ParamsDictionary[index]["save"] = save
+            if callback is not None:
+                self.ParamsDictionary[index]["callback"] = callback
+            return True
+        if isinstance(self.Dictionary[index], list) and 0 <= subindex <= len(self.Dictionary[index]):
+            if ((comment is not None or save is not None or callback is not None or buffer_size is not None)
+                and subindex not in self.ParamsDictionary[index]
+            ):
+                self.ParamsDictionary[index][subindex] = {}
+            if comment is not None:
+                self.ParamsDictionary[index][subindex]["comment"] = comment
+            if buffer_size is not None:
+                self.ParamsDictionary[index][subindex]["buffer_size"] = buffer_size
+            if save is not None:
+                self.ParamsDictionary[index][subindex]["save"] = save
+            return True
+        return False
+
+    def RemoveEntry(self, index: int, subindex: int|None = None) -> bool:
+        """
+        Removes an existing entry in the Object Dictionary. If a subindex is specified
+        it will remove this subindex only if it's the last of the index. If no subindex
+        is specified it removes the whole index and subIndexes from the Object Dictionary.
+        """
+        if index not in self.Dictionary:
+            return False
+        if not subindex:
+            self.Dictionary.pop(index)
+            if index in self.ParamsDictionary:
+                self.ParamsDictionary.pop(index)
+            return True
+        if isinstance(self.Dictionary[index], list) and subindex == len(self.Dictionary[index]):
+            self.Dictionary[index].pop(subindex - 1)
+            if index in self.ParamsDictionary:
+                if subindex in self.ParamsDictionary[index]:
+                    self.ParamsDictionary[index].pop(subindex)
+                if len(self.ParamsDictionary[index]) == 0:
+                    self.ParamsDictionary.pop(index)
+            if len(self.Dictionary[index]) == 0:
+                self.Dictionary.pop(index)
+                if index in self.ParamsDictionary:
+                    self.ParamsDictionary.pop(index)
+            return True
+        return False
+
+    def AddMappingEntry(self, index: int, subindex: int|None = None, name="Undefined", struct=0, size=None, nbmax=None,
+                        default=None, values=None) -> bool:
+        """
+        Add a new entry in the User Mapping Dictionary
+        """
+        if index not in self.UserMapping:
+            if values is None:
+                values = []
+            if subindex is None:
+                self.UserMapping[index] = {"name": name, "struct": struct, "need": False, "values": values}
+                if size is not None:
+                    self.UserMapping[index]["size"] = size
+                if nbmax is not None:
+                    self.UserMapping[index]["nbmax"] = nbmax
+                if default is not None:
+                    self.UserMapping[index]["default"] = default
+                return True
+        elif subindex is not None and subindex == len(self.UserMapping[index]["values"]):
+            if values is None:
+                values = {}
+            self.UserMapping[index]["values"].append(values)
+            return True
+        return False
+
+    def SetMappingEntry(self, index: int, subindex: int|None = None, name=None, struct=None, size=None, nbmax=None, default=None, values=None) -> bool:
+        """
+        Modify an existing entry in the User Mapping Dictionary
+        """
+        if index not in self.UserMapping:
+            return False
+        if subindex is None:
+            if name is not None:
+                self.UserMapping[index]["name"] = name
+                if self.UserMapping[index]["struct"] & OD.IdenticalSubindexes:
+                    self.UserMapping[index]["values"][1]["name"] = name + " %d[(sub)]"
+                elif not self.UserMapping[index]["struct"] & OD.MultipleSubindexes:
+                    self.UserMapping[index]["values"][0]["name"] = name
+            if struct is not None:
+                self.UserMapping[index]["struct"] = struct
+            if size is not None:
+                self.UserMapping[index]["size"] = size
+            if nbmax is not None:
+                self.UserMapping[index]["nbmax"] = nbmax
+            if default is not None:
+                self.UserMapping[index]["default"] = default
+            if values is not None:
+                self.UserMapping[index]["values"] = values
+            return True
+        if 0 <= subindex < len(self.UserMapping[index]["values"]) and values is not None:
+            if "type" in values:
+                if self.UserMapping[index]["struct"] & OD.IdenticalSubindexes:
+                    if self.IsStringType(self.UserMapping[index]["values"][subindex]["type"]):
+                        if self.IsRealType(values["type"]):
+                            for i in range(len(self.Dictionary[index])):
+                                self.SetEntry(index, i + 1, 0.)
+                        elif not self.IsStringType(values["type"]):
+                            for i in range(len(self.Dictionary[index])):
+                                self.SetEntry(index, i + 1, 0)
+                    elif self.IsRealType(self.UserMapping[index]["values"][subindex]["type"]):
+                        if self.IsStringType(values["type"]):
+                            for i in range(len(self.Dictionary[index])):
+                                self.SetEntry(index, i + 1, "")
+                        elif not self.IsRealType(values["type"]):
+                            for i in range(len(self.Dictionary[index])):
+                                self.SetEntry(index, i + 1, 0)
+                    elif self.IsStringType(values["type"]):
+                        for i in range(len(self.Dictionary[index])):
+                            self.SetEntry(index, i + 1, "")
+                    elif self.IsRealType(values["type"]):
+                        for i in range(len(self.Dictionary[index])):
+                            self.SetEntry(index, i + 1, 0.)
+                else:
+                    if self.IsStringType(self.UserMapping[index]["values"][subindex]["type"]):
+                        if self.IsRealType(values["type"]):
+                            self.SetEntry(index, subindex, 0.)
+                        elif not self.IsStringType(values["type"]):
+                            self.SetEntry(index, subindex, 0)
+                    elif self.IsRealType(self.UserMapping[index]["values"][subindex]["type"]):
+                        if self.IsStringType(values["type"]):
+                            self.SetEntry(index, subindex, "")
+                        elif not self.IsRealType(values["type"]):
+                            self.SetEntry(index, subindex, 0)
+                    elif self.IsStringType(values["type"]):
+                        self.SetEntry(index, subindex, "")
+                    elif self.IsRealType(values["type"]):
+                        self.SetEntry(index, subindex, 0.)
+            self.UserMapping[index]["values"][subindex].update(values)
+            return True
+        return False
+
+    def RemoveMappingEntry(self, index: int, subindex: int|None = None) -> bool:
+        """
+        Removes an existing entry in the User Mapping Dictionary. If a subindex is specified
+        it will remove this subindex only if it's the last of the index. If no subindex
+        is specified it removes the whole index and subIndexes from the User Mapping Dictionary.
+        """
+        if index in self.UserMapping:
+            if subindex is None:
+                self.UserMapping.pop(index)
+                return True
+            if subindex == len(self.UserMapping[index]["values"]) - 1:
+                self.UserMapping[index]["values"].pop(subindex)
+                return True
+        return False
+
+    def RemoveMapVariable(self, index: int, subindex: int = 0):
+        """
+        Remove all PDO mappings references to the specificed index and subindex.
+        """
+        model = index << 16
+        mask = 0xFFFF << 16
+        if subindex:
+            model += subindex << 8
+            mask += 0xFF << 8
+        for i in self.Dictionary:  # pylint: disable=consider-using-dict-items
+            if 0x1600 <= i <= 0x17FF or 0x1A00 <= i <= 0x1BFF:
+                for j, value in enumerate(self.Dictionary[i]):
+                    if (value & mask) == model:
+                        self.Dictionary[i][j] = 0
+
+    def UpdateMapVariable(self, index: int, subindex: int, size: int):
+        """
+        Update the PDO mappings references to the specificed index and subindex
+        and set the size value.
+        """
+        model = index << 16
+        mask = 0xFFFF << 16
+        if subindex:
+            model += subindex << 8
+            mask = 0xFF << 8
+        for i in self.Dictionary:  # pylint: disable=consider-using-dict-items
+            if 0x1600 <= i <= 0x17FF or 0x1A00 <= i <= 0x1BFF:
+                for j, value in enumerate(self.Dictionary[i]):
+                    if (value & mask) == model:
+                        self.Dictionary[i][j] = model + size
+
+    def RemoveLine(self, index: int, maxval: int, incr: int = 1):
+        """ Remove the given index and shift all the following indexes """
+        # FIXME: This function is called from NodeManager.RemoveCurrentVariable()
+        # but uncertain on how it is used.
+        i = index
+        while i < maxval and self.IsEntry(i + incr):
+            self.Dictionary[i] = self.Dictionary[i + incr]
+            i += incr
+        self.Dictionary.pop(i)
 
     def RemoveIndex(self, index: int) -> None:
         """ Remove the given index"""
