@@ -473,15 +473,17 @@ class NodeManager:
                 # Second case entry is a record
                 else:
                     i = 1
-                    subentry_infos = self.GetSubentryInfos(index, i)
-                    while subentry_infos:
+                    while True:
+                        try:
+                            subentry_infos = self.GetSubentryInfos(index, i)
+                        except ValueError:
+                            break
                         if "default" in subentry_infos:
                             default = subentry_infos["default"]
                         else:
                             default = self.GetTypeDefaultValue(subentry_infos["type"])
                         node.AddEntry(index, i, default)
                         i += 1
-                        subentry_infos = self.GetSubentryInfos(index, i)
             # Third case entry is a var
             else:
                 subentry_infos = self.GetSubentryInfos(index, 0)
@@ -1154,17 +1156,17 @@ class NodeManager:
     def GetEntryName(self, index, compute=True):
         if self.CurrentNode:
             return self.CurrentNode.GetEntryName(index, compute)
-        return ODMapping.FindEntryName(index, maps.MAPPING_DICTIONARY, compute)
+        return maps.MAPPING_DICTIONARY.FindEntryName(index, compute)
 
     def GetEntryInfos(self, index, compute=True):
         if self.CurrentNode:
             return self.CurrentNode.GetEntryInfos(index, compute)
-        return ODMapping.FindEntryInfos(index, maps.MAPPING_DICTIONARY, compute)
+        return maps.MAPPING_DICTIONARY.FindEntryInfos(index, compute)
 
     def GetSubentryInfos(self, index, subindex, compute=True):
         if self.CurrentNode:
             return self.CurrentNode.GetSubentryInfos(index, subindex, compute)
-        result = ODMapping.FindSubentryInfos(index, subindex, maps.MAPPING_DICTIONARY, compute)
+        result = maps.MAPPING_DICTIONARY.FindSubentryInfos(index, subindex, compute)
         if result:
             result["user_defined"] = False
         return result
@@ -1172,17 +1174,17 @@ class NodeManager:
     def GetTypeIndex(self, typename):
         if self.CurrentNode:
             return self.CurrentNode.GetTypeIndex(typename)
-        return ODMapping.FindTypeIndex(typename, maps.MAPPING_DICTIONARY)
+        return maps.MAPPING_DICTIONARY.FindTypeIndex(typename)
 
     def GetTypeName(self, typeindex):
         if self.CurrentNode:
             return self.CurrentNode.GetTypeName(typeindex)
-        return ODMapping.FindTypeName(typeindex, maps.MAPPING_DICTIONARY)
+        return maps.MAPPING_DICTIONARY.FindTypeName(typeindex)
 
     def GetTypeDefaultValue(self, typeindex):
         if self.CurrentNode:
             return self.CurrentNode.GetTypeDefaultValue(typeindex)
-        return ODMapping.FindTypeDefaultValue(typeindex, maps.MAPPING_DICTIONARY)
+        return maps.MAPPING_DICTIONARY.FindTypeDefaultValue(typeindex)
 
     def GetMapVariableList(self, compute=True):
         if self.CurrentNode:
@@ -1192,7 +1194,7 @@ class NodeManager:
     def GetMandatoryIndexes(self):
         if self.CurrentNode:
             return self.CurrentNode.GetMandatoryIndexes()
-        return ODMapping.FindMandatoryIndexes(maps.MAPPING_DICTIONARY)
+        return maps.MAPPING_DICTIONARY.FindMandatoryIndexes()
 
     def GetCustomisableTypes(self):
         return {

@@ -27,11 +27,6 @@ from typing import cast
 import wx
 
 import objdictgen
-from objdictgen import nodemanager
-from objdictgen.ui import commondialogs as cdia
-from objdictgen.ui import nodeeditortemplate as net
-from objdictgen.ui import subindextable as sit
-from objdictgen.ui.exception import (add_except_hook, display_error_dialog,
 from objdictgen.nodemanager import NodeManager
 from objdictgen.typing import TPath
 from objdictgen.ui.commondialogs import CreateNodeDialog

@@ -377,173 +377,146 @@ def le_to_be(value, size):
 class ODMapping(UserDict[int, TODObj]):
     """Object Dictionary Mapping."""
 
-    @staticmethod
-    def FindIndex(index, mappingdictionary):
-        """
-        Return the index of the informations in the Object Dictionary in case of identical
-        indexes
-        """
-        if index in mappingdictionary:
+    def FindBaseIndex(self, index: int) -> int:
+        """Return the index number of the base object for the given index.
+        Used with identical indexes."""
+        if index in self:
             return index
-        listpluri = [
-            idx for idx, mapping in mappingdictionary.items()
-            if mapping["struct"] & OD.IdenticalIndexes
-        ]
-        for idx in sorted(listpluri):
-            nb_max = mappingdictionary[idx]["nbmax"]
-            incr = mappingdictionary[idx]["incr"]
+        for idx, obj in self.find(lambda _, o: o["struct"] & OD.IdenticalIndexes):
+            nb_max = obj["nbmax"]
+            incr = obj["incr"]
             if idx < index < idx + incr * nb_max and (index - idx) % incr == 0:
                 return idx
-        return None
+        raise ValueError(f"Index 0x{index:04x} not found in mapping dictionary")
 
-    @staticmethod
-    def FindTypeIndex(typename, mappingdictionary):
-        """
-        Return the index of the typename given by searching in mappingdictionary
-        """
-        return {
-            values["name"]: index
-            for index, values in mappingdictionary.items()
-            if index < 0x1000
-        }.get(typename)
+    def FindBaseIndexNumber(self, index: int) -> int:
+        """Return the index increment number from the base object"""
+        base_index = self.FindBaseIndex(index)
+        return (index - base_index) // self[base_index].get("incr", 1)
 
-    @staticmethod
-    def FindTypeName(typeindex, mappingdictionary):
-        """
-        Return the name of the type by searching in mappingdictionary
-        """
-        if typeindex < 0x1000 and typeindex in mappingdictionary:
-            return mappingdictionary[typeindex]["name"]
-        return None
+    def FindTypeIndex(self, typename: str) -> int:
+        """Return the object index of the given typename"""
+        for idx, _ in self.find(lambda i, o: i < 0x1000 and o["name"] == typename):
+            return idx
+        raise ValueError(f"Type '{typename}' not found in mapping dictionary")
 
-    @staticmethod
-    def FindTypeDefaultValue(typeindex, mappingdictionary):
-        """
-        Return the default value of the type by searching in mappingdictionary
-        """
-        if typeindex < 0x1000 and typeindex in mappingdictionary:
-            return mappingdictionary[typeindex]["default"]
-        return None
+    def FindTypeName(self, typeindex: int) -> str:
+        """Return the name of the type object index"""
+        if typeindex < 0x1000 and typeindex in self:
+            return self[typeindex]["name"]
+        raise ValueError(f"Type 0x{typeindex:04x} not found in mapping dictionary")
 
-    @staticmethod
-    def FindTypeList(mappingdictionary):
-        """
-        Return the list of types defined in mappingdictionary
-        """
+    def FindTypeDefaultValue(self, typeindex: int) -> TODValue:
+        """Return the default value of the given type index"""
+        if typeindex < 0x1000 and typeindex in self:
+            return self[typeindex]["default"]
+        raise ValueError(f"Type 0x{typeindex:04x} not found in mapping dictionary")
+
+    def FindTypeList(self) -> list[str]:
+        """Return a list of all object type names"""
         return [
-            mappingdictionary[index]["name"]
-            for index in mappingdictionary
+            self[index]["name"]
+            for index in self
             if index < 0x1000
         ]
 
-    @staticmethod
-    def FindMandatoryIndexes(mappingdictionary):
-        """
-        Return the list of mandatory indexes defined in mappingdictionary
-        """
+    def FindMandatoryIndexes(self) -> list[int]:
+        """Return a list of all mandatory objects"""
         return [
             index
-            for index in mappingdictionary
-            if index >= 0x1000 and mappingdictionary[index]["need"]
+            for index in self
+            if index >= 0x1000 and self[index]["need"]
         ]
 
-    @staticmethod
-    def FindEntryName(index, mappingdictionary, compute=True):
-        """
-        Return the name of an entry by searching in mappingdictionary
-        """
-        base_index = ODMapping.FindIndex(index, mappingdictionary)
-        if base_index:
-            infos = mappingdictionary[base_index]
-            if infos["struct"] & OD.IdenticalIndexes and compute:
-                return eval_name(
-                    infos["name"], idx=(index - base_index) // infos["incr"] + 1, sub=0
-                )
-            return infos["name"]
-        return None
+    def FindEntryName(self, index: int, compute=True) -> str:
+        """Return the name of an entry. Compute the name if needed."""
+        base_index = self.FindBaseIndex(index)
+        infos = self[base_index]
+        if infos["struct"] & OD.IdenticalIndexes and compute:
+            return eval_name(
+                infos["name"], idx=(index - base_index) // infos["incr"] + 1, sub=0
+            )
+        return infos["name"]
 
-    @staticmethod
-    def FindEntryInfos(index, mappingdictionary, compute=True):
-        """
-        Return the informations of one entry by searching in mappingdictionary
-        """
-        base_index = ODMapping.FindIndex(index, mappingdictionary)
-        if base_index:
-            obj = mappingdictionary[base_index].copy()
-            if obj["struct"] & OD.IdenticalIndexes and compute:
-                obj["name"] = eval_name(
-                    obj["name"], idx=(index - base_index) // obj["incr"] + 1, sub=0
-                )
-            obj.pop("values")
-            return obj
-        return None
+    def FindEntryInfos(self, index: int, compute=True) -> TODObj:
+        """Return the informations of one entry"""
+        base_index = self.FindBaseIndex(index)
+        obj = self[base_index].copy()
+        if obj["struct"] & OD.IdenticalIndexes and compute:
+            obj["name"] = eval_name(
+                obj["name"], idx=(index - base_index) // obj["incr"] + 1, sub=0
+            )
+        obj.pop("values")
+        return obj
 
-    @staticmethod
-    def FindSubentryInfos(index, subindex, mappingdictionary, compute=True):
-        """
-        Return the informations of one subentry of an entry by searching in mappingdictionary
-        """
-        base_index = ODMapping.FindIndex(index, mappingdictionary)
-        if base_index:
-            struct = mappingdictionary[base_index]["struct"]
-            if struct & OD.Subindex:
-                infos = None
-                if struct & OD.IdenticalSubindexes:
-                    if subindex == 0:
-                        infos = mappingdictionary[base_index]["values"][0].copy()
-                    elif 0 < subindex <= mappingdictionary[base_index]["values"][1]["nbmax"]:
-                        infos = mappingdictionary[base_index]["values"][1].copy()
-                elif struct & OD.MultipleSubindexes:
-                    idx = 0
-                    for subindex_infos in mappingdictionary[base_index]["values"]:
-                        if "nbmax" in subindex_infos:
-                            if idx <= subindex < idx + subindex_infos["nbmax"]:
-                                infos = subindex_infos.copy()
-                                break
-                            idx += subindex_infos["nbmax"]
-                        else:
-                            if subindex == idx:
-                                infos = subindex_infos.copy()
-                                break
-                            idx += 1
-                elif subindex == 0:
-                    infos = mappingdictionary[base_index]["values"][0].copy()
-
-                if infos is not None and compute:
-                    if struct & OD.IdenticalIndexes:
-                        incr = mappingdictionary[base_index]["incr"]
+    def FindSubentryInfos(self, index: int, subindex: int, compute=True) -> TODSubObj:
+        """Return the informations of one subentry of an entry"""
+        base_index = self.FindBaseIndex(index)
+        struct = self[base_index]["struct"]
+        if struct & OD.Subindex:
+            infos: TODSubObj|None = None
+            if struct & OD.IdenticalSubindexes:
+                if subindex == 0:
+                    infos = self[base_index]["values"][0]
+                elif 0 < subindex <= self[base_index]["values"][1]["nbmax"]:
+                    infos = self[base_index]["values"][1]
+            elif struct & OD.MultipleSubindexes:
+                idx = 0
+                for subindex_infos in self[base_index]["values"]:
+                    if "nbmax" in subindex_infos:
+                        if idx <= subindex < idx + subindex_infos["nbmax"]:
+                            infos = subindex_infos
+                            break
+                        idx += subindex_infos["nbmax"]
                     else:
-                        incr = 1
-                    infos["name"] = eval_name(
-                        infos["name"], idx=(index - base_index) // incr + 1, sub=subindex
-                    )
+                        if subindex == idx:
+                            infos = subindex_infos
+                            break
+                        idx += 1
+            elif subindex == 0:
+                infos = self[base_index]["values"][0]
 
-                return infos
-        return None
+            if infos is None:
+                raise ValueError(f"Subindex {subindex} does not exist for index 0x{index:04x} or wrong object type")
+            infos = infos.copy()
 
-    @staticmethod
-    def FindMapVariableList(mappingdictionary, node, compute=True):
+            if struct & OD.IdenticalIndexes:
+                incr = self[base_index]["incr"]
+            else:
+                incr = 1
+            infos["name"] = eval_name(
+                infos["name"], idx=(index - base_index) // incr + 1, sub=subindex
+            )
+            return infos
+        raise ValueError(f"Index 0x{index:04x} does not have subentries")
+
+    def FindMapVariableList(self, node: "Node", compute=True) -> Generator[tuple[int, int, int, str], None, None]:
         """
-        Return the list of variables that can be mapped defined in mappingdictionary
+        Generator of all variables that can be mapped to in pdos.
+        It yields tuple of (index, subindex, size, name)
         """
-        for index in mappingdictionary:
-            if node.IsEntry(index):
-                for subindex, values in enumerate(mappingdictionary[index]["values"]):
-                    if mappingdictionary[index]["values"][subindex]["pdo"]:
-                        infos = node.GetEntryInfos(mappingdictionary[index]["values"][subindex]["type"])
-                        name = mappingdictionary[index]["values"][subindex]["name"]
-                        if mappingdictionary[index]["struct"] & OD.IdenticalSubindexes:
-                            values = node.GetEntry(index)
-                            for i in range(len(values) - 1):
-                                computed_name = name
-                                if compute:
-                                    computed_name = eval_name(computed_name, idx=1, sub=i + 1)
-                                yield (index, i + 1, infos["size"], computed_name)
-                        else:
-                            computed_name = name
-                            if compute:
-                                computed_name = eval_name(computed_name, idx=1, sub=subindex)
-                            yield (index, subindex, infos["size"], computed_name)
+        for index, entry in self.items():
+            values = entry["values"]
+            for subindex, subvalue in enumerate(values):
+                if not subvalue["pdo"]:
+                    continue
+                # Get the info for the type
+                typeinfos = node.GetEntryInfos(subvalue["type"])
+                name = subvalue["name"]
+                if entry["struct"] & OD.IdenticalSubindexes:
+                    value = node.GetEntry(index)
+                    # FIXME: With this struct type, GetEntry should always return a list
+                    assert isinstance(value, list)
+                    for i in range(len(value) - 1):
+                        computed_name = name
+                        if compute:
+                            computed_name = eval_name(computed_name, idx=1, sub=i + 1)
+                        yield (index, i + 1, typeinfos["size"], computed_name)
+                else:
+                    computed_name = name
+                    if compute:
+                        computed_name = eval_name(computed_name, idx=1, sub=subindex)
+                    yield (index, subindex, typeinfos["size"], computed_name)
 
     #
     # HELPERS
@@ -558,6 +531,105 @@ class ODMapping(UserDict[int, TODObj]):
 
 class ODMappingList(UserList[ODMapping]):
     """List of Object Dictionary Mappings."""
+
+    #
+    # DUCK TYPED METHODS (with ODMapping)
+    #
+
+    def FindBaseIndex(self, index: int) -> int:
+        """Return the index number of the base object for the given index.
+        Used with identical indexes."""
+        try:
+            return self.findfirst(lambda m: m.FindBaseIndex(index))
+        except StopIteration:
+            raise ValueError(f"Index 0x{index:04x} not found in mapping dictionary") from None
+
+    def FindBaseIndexNumber(self, index: int) -> int:
+        """Return the index increment number from the base object"""
+        try:
+            return self.findfirst(lambda m: m.FindBaseIndexNumber(index))
+        except StopIteration:
+            raise ValueError(f"Index 0x{index:04x} not found in mapping dictionary") from None
+
+    def FindTypeIndex(self, typename: str) -> int:
+        """Return the object index of the given typename"""
+        try:
+            return self.findfirst(lambda m: m.FindTypeIndex(typename))
+        except StopIteration:
+            raise ValueError(f"Type '{typename}' not found in mapping dictionary") from None
+
+    def FindTypeName(self, typeindex: int) -> str:
+        """Return the name of the type object index"""
+        try:
+            return self.findfirst(lambda m: m.FindTypeName(typeindex))
+        except StopIteration:
+            raise ValueError(f"Type 0x{typeindex:04x} not found in mapping dictionary") from None
+
+    def FindTypeDefaultValue(self, typeindex: int) -> TODValue:
+        """Return the default value of the given type index"""
+        try:
+            return self.findfirst(lambda m: m.FindTypeDefaultValue(typeindex))
+        except StopIteration:
+            raise ValueError(f"Type 0x{typeindex:04x} not found in mapping dictionary") from None
+
+    def FindTypeList(self) -> list[str]:
+        """Return a list of all object type names"""
+        return list(itertools.chain.from_iterable(
+            mapping.FindTypeList() for mapping in self
+        ))
+
+    def FindMandatoryIndexes(self) -> list[int]:
+        """Return a list of all mandatory objects"""
+        return list(itertools.chain.from_iterable(
+            mapping.FindMandatoryIndexes() for mapping in self
+        ))
+
+    def FindEntryName(self, index: int, compute=True) -> str:
+        """Return the name of an entry. Compute the name if needed."""
+        try:
+            return self.findfirst(lambda m: m.FindEntryName(index, compute))
+        except StopIteration:
+            raise ValueError(f"Index 0x{index:04x} not found in mapping dictionary") from None
+
+    def FindEntryInfos(self, index: int, compute=True) -> TODObj:
+        """Return the name of an entry. Compute the name if needed."""
+        try:
+            return self.findfirst(lambda m: m.FindEntryInfos(index, compute))
+        except StopIteration:
+            raise ValueError(f"Index 0x{index:04x} not found in mapping dictionary") from None
+
+    def FindSubentryInfos(self, index: int, subindex: int, compute=True) -> TODSubObj:
+        """Return the informations of one subentry of an entry"""
+        try:
+            return self.findfirst(lambda m: m.FindSubentryInfos(index, subindex, compute))
+        except StopIteration:
+            raise ValueError(f"Subindex 0x{index:04x}.{subindex:x} does not exist") from None
+
+    def FindMapVariableList(self, node: "Node", compute=True) -> Generator[tuple[int, int, int, str], None, None]:
+        """
+        Generator of all variables that can be mapped to in pdos.
+        It yields tuple of (index, subindex, size, name)
+        """
+        for mapping in self:
+            yield from mapping.FindMapVariableList(node, compute)
+
+    #
+    # HELPERS
+    #
+
+    def find(self, predicate: Callable[[int, TODObj], bool|int]) -> Generator[tuple[int, TODObj], None, None]:
+        """Generate the objects that matches the function"""
+        for mapping in self:
+            yield from mapping.find(predicate)
+
+    def findfirst(self, fn: Callable[[ODMapping], T]) -> T:
+        """Execute a function on each mapping and return the first result"""
+        for mapping in self:
+            try:
+                return fn(mapping)
+            except ValueError:
+                continue
+        raise StopIteration()
 
 
 #

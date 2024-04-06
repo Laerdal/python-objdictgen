@@ -117,6 +117,14 @@ class Node(NodeProtocol):
     #                      Dunders
     # --------------------------------------------------------------------------
 
+    def __setattr__(self, name: str, value: Any):
+        """Ensure that that internal attrs are of the right datatype."""
+        if name in ("Profile", "DS302", "UserMapping"):
+            if not isinstance(value, ODMapping):
+                value = ODMapping(value)
+        super().__setattr__(name, value)
+
+
     # --------------------------------------------------------------------------
     #                      Node Input/Output
     # --------------------------------------------------------------------------
@@ -327,22 +335,11 @@ class Node(NodeProtocol):
 
     def GetBaseIndex(self, index: int) -> int:
         """ Return the index number of the base object """
-        for mapping in self.GetMappings():
-            result = ODMapping.FindIndex(index, mapping)
-            if result:
-                return result
-        return ODMapping.FindIndex(index, maps.MAPPING_DICTIONARY)
+        return self.GetMappings(withmapping=True).FindBaseIndex(index)
 
     def GetBaseIndexNumber(self, index: int) -> int:
         """ Return the index number from the base object """
-        for mapping in self.GetMappings():
-            result = ODMapping.FindIndex(index, mapping)
-            if result is not None:
-                return (index - result) // mapping[result].get("incr", 1)
-        result = ODMapping.FindIndex(index, maps.MAPPING_DICTIONARY)
-        if result is not None:
-            return (index - result) // maps.MAPPING_DICTIONARY[result].get("incr", 1)
-        return 0
+        return self.GetMappings(withmapping=True).FindBaseIndexNumber(index)
 
     def GetCustomisedTypeValues(self, index: int) -> tuple[list[TODValue], int]:
         """Return the customization struct type from the index. It returns
@@ -354,48 +351,34 @@ class Node(NodeProtocol):
 
     def GetEntryName(self, index: int, compute=True) -> str:
         """Return the entry name for the given index"""
-        result = None
-        mappings = self.GetMappings()
-        i = 0
-        while not result and i < len(mappings):
-            result = ODMapping.FindEntryName(index, mappings[i], compute)
-            i += 1
-        if result is None:
-            result = ODMapping.FindEntryName(index, maps.MAPPING_DICTIONARY, compute)
-        return result
+        return self.GetMappings(withmapping=True).FindEntryName(index, compute)
 
     def GetEntryInfos(self, index: int, compute=True) -> TODObj:
         """Return the entry infos for the given index"""
-        result = None
-        mappings = self.GetMappings()
-        i = 0
-        while not result and i < len(mappings):
-            result = ODMapping.FindEntryInfos(index, mappings[i], compute)
-            i += 1
-        r301 = ODMapping.FindEntryInfos(index, maps.MAPPING_DICTIONARY, compute)
-        if r301:
-            if result is not None:
-                r301.update(result)
+        # FIXME: Add flags. Add the ability to determine the mapping source
+        result = self.GetMappings(withmapping=True).FindEntryInfos(index, compute)
+        try:
+            # If present in built-in dictionary, use the built-in values
+            # and update with the user provided values
+            r301 = maps.MAPPING_DICTIONARY.FindEntryInfos(index, compute)
+            r301.update(result)
             return r301
+        except ValueError:
+            pass
         return result
 
     def GetSubentryInfos(self, index: int, subindex: int, compute: bool = True) -> TODSubObj:
         """Return the subentry infos for the given index and subindex"""
-        result = None
-        mappings = self.GetMappings()
-        i = 0
-        while not result and i < len(mappings):
-            result = ODMapping.FindSubentryInfos(index, subindex, mappings[i], compute)
-            if result:
-                result["user_defined"] = i == len(mappings) - 1 and index >= 0x1000
-            i += 1
-        r301 = ODMapping.FindSubentryInfos(index, subindex, maps.MAPPING_DICTIONARY, compute)
-        if r301:
-            if result is not None:
-                r301.update(result)
-            else:
-                r301["user_defined"] = False
+        # FIXME: Add flags. Add the ability to determine the mapping source
+        result = self.GetMappings(withmapping=True).FindSubentryInfos(index, subindex, compute)
+        # FIXME: This will alter objects in the mapping store. This is probably not intended
+        result["user_defined"] = index in self.UserMapping
+        try:
+            r301 = maps.MAPPING_DICTIONARY.FindSubentryInfos(index, subindex, compute)
+            r301.update(result)
             return r301
+        except ValueError:
+            pass
         return result
 
     def GetEntryFlags(self, index: int) -> set[str]:
@@ -438,55 +421,25 @@ class Node(NodeProtocol):
 
     def GetTypeIndex(self, typename: str) -> int:
         """Return the type index for the given type name."""
-        result = None
-        mappings = self.GetMappings()
-        i = 0
-        while not result and i < len(mappings):
-            result = ODMapping.FindTypeIndex(typename, mappings[i])
-            i += 1
-        if result is None:
-            result = ODMapping.FindTypeIndex(typename, maps.MAPPING_DICTIONARY)
-        return result
+        return self.GetMappings(withmapping=True).FindTypeIndex(typename)
 
     def GetTypeName(self, typeindex: int) -> str:
         """Return the type name for the given type index."""
-        result = None
-        mappings = self.GetMappings()
-        i = 0
-        while not result and i < len(mappings):
-            result = ODMapping.FindTypeName(typeindex, mappings[i])
-            i += 1
-        if result is None:
-            result = ODMapping.FindTypeName(typeindex, maps.MAPPING_DICTIONARY)
-        return result
+        return self.GetMappings(withmapping=True).FindTypeName(typeindex)
 
     def GetTypeDefaultValue(self, typeindex: int) -> TODValue:
         """Return the default value for the given type index."""
-        result = None
-        mappings = self.GetMappings()
-        i = 0
-        while not result and i < len(mappings):
-            result = ODMapping.FindTypeDefaultValue(typeindex, mappings[i])
-            i += 1
-        if result is None:
-            result = ODMapping.FindTypeDefaultValue(typeindex, maps.MAPPING_DICTIONARY)
-        return result
+        return self.GetMappings(withmapping=True).FindTypeDefaultValue(typeindex)
 
     def GetMapVariableList(self, compute=True) -> list[tuple[int, int, int, str]]:
         """Return a list of all objects and subobjects available for mapping into
         pdos. Returns a list of tuples with the index, subindex, size and name of the object."""
-        list_ = list(ODMapping.FindMapVariableList(maps.MAPPING_DICTIONARY, self, compute))
-        for mapping in self.GetMappings():
-            list_.extend(ODMapping.FindMapVariableList(mapping, self, compute))
-        list_.sort()
-        return list_
+        return list(sorted(self.GetMappings(withmapping=True).FindMapVariableList(self, compute)))
 
     def GetMandatoryIndexes(self, node: "Node|None" = None) -> list[int]:  # pylint: disable=unused-argument
         """Return the mandatory indexes for the node."""
-        list_ = ODMapping.FindMandatoryIndexes(maps.MAPPING_DICTIONARY)
-        for mapping in self.GetMappings():
-            list_.extend(ODMapping.FindMandatoryIndexes(mapping))
-        return list_
+        # FIXME: Old code listed MAPPING_DIRECTORY first, this is last. Important?
+        return self.GetMappings(withmapping=True).FindMandatoryIndexes()
 
     def GetCustomisableTypes(self) -> dict[int, tuple[str, int]]:
         """ Return the customisable types. It returns a dict by the index number.
@@ -498,10 +451,8 @@ class Node(NodeProtocol):
 
     def GetTypeList(self) -> list[str]:
         """Return a list of all object types available for the current node"""
-        list_ = ODMapping.FindTypeList(maps.MAPPING_DICTIONARY)
-        for mapping in self.GetMappings():
-            list_.extend(ODMapping.FindTypeList(mapping))
-        return list_
+        # FIXME: Old code listed MAPPING_DIRECTORY first, this puts it last. Important?
+        return self.GetMappings(withmapping=True).FindTypeList()
 
     @staticmethod
     def GenerateMapName(name: str, index: int, subindex: int) -> str:
@@ -1057,11 +1008,12 @@ class Node(NodeProtocol):
                     value = '"' + value + '"'
                 elif i and index_range and index_range.name in ('rpdom', 'tpdom'):
                     index, subindex, _ = self.GetMapIndex(value)
-                    pdo = self.GetSubentryInfos(index, subindex)
-                    suffix = '???' if value else ''
-                    if pdo:
-                        suffix = str(pdo["name"])
-                    value = f"0x{value:x}  {suffix}"
+                    try:
+                        pdo = self.GetSubentryInfos(index, subindex)
+                        value = f"0x{value:x}  {pdo['name']}"
+                    except ValueError:
+                        suffix = '   ???' if value else ''
+                        value = f"0x{value:x}{suffix}"
                 elif i and value and (k in (4120, ) or 'COB ID' in info["name"]):
                     value = f"0x{value:x}"
                 else:
