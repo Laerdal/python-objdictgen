@@ -28,7 +28,6 @@ import objdictgen
 from objdictgen import maps
 from objdictgen.maps import OD
 from objdictgen.typing import TGetValues
-from objdictgen.node import Node
 from objdictgen.ui.exception import (display_error_dialog,
                                      display_exception_dialog)
 
@@ -1688,13 +1687,13 @@ class DCFEntryValuesDialog(wx.Dialog):
         if values:
             data = values[4:]
             current = 0
-            for _ in range(Node.be_to_le(values[:4])):
+            for _ in range(maps.be_to_le(values[:4])):
                 value = {}
-                value["Index"] = Node.be_to_le(data[current:current + 2])
-                value["Subindex"] = Node.be_to_le(data[current + 2:current + 3])
-                size = Node.be_to_le(data[current + 3:current + 7])
+                value["Index"] = maps.be_to_le(data[current:current + 2])
+                value["Subindex"] = maps.be_to_le(data[current + 2:current + 3])
+                size = maps.be_to_le(data[current + 3:current + 7])
                 value["Size"] = size
-                value["Value"] = Node.be_to_le(data[current + 7:current + 7 + size])
+                value["Value"] = maps.be_to_le(data[current + 7:current + 7 + size])
                 current += 7 + size
                 self.Values.append(value)
         self.RefreshValues()
@@ -1703,12 +1702,12 @@ class DCFEntryValuesDialog(wx.Dialog):
         # FIXME: THis function needs rewrite, as the map.be_to_le is not ported properly to py3
         if len(self.Values) <= 0:
             return ""
-        value = Node.le_to_be(len(self.Values), 4)
+        value = maps.le_to_be(len(self.Values), 4)
         for row in self.Values:
-            value += Node.le_to_be(row["Index"], 2)
-            value += Node.le_to_be(row["Subindex"], 1)
-            value += Node.le_to_be(row["Size"], 4)
-            value += Node.le_to_be(row["Value"], row["Size"])
+            value += maps.le_to_be(row["Index"], 2)
+            value += maps.le_to_be(row["Subindex"], 1)
+            value += maps.le_to_be(row["Size"], 4)
+            value += maps.le_to_be(row["Value"], row["Size"])
         return value
 
     def RefreshValues(self):

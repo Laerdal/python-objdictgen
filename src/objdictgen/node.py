@@ -1030,11 +1030,11 @@ class Node(NodeProtocol):
                 continue
 
             # Print the parameter range header
-            ir = maps.get_index_range(k)
+            ir = maps.INDEX_RANGES.get_index_range(k)
             if index_range != ir:
                 index_range = ir
                 if not compact:
-                    yield Fore.YELLOW + ir["description"] + Style.RESET_ALL
+                    yield Fore.YELLOW + ir.description + Style.RESET_ALL
 
             # Yield the parameter header
             yield line.format(**fmt)
@@ -1055,7 +1055,7 @@ class Node(NodeProtocol):
                 # Special formatting on value
                 if isinstance(value, str):
                     value = '"' + value + '"'
-                elif i and index_range and index_range["name"] in ('rpdom', 'tpdom'):
+                elif i and index_range and index_range.name in ('rpdom', 'tpdom'):
                     index, subindex, _ = self.GetMapIndex(value)
                     pdo = self.GetSubentryInfos(index, subindex)
                     suffix = '???' if value else ''

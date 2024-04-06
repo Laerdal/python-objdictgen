@@ -117,22 +117,44 @@ class ODStructTypes:
 # Convenience shortcut
 OD = ODStructTypes
 
+
+@dataclass
+class IndexRange:
+    """Object dictionary range classes."""
+    min: int
+    max: int
+    name: str
+    description: str
+
+
+class IndexRanges(UserList[IndexRange]):
+    """List of index ranges."""
+
+    def get_index_range(self, index: int) -> IndexRange:
+        """Return the index range for the given index"""
+        for irange in self:
+            if irange.min <= index <= irange.max:
+                return irange
+        raise ValueError(f"Cannot find index range for value '0x{index:x}'")
+
+
 #
 # List of the Object Dictionary ranges
 #
-INDEX_RANGES = [
-    {"min": 0x0001, "max": 0x0FFF, "name": "dtd", "description": "Data Type Definitions"},
-    {"min": 0x1000, "max": 0x1029, "name": "cp", "description": "Communication Parameters"},
-    {"min": 0x1200, "max": 0x12FF, "name": "sdop", "description": "SDO Parameters"},
-    {"min": 0x1400, "max": 0x15FF, "name": "rpdop", "description": "Receive PDO Parameters"},
-    {"min": 0x1600, "max": 0x17FF, "name": "rpdom", "description": "Receive PDO Mapping"},
-    {"min": 0x1800, "max": 0x19FF, "name": "tpdop", "description": "Transmit PDO Parameters"},
-    {"min": 0x1A00, "max": 0x1BFF, "name": "tpdom", "description": "Transmit PDO Mapping"},
-    {"min": 0x1C00, "max": 0x1FFF, "name": "ocp", "description": "Other Communication Parameters"},
-    {"min": 0x2000, "max": 0x5FFF, "name": "ms", "description": "Manufacturer Specific"},
-    {"min": 0x6000, "max": 0x9FFF, "name": "sdp", "description": "Standardized Device Profile"},
-    {"min": 0xA000, "max": 0xBFFF, "name": "sip", "description": "Standardized Interface Profile"},
-]
+INDEX_RANGES = IndexRanges([
+    IndexRange(min=0x0001, max=0x0FFF, name="dtd",   description="Data Type Definitions"),
+    IndexRange(min=0x1000, max=0x1029, name="cp",    description="Communication Parameters"),
+    IndexRange(min=0x1200, max=0x12FF, name="sdop",  description="SDO Parameters"),
+    IndexRange(min=0x1400, max=0x15FF, name="rpdop", description="Receive PDO Parameters"),
+    IndexRange(min=0x1600, max=0x17FF, name="rpdom", description="Receive PDO Mapping"),
+    IndexRange(min=0x1800, max=0x19FF, name="tpdop", description="Transmit PDO Parameters"),
+    IndexRange(min=0x1A00, max=0x1BFF, name="tpdom", description="Transmit PDO Mapping"),
+    IndexRange(min=0x1C00, max=0x1FFF, name="ocp",   description="Other Communication Parameters"),
+    IndexRange(min=0x2000, max=0x5FFF, name="ms",    description="Manufacturer Specific"),
+    IndexRange(min=0x6000, max=0x9FFF, name="sdp",   description="Standardized Device Profile"),
+    IndexRange(min=0xA000, max=0xBFFF, name="sip",   description="Standardized Interface Profile"),
+])
+
 
 # ------------------------------------------------------------------------------
 #                      Evaluation of values
@@ -307,18 +329,13 @@ def import_profile(profilename):
         log.debug(traceback.format_exc())
         raise ValueError(f"Loading profile '{profilepath}' failed: {exc}") from exc
 
-def get_index_range(index):
-    for irange in INDEX_RANGES:
-        if irange["min"] <= index <= irange["max"]:
-            return irange
-    raise ValueError(f"Cannot find index range for value '0x{index:x}'")
 
 def be_to_le(value):
-    """
-    Convert Big Endian to Little Endian
-    @param value: value expressed in Big Endian
-    @param size: number of bytes generated
-    @return: a string containing the value converted
+    """Convert Big Endian to Little Endian
+
+    :param value: value expressed in Big Endian
+    :param size: number of bytes generated
+    :returns: a string containing the value converted
     """
 
     # FIXME: This function is used in assosciation with DCF files, but have
@@ -326,16 +343,17 @@ def be_to_le(value):
     # function is not working properly after the py2 -> py3 conversion
     raise NotImplementedError("be_to_le() may be broken in py3")
 
-    # FIXME: The function title is confusing as the input data type (str) is
-    # different than the output (int)
-    return int("".join([f"{ord(char):02X}" for char in reversed(value)]), 16)
+    # # FIXME: The function title is confusing as the input data type (str) is
+    # # different than the output (int)
+    # return int("".join([f"{ord(char):02X}" for char in reversed(value)]), 16)
+
 
 def le_to_be(value, size):
     """
     Convert Little Endian to Big Endian
-    @param value: value expressed in integer
-    @param size: number of bytes generated
-    @return: a string containing the value converted
+    :param value: value expressed in integer
+    :param size: number of bytes generated
+    :return: a string containing the value converted
     """
 
     # FIXME: This function is used in assosciation with DCF files, but have
@@ -344,12 +362,12 @@ def le_to_be(value, size):
     # the change of chr() behavior
     raise NotImplementedError("le_to_be() is broken in py3")
 
-    # FIXME: The function title is confusing as the input data type (int) is
-    # different than the output (str)
-    data = ("%" + str(size * 2) + "." + str(size * 2) + "X") % value
-    list_car = [data[i:i + 2] for i in range(0, len(data), 2)]
-    list_car.reverse()
-    return "".join([chr(int(car, 16)) for car in list_car])
+    # # FIXME: The function title is confusing as the input data type (int) is
+    # # different than the output (str)
+    # data = ("%" + str(size * 2) + "." + str(size * 2) + "X") % value
+    # list_car = [data[i:i + 2] for i in range(0, len(data), 2)]
+    # list_car.reverse()
+    # return "".join([chr(int(car, 16)) for car in list_car])
 
 
 # ------------------------------------------------------------------------------

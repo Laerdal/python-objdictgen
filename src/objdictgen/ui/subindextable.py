@@ -27,7 +27,6 @@ from objdictgen import maps
 from objdictgen.maps import OD
 from objdictgen.nodemanager import NodeManager
 from objdictgen.ui import commondialogs as common
-from objdictgen.ui import commondialogs as cdia
 from objdictgen.ui.exception import display_error_dialog
 from objdictgen.ui.nodeeditortemplate import NodeEditorTemplate
 
@@ -500,7 +499,7 @@ class EditingPanel(wx.SplitterWindow):
         self.Index: int = 0
 
         for values in maps.INDEX_RANGES:
-            text = f"   0x{values['min']:04X}-0x{values['max']:04X}      {values['description']}"
+            text = f"   0x{values.min:04X}-0x{values.max:04X}      {values.description}"
             self.PartList.Append(text)
         self.Table = SubindexTable(self, [], [], SUBINDEX_TABLE_COLNAMES)
         self.SubindexGrid.SetTable(self.Table)
@@ -641,7 +640,7 @@ class EditingPanel(wx.SplitterWindow):
         if i < len(maps.INDEX_RANGES):
             values = maps.INDEX_RANGES[i]
             self.ListIndex = []
-            for name, index in self.Manager.GetCurrentValidIndexes(values["min"], values["max"]):
+            for name, index in self.Manager.GetCurrentValidIndexes(values.min, values.max):
                 self.IndexList.Append(f"0x{index:04X}   {name}")
                 self.ListIndex.append(index)
             if self.Editable:
@@ -656,12 +655,12 @@ class EditingPanel(wx.SplitterWindow):
                     else:
                         self.IndexChoice.SetSelection(0)
                 else:
-                    for name, index in self.Manager.GetCurrentValidChoices(values["min"], values["max"]):
-                        if index:
-                            self.IndexChoice.Append(f"0x{index:04X}   {name}")
+                    for name, cindex in self.Manager.GetCurrentValidChoices(values.min, values.max):
+                        if cindex:
+                            self.IndexChoice.Append(f"0x{cindex:04X}   {name}")
                         else:
                             self.IndexChoice.Append(name)
-                        self.ChoiceIndex.append(index)
+                        self.ChoiceIndex.append(cindex or 0)
                 if (choiceindex != wx.NOT_FOUND
                     and choiceindex < self.IndexChoice.GetCount()
                     and choice == self.IndexChoice.GetString(choiceindex)
@@ -884,7 +883,7 @@ class EditingPanel(wx.SplitterWindow):
                 index = self.ListIndex[selected]
                 if self.Manager.IsCurrentEntry(index) and index < 0x260:
                     values, valuetype = self.Manager.GetCustomisedTypeValues(index)
-                    dialog = cdia.UserTypeDialog(self)
+                    dialog = common.UserTypeDialog(self)
                     dialog.SetTypeList(self.Manager.GetCustomisableTypes(), values[1])
                     if valuetype == 0:
                         dialog.SetValues(min=values[2], max=values[3])
