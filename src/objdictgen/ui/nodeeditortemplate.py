@@ -24,7 +24,6 @@ from objdictgen.maps import OD
 from objdictgen.node import Node
 from objdictgen.nodemanager import NodeManager
 from objdictgen.ui import commondialogs as common
-from objdictgen.ui import commondialogs as cdia
 from objdictgen.ui.exception import (display_error_dialog,
                                      display_exception_dialog)
 
@@ -45,12 +44,6 @@ class NodeEditorTemplate(wx.Frame):
         self.ModeSolo = mode_solo
         self.BusId = None  # FIXME: Is this used? EditingPanel.OnSubindexGridCellLeftClick can seem to indicate it is iterable
         self.Closing = False
-
-    def GetBusId(self):
-        return self.BusId
-
-    def IsClosing(self):
-        return self.Closing
 
     def OnAddSDOServerMenu(self, event):  # pylint: disable=unused-argument
         self.Manager.AddSDOServerToCurrent()
@@ -116,8 +109,9 @@ class NodeEditorTemplate(wx.Frame):
                 self.Frame.HelpBar.SetStatusText("", i)
 
     def RefreshProfileMenu(self):
+        node = self.Manager.current_default  # Need a default to start UI
         if self.EDITMENU_ID is not None:
-            profile = self.Manager.GetCurrentProfileName()
+            profile = node.ProfileName
             edititem = self.Frame.EditMenu.FindItemById(self.EDITMENU_ID)
             if edititem:
                 length = self.Frame.AddMenu.GetMenuItemCount()
@@ -128,7 +122,7 @@ class NodeEditorTemplate(wx.Frame):
                     edititem.SetItemLabel(f"{profile} Profile")
                     edititem.Enable(True)
                     self.Frame.AddMenu.AppendSeparator()
-                    for text, _ in self.Manager.GetCurrentSpecificMenu():
+                    for text, _ in node.SpecificMenu:
                         new_id = wx.NewId()
                         self.Frame.AddMenu.Append(
                             helpString='', id=new_id,kind=wx.ITEM_NORMAL, item=text,
@@ -168,7 +162,7 @@ class NodeEditorTemplate(wx.Frame):
         self.EditProfile("Edit DS-302 Profile", dictionary, current)
 
     def OnEditProfileMenu(self, event):  # pylint: disable=unused-argument
-        title = f"Edit {self.Manager.GetCurrentProfileName()} Profile"
+        title = f"Edit {self.Manager.current.ProfileName} Profile"
         dictionary, current = self.Manager.GetCurrentProfileLists()
         self.EditProfile(title, dictionary, current)
 
@@ -206,12 +200,12 @@ class NodeEditorTemplate(wx.Frame):
     def OnNodeInfosMenu(self, event):  # pylint: disable=unused-argument
         dialog = common.NodeInfosDialog(self.Frame)
         name, nodeid, nodetype, description = self.Manager.GetCurrentNodeInfos()
-        defaultstringsize = self.Manager.GetCurrentNodeDefaultStringSize()
+        defaultstringsize = self.Manager.current.DefaultStringSize
         dialog.SetValues(name, nodeid, nodetype, description, defaultstringsize)
         if dialog.ShowModal() == wx.ID_OK:
             name, nodeid, nodetype, description, defaultstringsize = dialog.GetValues()
             self.Manager.SetCurrentNodeInfos(name, nodeid, nodetype, description)
-            self.Manager.SetCurrentNodeDefaultStringSize(defaultstringsize)
+            self.Manager.current.DefaultStringSize = defaultstringsize
             self.RefreshBufferState()
             self.RefreshCurrentIndexList()
             self.RefreshProfileMenu()
@@ -237,7 +231,7 @@ class NodeEditorTemplate(wx.Frame):
 
     def AddUserType(self):
         with common.UserTypeDialog(self) as dialog:
-            dialog.SetTypeList(self.Manager.GetCustomisableTypes())
+            dialog.SetTypeList(self.Manager.current.GetCustomisableTypes())
             if dialog.ShowModal() == wx.ID_OK:
                 try:
                     self.Manager.AddUserTypeToCurrent(*dialog.GetValues())

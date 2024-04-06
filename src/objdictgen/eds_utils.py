@@ -501,7 +501,7 @@ def generate_eds_content(node: "Node", filepath: TPath):
     description = node.Description or ""
 
     # Retreiving lists of indexes defined
-    entries = node.GetIndexes()
+    entries = list(node)
 
     # FIXME: Too many camelCase vars in here
     # pylint: disable=invalid-name
@@ -693,8 +693,8 @@ def generate_cpj_content(nodelist: "NodeList"):
 
     for nodeid in sorted(nodes):
         filecontent += f"Node{nodeid}Present=0x01\n"
-        filecontent += f"Node{nodeid}Name={nodes[nodeid]['Name']}\n"
-        filecontent += f"Node{nodeid}DCFName={nodes[nodeid]['EDS']}\n"
+        filecontent += f"Node{nodeid}Name={nodes[nodeid].Name}\n"
+        filecontent += f"Node{nodeid}DCFName={nodes[nodeid].EDS}\n"
 
     filecontent += "EDSBaseName=eds\n"
     return filecontent
@@ -752,11 +752,8 @@ def generate_node(filepath: TPath, nodeid: int = 0) -> "Node":
         # FIXME: entry should be integer, but can that be guaranteed?
         assert isinstance(entry, int)
 
-        # Extract informations for the entry
-        entry_infos = node.GetEntryInfos(entry)
-
         # If no informations are available, then we write them
-        if not entry_infos:
+        if not node.IsMappingEntry(entry):
             # First case, entry is a DOMAIN or VAR
             if values["OBJECTTYPE"] in [2, 7]:
                 if values["OBJECTTYPE"] == 2:
@@ -764,9 +761,12 @@ def generate_node(filepath: TPath, nodeid: int = 0) -> "Node":
                     if values["DATATYPE"] != 0xF:
                         raise ValueError(f"Domain entry 0x{entry:04X} DataType must be 0xF(DOMAIN) if defined")
                 # Add mapping for entry
-                node.AddMappingEntry(entry, name=values["PARAMETERNAME"], struct=OD.VAR)
+                node.AddMappingEntry(entry, entry={
+                    "name": values["PARAMETERNAME"],
+                    "struct": OD.VAR,
+                })
                 # Add mapping for first subindex
-                node.AddMappingEntry(entry, 0, values={
+                node.AddMappingSubEntry(entry, 0, values={
                     "name": values["PARAMETERNAME"],
                     "type": values["DATATYPE"],
                     "access": ACCESS_TRANSLATE[values["ACCESSTYPE"].upper()],
@@ -778,9 +778,12 @@ def generate_node(filepath: TPath, nodeid: int = 0) -> "Node":
                 # Extract maximum subindex number defined
                 max_subindex = max(values["subindexes"])
                 # Add mapping for entry
-                node.AddMappingEntry(entry, name=values["PARAMETERNAME"], struct=OD.RECORD)
+                node.AddMappingEntry(entry, entry={
+                    "name": values["PARAMETERNAME"],
+                    "struct": OD.RECORD
+                })
                 # Add mapping for first subindex
-                node.AddMappingEntry(entry, 0, values={
+                node.AddMappingSubEntry(entry, 0, values={
                     "name": "Number of Entries",
                     "type": 0x05,
                     "access": "ro",
@@ -790,7 +793,7 @@ def generate_node(filepath: TPath, nodeid: int = 0) -> "Node":
                 for subindex in range(1, int(max_subindex) + 1):
                     # if subindex is defined
                     if subindex in values["subindexes"]:
-                        node.AddMappingEntry(entry, subindex, values={
+                        node.AddMappingSubEntry(entry, subindex, values={
                             "name": values["subindexes"][subindex]["PARAMETERNAME"],
                             "type": values["subindexes"][subindex]["DATATYPE"],
                             "access": ACCESS_TRANSLATE[values["subindexes"][subindex]["ACCESSTYPE"].upper()],
@@ -798,7 +801,7 @@ def generate_node(filepath: TPath, nodeid: int = 0) -> "Node":
                         })
                     # if not, we add a mapping for compatibility
                     else:
-                        node.AddMappingEntry(entry, subindex, values={
+                        node.AddMappingSubEntry(entry, subindex, values={
                             "name": "Compatibility Entry",
                             "type": 0x05,
                             "access": "rw",

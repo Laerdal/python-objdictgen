@@ -272,11 +272,11 @@ class SubindexTable(wx.grid.GridTableBase):
                         editor = wx.grid.GridCellChoiceEditor(OPTION_LIST)
                     elif editortype == "type":
                         if typelist is None:
-                            typelist = self.Parent.Manager.GetCurrentTypeList()
+                            typelist = self.Parent.Manager.current.GetTypeList()
                         editor = wx.grid.GridCellChoiceEditor(typelist)
                     elif editortype == "map":
                         if maplist is None:
-                            maplist = self.Parent.Manager.GetCurrentMapList()
+                            maplist = self.Parent.Manager.current.GetMapList()
                         editor = wx.grid.GridCellChoiceEditor(maplist)
                     elif editortype == "time":
                         editor = wx.grid.GridCellTextEditor()
@@ -538,14 +538,14 @@ class EditingPanel(wx.SplitterWindow):
                 if selected != wx.NOT_FOUND:
                     index = self.ListIndex[selected]
                     subindex = event.GetRow()
-                    entry_infos = self.Manager.GetEntryInfos(index)
+                    entry_infos = self.Manager.current.GetEntryInfos(index)
                     if not entry_infos["struct"] & OD.MultipleSubindexes or subindex != 0:
-                        subentry_infos = self.Manager.GetSubentryInfos(index, subindex)
-                        typeinfos = self.Manager.GetEntryInfos(subentry_infos["type"])
+                        subentry_infos = self.Manager.current.GetSubentryInfos(index, subindex)
+                        typeinfos = self.Manager.current.GetEntryInfos(subentry_infos["type"])
                         if typeinfos:
                             # FIXME: What is bus_id? It is never set anywhere
-                            bus_id = '.'.join(map(str, self.ParentWindow.GetBusId()))
-                            var_name = f"{self.Manager.GetCurrentNodeName()}_{index:04x}_{subindex:02x}"
+                            bus_id = ".".join(str(k) for k in self.ParentWindow.BusId)
+                            var_name = f"{self.Manager.current.Name}_{index:04x}_{subindex:02x}"
                             size = typeinfos["size"]
                             data = wx.TextDataObject(str((
                                 f"{SIZE_CONVERSION[size]}{bus_id}.{index}.{subindex}",
@@ -565,13 +565,13 @@ class EditingPanel(wx.SplitterWindow):
                 if selected != wx.NOT_FOUND and node_id is not None:
                     index = self.ListIndex[selected]
                     subindex = event.GetRow()
-                    entry_infos = self.Manager.GetEntryInfos(index)
+                    entry_infos = self.Manager.current.GetEntryInfos(index)
                     if not entry_infos["struct"] & OD.MultipleSubindexes or subindex != 0:
-                        subentry_infos = self.Manager.GetSubentryInfos(index, subindex)
-                        typeinfos = self.Manager.GetEntryInfos(subentry_infos["type"])
+                        subentry_infos = self.Manager.current.GetSubentryInfos(index, subindex)
+                        typeinfos = self.Manager.current.GetEntryInfos(subentry_infos["type"])
                         if subentry_infos["pdo"] and typeinfos:
                             # FIXME: What is bus_id? It is never set anywhere
-                            bus_id = '.'.join(map(str, self.ParentWindow.GetBusId()))
+                            bus_id = ".".join(str(k) for k in self.ParentWindow.BusId)
                             # FIXME: Exists in NodeList, not in NodeManager
                             var_name = f"{self.Manager.GetSlaveName(node_id)}_{index:04x}_{subindex:02x}"
                             size = typeinfos["size"]
@@ -598,7 +598,7 @@ class EditingPanel(wx.SplitterWindow):
                         getattr(self.ParentWindow, INDEXCHOICE_OPTIONS[choice][2])()
                     elif INDEXCHOICE_OPTIONS[choice][1] == 1:
                         getattr(self.Manager, INDEXCHOICE_OPTIONS[choice][2])()
-                elif selected in [menu for menu, indexes in self.Manager.GetCurrentSpecificMenu()]:
+                elif selected in [menu for menu, indexes in self.Manager.current.SpecificMenu]:
                     self.Manager.AddSpecificEntryToCurrent(selected)
                 else:
                     index = self.ChoiceIndex[self.IndexChoice.GetSelection()]
@@ -608,19 +608,19 @@ class EditingPanel(wx.SplitterWindow):
         event.Skip()
 
     def OnPartListBoxClick(self, event):
-        if not self.ParentWindow.IsClosing():
+        if not self.ParentWindow.Closing:
             self.SubindexGrid.SetGridCursor(0, 0)
             self.RefreshIndexList()
         event.Skip()
 
     def OnIndexListClick(self, event):
-        if not self.ParentWindow.IsClosing():
+        if not self.ParentWindow.Closing:
             self.SubindexGrid.SetGridCursor(0, 0)
             self.RefreshTable()
         event.Skip()
 
     def OnSubindexGridSelectCell(self, event):
-        if not self.ParentWindow.IsClosing():
+        if not self.ParentWindow.Closing:
             wx.CallAfter(self.ParentWindow.RefreshStatusBar)
         event.Skip()
 
@@ -688,8 +688,8 @@ class EditingPanel(wx.SplitterWindow):
             index = self.ListIndex[selected]
             if index > 0x260 and self.Editable:
                 self.CallbackCheck.Enable()
-                self.CallbackCheck.SetValue(self.Manager.HasCurrentEntryCallbacks(index))
-            result = self.Manager.GetCurrentEntryValues(index)
+                self.CallbackCheck.SetValue(self.Manager.current.HasEntryCallbacks(index))
+            result = self.Manager.GetNodeEntryValues(self.Manager.current, index)
             if result is not None:
                 self.Table.SetCurrentIndex(index)
                 data, editors = result
@@ -716,7 +716,7 @@ class EditingPanel(wx.SplitterWindow):
             selected = self.IndexList.GetSelection()
             if selected != wx.NOT_FOUND:
                 index = self.ListIndex[selected]
-                if self.Manager.IsCurrentEntry(index):
+                if self.Manager.current.IsEntry(index):
                     dialog = common.DCFEntryValuesDialog(self, self.Editable)
                     dialog.SetValues(codecs.decode(self.Table.GetValue(row, col), "hex_codec"))
                     if dialog.ShowModal() == wx.ID_OK and self.Editable:
@@ -783,9 +783,9 @@ class EditingPanel(wx.SplitterWindow):
             selected = self.IndexList.GetSelection()
             if selected != wx.NOT_FOUND:
                 index = self.ListIndex[selected]
-                if self.Manager.IsCurrentEntry(index):
+                if self.Manager.current.IsEntry(index):
                     showpopup = False
-                    infos = self.Manager.GetEntryInfos(index)
+                    infos = self.Manager.current.GetEntryInfos(index)
                     # FIXME: And and or combined in the same condition
                     if (0x2000 <= index <= 0x5FFF
                         and infos["struct"] & OD.MultipleSubindexes
@@ -811,8 +811,8 @@ class EditingPanel(wx.SplitterWindow):
             selected = self.IndexList.GetSelection()
             if selected != wx.NOT_FOUND:
                 index = self.ListIndex[selected]
-                if self.Manager.IsCurrentEntry(index):
-                    infos = self.Manager.GetEntryInfos(index)
+                if self.Manager.current.IsEntry(index):
+                    infos = self.Manager.current.GetEntryInfos(index)
                     if not infos["struct"] & OD.MultipleSubindexes or event.GetRow() > 0:
                         self.SubindexGridMenu.FindItemByPosition(0).Enable(False)
                         self.SubindexGridMenu.FindItemByPosition(1).Enable(False)
@@ -827,10 +827,10 @@ class EditingPanel(wx.SplitterWindow):
             if selected != wx.NOT_FOUND:
                 index = self.ListIndex[selected]
                 subindex = self.SubindexGrid.GetGridCursorRow()
-                entry_infos = self.Manager.GetEntryInfos(index)
+                entry_infos = self.Manager.current.GetEntryInfos(index)
                 if not entry_infos["struct"] & OD.MultipleSubindexes or subindex != 0:
-                    subentry_infos = self.Manager.GetSubentryInfos(index, subindex)
-                    typeinfos = self.Manager.GetEntryInfos(subentry_infos["type"])
+                    subentry_infos = self.Manager.current.GetSubentryInfos(index, subindex)
+                    typeinfos = self.Manager.current.GetEntryInfos(subentry_infos["type"])
                     if typeinfos:
                         # FIXME: Exists in NetworkEditorTemplate, not in NodeEditorTemplate
                         node_id = self.ParentWindow.GetCurrentNodeId()
@@ -865,8 +865,8 @@ class EditingPanel(wx.SplitterWindow):
             selected = self.IndexList.GetSelection()
             if selected != wx.NOT_FOUND:
                 index = self.ListIndex[selected]
-                if self.Manager.IsCurrentEntry(index):
-                    infos = self.Manager.GetEntryInfos(index)
+                if self.Manager.current.IsEntry(index):
+                    infos = self.Manager.current.GetEntryInfos(index)
                     with wx.TextEntryDialog(
                         self, f"Give a new name for index 0x{index:04X}",
                         "Rename an index", infos["name"], wx.OK | wx.CANCEL,
@@ -881,10 +881,10 @@ class EditingPanel(wx.SplitterWindow):
             selected = self.IndexList.GetSelection()
             if selected != wx.NOT_FOUND:
                 index = self.ListIndex[selected]
-                if self.Manager.IsCurrentEntry(index) and index < 0x260:
-                    values, valuetype = self.Manager.GetCustomisedTypeValues(index)
+                if self.Manager.current.IsEntry(index) and index < 0x260:
+                    values, valuetype = self.Manager.current.GetCustomisedTypeValues(index)
                     dialog = common.UserTypeDialog(self)
-                    dialog.SetTypeList(self.Manager.GetCustomisableTypes(), values[1])
+                    dialog.SetTypeList(self.Manager.current.GetCustomisableTypes(), values[1])
                     if valuetype == 0:
                         dialog.SetValues(min=values[2], max=values[3])
                     elif valuetype == 1:
@@ -900,7 +900,7 @@ class EditingPanel(wx.SplitterWindow):
             selected = self.IndexList.GetSelection()
             if selected != wx.NOT_FOUND:
                 index = self.ListIndex[selected]
-                if self.Manager.IsCurrentEntry(index):
+                if self.Manager.current.IsEntry(index):
                     self.Manager.ManageEntriesOfCurrent([], [index])
                     self.ParentWindow.RefreshBufferState()
                     self.RefreshIndexList()
@@ -910,7 +910,7 @@ class EditingPanel(wx.SplitterWindow):
             selected = self.IndexList.GetSelection()
             if selected != wx.NOT_FOUND:
                 index = self.ListIndex[selected]
-                if self.Manager.IsCurrentEntry(index):
+                if self.Manager.current.IsEntry(index):
                     with wx.TextEntryDialog(
                         self, "Number of subindexes to add:",
                         "Add subindexes", "1", wx.OK | wx.CANCEL,
@@ -929,7 +929,7 @@ class EditingPanel(wx.SplitterWindow):
             selected = self.IndexList.GetSelection()
             if selected != wx.NOT_FOUND:
                 index = self.ListIndex[selected]
-                if self.Manager.IsCurrentEntry(index):
+                if self.Manager.current.IsEntry(index):
                     with wx.TextEntryDialog(
                         self, "Number of subindexes to delete:",
                         "Delete subindexes", "1", wx.OK | wx.CANCEL,
@@ -948,7 +948,7 @@ class EditingPanel(wx.SplitterWindow):
             selected = self.IndexList.GetSelection()
             if selected != wx.NOT_FOUND:
                 index = self.ListIndex[selected]
-                if self.Manager.IsCurrentEntry(index):
+                if self.Manager.current.IsEntry(index):
                     row = self.SubindexGrid.GetGridCursorRow()
                     self.Manager.SetCurrentEntryToDefault(index, row)
                     self.ParentWindow.RefreshBufferState()

@@ -26,7 +26,6 @@ import sys
 import wx
 
 import objdictgen
-from objdictgen.nodelist import NodeList
 import objdictgen.nodelist as nl  # Because NodeList is also an attr in NetworkEdit
 from objdictgen.nodemanager import NodeManager
 from objdictgen.ui.exception import add_except_hook, display_exception_dialog
@@ -368,7 +367,7 @@ class NetworkEdit(NetworkEditorTemplate):
         selected = self.NetworkNodes.GetSelection()
         if self.HelpBar and selected >= 0:
             window = self.NetworkNodes.GetPage(selected)
-            self.SetStatusBarText(window.GetSelection(), self.NodeList)
+            self.SetStatusBarText(window.GetSelection(), self.NodeList.Manager.current)
 
     def RefreshMainMenu(self):
         self.NetworkMenu.Enable(ID_NETWORKEDITNETWORKMENUBUILDMASTER, False)

@@ -299,13 +299,10 @@ def get_object_types(
     # i2s: integer to string, s2i: string to integer
     i2s: dict[int, str] = {}
     s2i: dict[str, int] = {}
-    for mapping in mappinglist:
-        for k, v in mapping.items():
-            if k >= 0x1000:
-                continue
-            n = v['name']
-            i2s[k] = n
-            s2i[n] = k
+    for k, v in mappinglist.find(lambda i, o: i < 0x1000):
+        n = v['name']
+        i2s[k] = n
+        s2i[n] = k
 
     if len(i2s) != len(s2i):
         raise ValidationError("Multiple names or numbers for object types in OD")
@@ -470,12 +467,12 @@ def node_todict(node: "Node", sort=False, rich=True, internal=False, validate=Tr
 
     # Parse through all parameters indexes
     dictionary: list[TODObjJson] = []
-    for index in node.GetAllParameters(sort=sort):
+    for index in node.GetAllIndices(sort=sort):
         try:
             obj: TODObjJson = {}
 
             # Get the internal dict representation of the object, termed "index entry"
-            ientry = node.GetIndexDict(index)
+            ientry = node.GetIndexEntry(index)
 
             # Don't wrangle further if the internal format is wanted, just add it as-is
             if internal:

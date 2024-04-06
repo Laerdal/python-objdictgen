@@ -273,7 +273,7 @@ def main(debugopts: DebugOpts, args: Sequence[str]|None = None):
         # Drop all other indexes than specified
         if opts.index:
             index = [jsonod.str_to_int(i) for i in opts.index]
-            to_remove |= (set(od.GetAllParameters()) - set(index))
+            to_remove |= (set(od.GetAllIndices()) - set(index))
 
         # Have any parameters to delete?
         if to_remove:
@@ -282,8 +282,7 @@ def main(debugopts: DebugOpts, args: Sequence[str]|None = None):
                 od.GetPrintLine(k, unused=True)
                 for k in sorted(to_remove)
             ]
-            for idx in to_remove:
-                od.RemoveIndex(idx)
+            od.RemoveIndex(to_remove)
             for line, fmt in info:
                 print(line.format(**fmt))
 
@@ -337,7 +336,7 @@ def main(debugopts: DebugOpts, args: Sequence[str]|None = None):
             od = open_od(name)
 
             # Get the indexes to print and determine the order
-            keys = od.GetAllParameters(sort=not opts.asis)
+            keys = od.GetAllIndices(sort=not opts.asis)
             if opts.index:
                 indexp = [jsonod.str_to_int(i) for i in opts.index]
                 keysp = [k for k in keys if k in indexp]

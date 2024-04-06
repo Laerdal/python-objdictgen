@@ -169,7 +169,7 @@ RE_NAME_SYNTAX = re.compile(r'(.*)\[[(](.*)[)]\]')
 RE_NODEID = re.compile(r'\$NODEID\b', re.IGNORECASE)
 
 
-def eval_value(value, base, nodeid, compute=True):
+def eval_value(value: Any, base: int, nodeid: int, compute=True) -> Any:
     """
     Evaluate the value. They can be strings that needs additional
     parsing. Such as "'$NODEID+0x600'" and
@@ -202,7 +202,7 @@ def eval_value(value, base, nodeid, compute=True):
     return value
 
 
-def eval_name(text, idx, sub):
+def eval_name(text: str, idx: int, sub: int) -> str:
     """
     Format the text given with the index and subindex defined.
     Used to parse dynamic values such as
@@ -214,8 +214,8 @@ def eval_name(text, idx, sub):
 
     # NOTE: Legacy Python2 format evaluations are baked
     #       into the OD and must be supported for legacy
-    return result.group(1) % evaluate_expression(
-        result.group(2).strip(),
+    return result[1] % evaluate_expression(
+        result[2].strip(),
         {   # These are the vars that can be used in the string
             'idx': idx,
             'sub': sub,
@@ -223,7 +223,7 @@ def eval_name(text, idx, sub):
     )
 
 
-def evaluate_expression(expression: str, localvars: dict[str, Any]|None = None):
+def evaluate_expression(expression: str, localvars: dict[str, Any]|None = None) -> int|float|complex|str|bool|tuple|dict:
     """Parses a string expression and attempts to calculate the result
     Supports:
         - Binary operations: addition, subtraction, multiplication, modulo
@@ -241,7 +241,7 @@ def evaluate_expression(expression: str, localvars: dict[str, Any]|None = None):
     """
     localvars = localvars or {}
 
-    def _evnode(node: ast.AST):
+    def _evnode(node: ast.AST|None):
         """
         Recursively parses ast.Node objects to evaluate arithmatic expressions
         """
@@ -257,7 +257,7 @@ def evaluate_expression(expression: str, localvars: dict[str, Any]|None = None):
             raise SyntaxError(f"Unsupported arithmetic operation {type(node.op)}")
         if isinstance(node, ast.Compare):
             if len(node.ops) != 1 or len(node.comparators) != 1:
-                raise SyntaxError(f"Chained comparisons not supported")
+                raise SyntaxError("Chained comparisons not supported")
             if isinstance(node.ops[0], ast.Lt):
                 return _evnode(node.left) < _evnode(node.comparators[0])
             raise SyntaxError(f"Unsupported comparison operation {type(node.ops[0])}")
@@ -294,7 +294,7 @@ def evaluate_expression(expression: str, localvars: dict[str, Any]|None = None):
 #                      Misc functions
 # ------------------------------------------------------------------------------
 
-def import_profile(profilename):
+def import_profile(profilename: TPath) -> tuple["ODMapping", TProfileMenu]:
 
     # Test if the profilename is a filepath which can be used directly. If not
     # treat it as the name
@@ -323,7 +323,7 @@ def import_profile(profilename):
             code = compile(f.read(), profilepath, 'exec')
             exec(code, globals(), locals())  # FIXME: Using exec is unsafe
             # pylint: disable=undefined-variable
-            return Mapping, AddMenuEntries  # pyright: ignore  # noqa: F821
+            return Mapping, AddMenuEntries  # type: ignore[name-defined]  # due to the exec() magic
     except Exception as exc:  # pylint: disable=broad-except
         log.debug("EXECFILE FAILED: %s", exc)
         log.debug(traceback.format_exc())

@@ -248,11 +248,11 @@ def test_edsimport(odjsoneds, wd):
             return x
         a['Dictionary'] = {
             i: num(m1.GetEntry(i, compute=False))
-            for i in m1.GetIndexes()
+            for i in m1
         }
         b['Dictionary'] = {
             i: num(m2.GetEntry(i, compute=False))
-            for i in m2.GetIndexes()
+            for i in m2
         }
 
     # EDS files are does not contain the complete information as OD and JSON

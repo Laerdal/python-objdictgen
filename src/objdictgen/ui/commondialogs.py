@@ -1116,7 +1116,7 @@ class CreateNodeDialog(wx.Dialog):
         self.Profile.Append("None")
         self.Directory = str(objdictgen.PROFILE_DIRECTORIES[-1])
         for p in objdictgen.PROFILES:
-            self.ListProfile[p.stem] = p
+            self.ListProfile[p.stem] = str(p)
             self.Profile.Append(p.stem)
         self.Profile.Append("Other")
         self.Profile.SetStringSelection("None")

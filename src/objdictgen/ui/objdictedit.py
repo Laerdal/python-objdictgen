@@ -263,10 +263,11 @@ class ObjdictEdit(NodeEditorTemplate):
                 self.Manager.ChangeCurrentNode(window.GetIndex())
                 self.FileOpened.SetSelection(0)
 
-        if self.Manager.CurrentDS302Defined():
+        if self.Manager.current_default.DS302:
             self.EditMenu.Enable(ID_OBJDICTEDITEDITMENUDS302PROFILE, True)
         else:
             self.EditMenu.Enable(ID_OBJDICTEDITEDITMENUDS302PROFILE, False)
+
         self.RefreshEditMenu()
         self.RefreshBufferState()
         self.RefreshProfileMenu()
@@ -334,7 +335,7 @@ class ObjdictEdit(NodeEditorTemplate):
         selected = self.FileOpened.GetSelection()
         if selected >= 0:
             window = self.FileOpened.GetPage(selected)
-            self.SetStatusBarText(window.GetSelection(), self.Manager)
+            self.SetStatusBarText(window.GetSelection(), self.Manager.current)
 
     def RefreshMainMenu(self):
         if self.FileOpened.GetPageCount() > 0:
@@ -437,7 +438,7 @@ class ObjdictEdit(NodeEditorTemplate):
                 new_editingpanel.SetIndex(index)
                 self.FileOpened.AddPage(new_editingpanel, "")
                 self.FileOpened.SetSelection(self.FileOpened.GetPageCount() - 1)
-                if self.Manager.CurrentDS302Defined():
+                if self.Manager.current.DS302:
                     self.EditMenu.Enable(ID_OBJDICTEDITEDITMENUDS302PROFILE, True)
                 else:
                     self.EditMenu.Enable(ID_OBJDICTEDITEDITMENUDS302PROFILE, False)

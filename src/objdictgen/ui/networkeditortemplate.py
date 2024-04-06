@@ -22,9 +22,6 @@ from typing import cast
 
 import wx
 
-from objdictgen.ui import commondialogs as cdia
-from objdictgen.ui import nodeeditortemplate as net
-from objdictgen.ui import subindextable as sit
 from objdictgen.nodelist import NodeList
 from objdictgen.ui.commondialogs import AddSlaveDialog
 from objdictgen.ui.exception import display_exception_dialog
@@ -75,7 +72,7 @@ class NetworkEditorTemplate(NodeEditorTemplate):
             self.NetworkNodes.DeleteAllPages()
         if self.NodeList:
             new_editingpanel = EditingPanel(self.NetworkNodes, self, self.Manager)
-            new_editingpanel.SetIndex(self.Manager.GetCurrentNodeID())
+            new_editingpanel.SetIndex(self.Manager.current.ID)
             self.NetworkNodes.AddPage(new_editingpanel, "")
             for idx in self.NodeList.GetSlaveIDs():
                 # FIXME: Why is NodeList used where NodeManager is expected?
@@ -102,11 +99,11 @@ class NetworkEditorTemplate(NodeEditorTemplate):
 
     def RefreshBufferState(self):
         if self.NodeList is not None:
-            nodeid = self.Manager.GetCurrentNodeID()
+            nodeid = self.Manager.current.ID
             if nodeid is not None:
-                nodename = f"0x{nodeid:02X} {self.Manager.GetCurrentNodeName()}"
+                nodename = f"0x{nodeid:02X} {self.Manager.current.Name}"
             else:
-                nodename = self.Manager.GetCurrentNodeName()
+                nodename = self.Manager.current.Name
             self.NetworkNodes.SetPageText(0, nodename)
             for idx, name in enumerate(self.NodeList.GetSlaveNames()):
                 self.NetworkNodes.SetPageText(idx + 1, name)
