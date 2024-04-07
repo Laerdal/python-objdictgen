@@ -45,11 +45,118 @@ FILE_HEADER = """
 """
 
 
-class CFileContext:
-    """Context for generating C file."""
-    def __init__(self):
+@dataclass
+class TypeInfos:
+    """Type infos for a type."""
+    type: str
+    size: int|None
+    ctype: str
+    is_unsigned: bool
+
+
+class Text:
+    """Helper class for formatting text. The class store a string and supports
+    concatenation and formatting. Operators '+' and '+=' can be used to add
+    strings without formatting and '%=' can be used to add strings with
+    formatting. The string is formatted with varaibled from the context 
+    dictionary.
+
+    This exists as a workaround until the strings have been converted to
+    proper f-strings.
+    """
+
+    # FIXME: Remove all %= entries, use f-strings instead, and delete this class
+
+    def __init__(self, context: "CFileContext", text: str):
+        self.text: str = text
+        self.context: "CFileContext" = context
+
+    def __iadd__(self, other: "str|Text") -> Self:
+        """Add a string to the text without formatting."""
+        self.text += str(other)
+        return self
+
+    def __add__(self, other: "str|Text") -> "Text":
+        """Add a string to the text without formatting."""
+        return Text(self.context, self.text + str(other))
+
+    def __imod__(self, other: str) -> Self:
+        """Add a string to the text with formatting."""
+        self.text += other.format(**self.context)
+        return self
+
+    def __str__(self) -> str:
+        """Return the text."""
+        return self.text
+
+
+class CFileContext(UserDict):
+    """Context for generating C file. It serves as a dictionary to store data
+    and as a helper for formatting text.
+    """
+    internal_types: dict[str, TypeInfos]
+    default_string_size: int = 10
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.internal_types = {}
-        self.default_string_size = 10
+
+    def __getattr__(self, name: str) -> Any:
+        """Look up unknown attributes in the data dictionary."""
+        return self.data[name]
+
+    # FIXME: Delete this method when everything is converted to f-strings
+    def text(self, s: str = "") -> Text:
+        """Start a new text object"""
+        return Text(self, s)
+
+    # FIXME: Delete this method when everything is converted to f-strings
+    def ftext(self, s: str) -> Text:
+        """Format a text string."""
+        return Text(self, "").__imod__(s)  # pylint: disable=unnecessary-dunder-call
+
+    def get_valid_type_infos(self, typename: str, items=None) -> TypeInfos:
+        """Get valid type infos from a typename.
+        """
+
+        # Return cached typeinfos
+        if typename in self.internal_types:
+            return self.internal_types[typename]
+
+        items = items or []
+        result = RE_TYPE.match(typename)
+        if not result:
+            # FIXME: The !!! is for special UI handling
+            raise ValueError(f"!!! '{typename}' isn't a valid type for CanFestival.")
+
+        if result[1] == "UNSIGNED" and int(result[2]) in [i * 8 for i in range(1, 9)]:
+            typeinfos = TypeInfos(f"UNS{result[2]}", None, f"uint{result[2]}", True)
+        elif result[1] == "INTEGER" and int(result[2]) in [i * 8 for i in range(1, 9)]:
+            typeinfos = TypeInfos(f"INTEGER{result[2]}", None, f"int{result[2]}", False)
+        elif result[1] == "REAL" and int(result[2]) in (32, 64):
+            typeinfos = TypeInfos(f"{result[1]}{result[2]}", None, f"real{result[2]}", False)
+        elif result[1] in ["VISIBLE_STRING", "OCTET_STRING"]:
+            size = self.default_string_size
+            for item in items:
+                size = max(size, len(item))
+            if result[2]:
+                size = max(size, int(result[2]))
+            typeinfos = TypeInfos("UNS8", size, "visible_string", False)
+        elif result[1] == "DOMAIN":
+            size = 0
+            for item in items:
+                size = max(size, len(item))
+            typeinfos = TypeInfos("UNS8", size, "domain", False)
+        elif result[1] == "BOOLEAN":
+            typeinfos = TypeInfos("UNS8", None, "boolean", False)
+        else:
+            # FIXME: The !!! is for special UI handling
+            raise ValueError(f"!!! '{typename}' isn't a valid type for CanFestival.")
+
+        # Cache the typeinfos
+        if typeinfos.ctype not in ["visible_string", "domain"]:
+            self.internal_types[typename] = typeinfos
+        return typeinfos
 
 
 def format_name(name: str) -> str:
@@ -58,46 +165,7 @@ def format_name(name: str) -> str:
     return "_".join(wordlist)
 
 
-def get_valid_type_infos(context, typename, items=None):
-    """Get valid type infos from a typename."""
-    items = items or []
-    if typename in context.internal_types:
-        return context.internal_types[typename]
-    result = RE_TYPE.match(typename)
-    if result:
-        values = result.groups()
-        if values[0] == "UNSIGNED" and int(values[1]) in [i * 8 for i in range(1, 9)]:
-            typeinfos = (f"UNS{values[1]}", None, f"uint{values[1]}", True)
-        elif values[0] == "INTEGER" and int(values[1]) in [i * 8 for i in range(1, 9)]:
-            typeinfos = (f"INTEGER{values[1]}", None, f"int{values[1]}", False)
-        elif values[0] == "REAL" and int(values[1]) in (32, 64):
-            typeinfos = (f"{values[0]}{values[1]}", None, f"real{values[1]}", False)
-        elif values[0] in ["VISIBLE_STRING", "OCTET_STRING"]:
-            size = context.default_string_size
-            for item in items:
-                size = max(size, len(item))
-            if values[1]:
-                size = max(size, int(values[1]))
-            typeinfos = ("UNS8", size, "visible_string", False)
-        elif values[0] == "DOMAIN":
-            size = 0
-            for item in items:
-                size = max(size, len(item))
-            typeinfos = ("UNS8", size, "domain", False)
-        elif values[0] == "BOOLEAN":
-            typeinfos = ("UNS8", None, "boolean", False)
-        else:
-            # FIXME: The !!! is for special UI handling
-            raise ValueError(f"!!! '{typename}' isn't a valid type for CanFestival.")
-        if typeinfos[2] not in ["visible_string", "domain"]:
-            context.internal_types[typename] = typeinfos
-    else:
-        # FIXME: The !!! is for special UI handling
-        raise ValueError(f"!!! '{typename}' isn't a valid type for CanFestival.")
-    return typeinfos
-
-
-def compute_value(ctype: str, value: TODValue) -> tuple[str, str]:
+def compute_value(value: TODValue, ctype: str) -> tuple[str, str]:
     """Compute value for C file."""
     if ctype == "visible_string":
         return f'"{value}"', ""
@@ -116,15 +184,6 @@ def compute_value(ctype: str, value: TODValue) -> tuple[str, str]:
     return f"0x{value:X}", f"\t/* {value} */"
 
 
-def get_type_name(node: NodeProtocol, typenumber: int) -> str:
-    """Get type name from a type number."""
-    typename = node.GetTypeName(typenumber)
-    if typename is None:
-        # FIXME: The !!! is for special UI handling
-        raise ValueError(f"!!! Datatype with value '0x{typenumber:04X}' isn't defined in CanFestival.")
-    return typename
-
-
 def generate_file_content(node: NodeProtocol, headerfile: str, pointers_dict=None) -> tuple[str, str, str]:
     """
     pointers_dict = {(Idx,Sidx):"VariableName",...}
@@ -133,20 +192,18 @@ def generate_file_content(node: NodeProtocol, headerfile: str, pointers_dict=Non
     # FIXME: Too many camelCase vars in here
     # pylint: disable=invalid-name
 
-    context = CFileContext()
+    # Setup the main context to store the data
+    ctx = CFileContext()
 
     pointers_dict = pointers_dict or {}
-    texts = {}
-    texts["maxPDOtransmit"] = 0
-    texts["NodeName"] = node.Name
-    texts["NodeID"] = node.ID
-    texts["NodeType"] = node.Type
-    texts["Description"] = node.Description or ""
-    texts["iam_a_slave"] = 0
-    if texts["NodeType"] == "slave":
-        texts["iam_a_slave"] = 1
+    ctx["maxPDOtransmit"] = 0
+    ctx["NodeName"] = node.Name
+    ctx["NodeID"] = node.ID
+    ctx["NodeType"] = node.Type
+    ctx["Description"] = node.Description or ""
+    ctx["iam_a_slave"] = 1 if node.Type == "slave" else 0
 
-    context.default_string_size = node.DefaultStringSize
+    ctx.default_string_size = node.DefaultStringSize
 
     # Compiling lists of indexes
     rangelist = [idx for idx in node.GetIndexes() if 0 <= idx <= 0x260]
@@ -160,16 +217,16 @@ def generate_file_content(node: NodeProtocol, headerfile: str, pointers_dict=Non
     #                   Declaration of the value range types
     # --------------------------------------------------------------------------
 
-    valueRangeContent = ""
-    strDefine = (
+    valueRangeContent = ctx.text()
+    strDefine = ctx.text(
         "\n#define valueRange_EMC 0x9F "
         "/* Type for index 0x1003 subindex 0x00 (only set of value 0 is possible) */"
     )
-    strSwitch = """    case valueRange_EMC:
+    strSwitch = ctx.text("""    case valueRange_EMC:
       if (*(UNS8*)value != (UNS8)0) return OD_VALUE_RANGE_EXCEEDED;
       break;
-"""
-    context.internal_types["valueRange_EMC"] = ("UNS8", "", "valueRange_EMC", True)
+""")
+    ctx.internal_types["valueRange_EMC"] = TypeInfos("UNS8", 0, "valueRange_EMC", True)
     num = 0
     for index in rangelist:
         rangename = node.GetEntryName(index)
@@ -181,8 +238,10 @@ def generate_file_content(node: NodeProtocol, headerfile: str, pointers_dict=Non
             #        where index 1 is the object type as int
             assert isinstance(typeindex, int)
             typename = node.GetTypeName(typeindex)
-            typeinfos = get_valid_type_infos(context, typename)
-            context.internal_types[rangename] = (typeinfos[0], typeinfos[1], f"valueRange_{num}")
+            typeinfos = ctx.get_valid_type_infos(typename)
+            ctx.internal_types[rangename] = TypeInfos(
+                typeinfos.type, typeinfos.size, f"valueRange_{num}", typeinfos.is_unsigned
+            )
             minvalue = node.GetEntry(index, 2)
             maxvalue = node.GetEntry(index, 3)
             # FIXME: It assumed the data is properly formatted
@@ -190,22 +249,22 @@ def generate_file_content(node: NodeProtocol, headerfile: str, pointers_dict=Non
             assert isinstance(maxvalue, int)
             strDefine += (
                 f"\n#define valueRange_{num} 0x{index:02X} "
-                f"/* Type {typeinfos[0]}, {minvalue} < value < {maxvalue} */"
+                f"/* Type {typeinfos.type}, {minvalue} < value < {maxvalue} */"
             )
             strSwitch += f"    case valueRange_{num}:\n"
-            if typeinfos[3] and minvalue <= 0:
+            if typeinfos.is_unsigned and minvalue <= 0:
                 strSwitch += "      /* Negative or null low limit ignored because of unsigned type */;\n"
             else:
                 strSwitch += (
-                    f"      if (*({typeinfos[0]}*)value < ({typeinfos[0]}){minvalue}) return OD_VALUE_TOO_LOW;\n"
+                    f"      if (*({typeinfos.type}*)value < ({typeinfos.type}){minvalue}) return OD_VALUE_TOO_LOW;\n"
                 )
             strSwitch += (
-                f"      if (*({typeinfos[0]}*)value > ({typeinfos[0]}){maxvalue}) return OD_VALUE_TOO_HIGH;\n"
+                f"      if (*({typeinfos.type}*)value > ({typeinfos.type}){maxvalue}) return OD_VALUE_TOO_HIGH;\n"
             )
             strSwitch += "    break;\n"
 
     valueRangeContent += strDefine
-    valueRangeContent += "\nUNS32 %(NodeName)s_valueRangeTest (UNS8 typeValue, void * value)\n{" % texts
+    valueRangeContent %= "\nUNS32 {NodeName}_valueRangeTest (UNS8 typeValue, void * value)\n{{"
     valueRangeContent += "\n  switch (typeValue) {\n"
     valueRangeContent += strSwitch
     valueRangeContent += "  }\n  return 0;\n}\n"
@@ -214,102 +273,102 @@ def generate_file_content(node: NodeProtocol, headerfile: str, pointers_dict=Non
     #        Creation of the mapped variables and object dictionary
     # --------------------------------------------------------------------------
 
-    mappedVariableContent = ""
-    pointedVariableContent = ""
-    strDeclareHeader = ""
-    indexContents = {}
-    headerObjectDefinitionContent = ""
+    mappedVariableContent = ctx.text()
+    pointedVariableContent = ctx.text()
+    strDeclareHeader = ctx.text()
+    indexContents: dict[int, str|Text] = {}
+    headerObjDefinitionContent = ctx.text()
     for index in listindex:
-        texts["index"] = index
-        strindex = ""
+        ctx["index"] = index
         entry_infos = node.GetEntryInfos(index)
         params_infos = node.GetParamsEntry(index)
-        texts["EntryName"] = entry_infos["name"]
+        ctx["EntryName"] = entry_infos["name"]
         values = node.GetEntry(index)
 
+        strindex = ctx.text()
         if index in variablelist:
-            strindex += "\n/* index 0x%(index)04X :   Mapped variable %(EntryName)s */\n" % texts
+            strindex %= "\n/* index 0x{index:04X} :   Mapped variable {EntryName} */\n"
         else:
-            strindex += "\n/* index 0x%(index)04X :   %(EntryName)s. */\n" % texts
+            strindex %= "\n/* index 0x{index:04X} :   {EntryName}. */\n"
 
         # Entry type is VAR
         if not isinstance(values, list):
+            # FIXME: It is assumed that the type of GetParamsEntry() follows the object type
+            #        of GetEntry()
+            assert not isinstance(params_infos, list)
             subentry_infos = node.GetSubentryInfos(index, 0)
-            typename = get_type_name(node, subentry_infos["type"])
-            typeinfos = get_valid_type_infos(context, typename, [values])
+            typename = node.GetTypeName(subentry_infos["type"])
+            typeinfos = ctx.get_valid_type_infos(typename, [values])
             if typename == "DOMAIN" and index in variablelist:
-                if not typeinfos[1]:
+                if not typeinfos.size:
                     raise ValueError(f"Domain variable not initialized, index: 0x{index:04X}, subindex: 0x00")
-            texts["subIndexType"] = typeinfos[0]
-            if typeinfos[1] is not None:
+            ctx["subIndexType"] = typeinfos.type
+            if typeinfos.size is not None:
                 if params_infos["buffer_size"]:
-                    texts["suffix"] = f"[{params_infos['buffer_size']}]"
+                    ctx["suffix"] = f"[{params_infos['buffer_size']}]"
                 else:
-                    texts["suffix"] = f"[{typeinfos[1]}]"
+                    ctx["suffix"] = f"[{typeinfos.size}]"
             else:
-                texts["suffix"] = ""
-            texts["value"], texts["comment"] = compute_value(typeinfos[2], values)
+                ctx["suffix"] = ""
+            ctx["value"], ctx["comment"] = compute_value(values, typeinfos.ctype)
             if index in variablelist:
-                texts["name"] = RE_STARTS_WITH_DIGIT.sub(r'_\1', format_name(subentry_infos["name"]))
-                strDeclareHeader += (
-                    "extern %(subIndexType)s %(name)s%(suffix)s;"
-                    "\t\t/* Mapped at index 0x%(index)04X, subindex 0x00*/\n"
-                ) % texts
-                mappedVariableContent += (
-                    "%(subIndexType)s %(name)s%(suffix)s = %(value)s;"
-                    "\t\t/* Mapped at index 0x%(index)04X, subindex 0x00 */\n"
-                ) % texts
+                ctx["name"] = RE_STARTS_WITH_DIGIT.sub(r'_\1', format_name(subentry_infos["name"]))
+                strDeclareHeader %= (
+                    "extern {subIndexType} {name}{suffix};"
+                    "\t\t/* Mapped at index 0x{index:04X}, subindex 0x00*/\n"
+                )
+                mappedVariableContent %= (
+                    "{subIndexType} {name}{suffix} = {value};"
+                    "\t\t/* Mapped at index 0x{index:04X}, subindex 0x00 */\n"
+                )
             else:
-                strindex += (
+                strindex %= (
                     "                    "
-                    "%(subIndexType)s %(NodeName)s_obj%(index)04X%(suffix)s = %(value)s;%(comment)s\n"
-                ) % texts
+                    "{subIndexType} {NodeName}_obj{index:04X}{suffix} = {value};{comment}\n"
+                )
             values = [values]
         else:
             subentry_infos = node.GetSubentryInfos(index, 0)
-            typename = get_type_name(node, subentry_infos["type"])
-            typeinfos = get_valid_type_infos(context, typename)
-            if index == 0x1003:
-                texts["value"] = 0
-            else:
-                texts["value"] = values[0]
-            texts["subIndexType"] = typeinfos[0]
-            strindex += (
+            typename = node.GetTypeName(subentry_infos["type"])
+            typeinfos = ctx.get_valid_type_infos(typename)
+            ctx["value"] = values[0] if index != 0x1003 else 0
+            ctx["subIndexType"] = typeinfos.type
+            strindex %= (
                 "                    "
-                "%(subIndexType)s %(NodeName)s_highestSubIndex_obj%(index)04X = %(value)d; "
+                "{subIndexType} {NodeName}_highestSubIndex_obj{index:04X} = {value}; "
                 "/* number of subindex - 1*/\n"
-            ) % texts
+            )
 
             # Entry type is ARRAY
             if entry_infos["struct"] & OD.IdenticalSubindexes:
                 subentry_infos = node.GetSubentryInfos(index, 1)
                 typename = node.GetTypeName(subentry_infos["type"])
-                typeinfos = get_valid_type_infos(context, typename, values[1:])
-                texts["subIndexType"] = typeinfos[0]
-                if typeinfos[1] is not None:
-                    texts["suffix"] = f"[{typeinfos[1]}]"
-                    texts["type_suffix"] = "*"
+                typeinfos = ctx.get_valid_type_infos(typename, values[1:])
+                ctx["subIndexType"] = typeinfos.type
+                if typeinfos.size is not None:
+                    ctx["suffix"] = f"[{typeinfos.size}]"
+                    ctx["type_suffix"] = "*"
                 else:
-                    texts["suffix"] = ""
-                    texts["type_suffix"] = ""
-                texts["length"] = values[0]
+                    ctx["suffix"] = ""
+                    ctx["type_suffix"] = ""
+                ctx["length"] = values[0]
                 if index in variablelist:
-                    texts["name"] = RE_STARTS_WITH_DIGIT.sub(r'_\1', format_name(entry_infos["name"]))
-                    texts["values_count"] = str(len(values) - 1)
-                    strDeclareHeader += (
-                        "extern %(subIndexType)s %(name)s[%(values_count)s]%(suffix)s;\t\t"
-                        "/* Mapped at index 0x%(index)04X, subindex 0x01 - 0x%(length)02X */\n"
-                    ) % texts
-                    mappedVariableContent += (
-                        "%(subIndexType)s %(name)s[]%(suffix)s =\t\t"
-                        "/* Mapped at index 0x%(index)04X, subindex 0x01 - 0x%(length)02X */\n  {\n"
-                    ) % texts
+                    ctx["name"] = RE_STARTS_WITH_DIGIT.sub(r'_\1', format_name(entry_infos["name"]))
+                    ctx["values_count"] = str(len(values) - 1)
+                    strDeclareHeader %= (
+                        "extern {subIndexType} {name}[{values_count}]{suffix};\t\t"
+                        "/* Mapped at index 0x{index:04X}, subindex 0x01 - 0x{length:02X} */\n"
+                    )
+                    mappedVariableContent %= (
+                        "{subIndexType} {name}[]{suffix} =\t\t"
+                        "/* Mapped at index 0x{index:04X}, subindex 0x01 - 0x{length:02X} */\n  {{\n"
+                    )
                     for subindex, value in enumerate(values):
                         sep = ","
                         if subindex > 0:
                             if subindex == len(values) - 1:
                                 sep = ""
-                            value, comment = compute_value(typeinfos[2], value)
+                            value, comment = compute_value(value, typeinfos.ctype)
                             if len(value) == 2 and typename == "DOMAIN":
                                 raise ValueError(
                                     "Domain variable not initialized, "
@@ -318,68 +377,71 @@ def generate_file_content(node: NodeProtocol, headerfile: str, pointers_dict=Non
                             mappedVariableContent += f"    {value}{sep}{comment}\n"
                     mappedVariableContent += "  };\n"
                 else:
-                    strindex += (
+                    strindex %= (
                         "                    "
-                        "%(subIndexType)s%(type_suffix)s %(NodeName)s_obj%(index)04X[] = \n"
-                        "                    {\n"
-                    ) % texts
+                        "{subIndexType}{type_suffix} {NodeName}_obj{index:04X}[] = \n"
+                        "                    {{\n"
+                    )
                     for subindex, value in enumerate(values):
                         sep = ","
                         if subindex > 0:
                             if subindex == len(values) - 1:
                                 sep = ""
-                            value, comment = compute_value(typeinfos[2], value)
+                            value, comment = compute_value(value, typeinfos.ctype)
                             strindex += f"                      {value}{sep}{comment}\n"
                     strindex += "                    };\n"
             else:
 
-                texts["parent"] = RE_STARTS_WITH_DIGIT.sub(r'_\1', format_name(entry_infos["name"]))
+                ctx["parent"] = RE_STARTS_WITH_DIGIT.sub(r'_\1', format_name(entry_infos["name"]))
                 # Entry type is RECORD
                 for subindex, value in enumerate(values):
-                    texts["subindex"] = subindex
+                    ctx["subindex"] = subindex
+                    # FIXME: Are there any point in calling this for subindex 0?
                     params_infos = node.GetParamsEntry(index, subindex)
+                    # FIXME: Assumed params_info type is coherent with entry_infos["struct"]
+                    assert not isinstance(params_infos, list)
                     if subindex > 0:
                         subentry_infos = node.GetSubentryInfos(index, subindex)
-                        typename = get_type_name(node, subentry_infos["type"])
-                        typeinfos = get_valid_type_infos(context, typename, [values[subindex]])
-                        texts["subIndexType"] = typeinfos[0]
-                        if typeinfos[1] is not None:
+                        typename = node.GetTypeName(subentry_infos["type"])
+                        typeinfos = ctx.get_valid_type_infos(typename, [values[subindex]])
+                        ctx["subIndexType"] = typeinfos.type
+                        if typeinfos.size is not None:
                             if params_infos["buffer_size"]:
-                                texts["suffix"] = f"[{params_infos['buffer_size']}]"
+                                ctx["suffix"] = f"[{params_infos['buffer_size']}]"
                             else:
-                                texts["suffix"] = f"[{typeinfos[1]}]"
+                                ctx["suffix"] = f"[{typeinfos.size}]"
                         else:
-                            texts["suffix"] = ""
-                        texts["value"], texts["comment"] = compute_value(typeinfos[2], value)
-                        texts["name"] = format_name(subentry_infos["name"])
+                            ctx["suffix"] = ""
+                        ctx["value"], ctx["comment"] = compute_value(value, typeinfos.ctype)
+                        ctx["name"] = format_name(subentry_infos["name"])
                         if index in variablelist:
-                            strDeclareHeader += (
-                                "extern %(subIndexType)s %(parent)s_%(name)s%(suffix)s;\t\t"
-                                "/* Mapped at index 0x%(index)04X, subindex 0x%(subindex)02X */\n"
-                            ) % texts
-                            mappedVariableContent += (
-                                "%(subIndexType)s %(parent)s_%(name)s%(suffix)s = %(value)s;\t\t"
-                                "/* Mapped at index 0x%(index)04X, subindex 0x%(subindex)02X */\n"
-                            ) % texts
+                            strDeclareHeader %= (
+                                "extern {subIndexType} {parent}_{name}{suffix};\t\t"
+                                "/* Mapped at index 0x{index:04X}, subindex 0x{subindex:02X} */\n"
+                            )
+                            mappedVariableContent %= (
+                                "{subIndexType} {parent}_{name}{suffix} = {value};\t\t"
+                                "/* Mapped at index 0x{index:04X}, subindex 0x{subindex:02X} */\n"
+                            )
                         else:
-                            strindex += (
+                            strindex %= (
                                 "                    "
-                                "%(subIndexType)s %(NodeName)s"
-                                "_obj%(index)04X_%(name)s%(suffix)s = "
-                                "%(value)s;%(comment)s\n"
-                            ) % texts
+                                "{subIndexType} {NodeName}"
+                                "_obj{index:04X}_{name}{suffix} = "
+                                "{value};{comment}\n"
+                            )
 
-        headerObjectDefinitionContent += (
-            f"\n#define {RE_NOTW.sub('_', texts['NodeName'])}"
-            f"_{RE_NOTW.sub('_', texts['EntryName'])}_Idx {texts['index']:#04x}\n"
+        headerObjDefinitionContent += (
+            f"\n#define {RE_NOTW.sub('_', ctx['NodeName'])}"
+            f"_{RE_NOTW.sub('_', ctx['EntryName'])}_Idx {ctx['index']:#04x}\n"
         )
 
         # Generating Dictionary C++ entry
-        strindex += (
+        strindex %= (
             "                    "
-            "subindex %(NodeName)s_Index%(index)04X[] = \n"
-            "                     {\n"
-        ) % texts
+            "subindex {NodeName}_Index{index:04X}[] = \n"
+            "                     {{\n"
+        )
         generateSubIndexArrayComment = True
         for subindex, _ in enumerate(values):
             subentry_infos = node.GetSubentryInfos(index, subindex)
@@ -392,40 +454,46 @@ def generate_file_content(node: NodeProtocol, headerfile: str, pointers_dict=Non
                 sep = ""
             typename = node.GetTypeName(subentry_infos["type"])
             if entry_infos["struct"] & OD.IdenticalSubindexes:
-                typeinfos = get_valid_type_infos(context, typename, values[1:])
+                typeinfos = ctx.get_valid_type_infos(typename, values[1:])
             else:
-                typeinfos = get_valid_type_infos(context, typename, [values[subindex]])
+                typeinfos = ctx.get_valid_type_infos(typename, [values[subindex]])
             if subindex == 0:
                 if index == 0x1003:
-                    typeinfos = get_valid_type_infos(context, "valueRange_EMC")
+                    typeinfos = ctx.get_valid_type_infos("valueRange_EMC")
                 if entry_infos["struct"] & OD.MultipleSubindexes:
-                    name = "%(NodeName)s_highestSubIndex_obj%(index)04X" % texts
+                    name = f"{ctx['NodeName']}_highestSubIndex_obj{ctx['index']:04X}"
                 elif index in variablelist:
                     name = format_name(subentry_infos["name"])
                 else:
-                    name = format_name(f"{texts['NodeName']}_obj{texts['index']:04X}")
+                    name = format_name(f"{ctx['NodeName']}_obj{ctx['index']:04X}")
             elif entry_infos["struct"] & OD.IdenticalSubindexes:
                 if index in variablelist:
                     name = f"{format_name(entry_infos['name'])}[{subindex - 1}]"
                 else:
-                    name = f"{texts['NodeName']}_obj{texts['index']:04X}[{subindex - 1}]"
+                    name = f"{ctx['NodeName']}_obj{ctx['index']:04X}[{subindex - 1}]"
             else:
                 if index in variablelist:
                     name = format_name(f"{entry_infos['name']}_{subentry_infos['name']}")
                 else:
                     name = (
-                        f"{texts['NodeName']}_obj{texts['index']:04X}_"
+                        f"{ctx['NodeName']}_obj{ctx['index']:04X}_"
                         f"{format_name(subentry_infos['name'])}"
                     )
-            if typeinfos[2] == "visible_string":
+            if typeinfos.ctype == "visible_string":
                 if params_infos["buffer_size"]:
-                    sizeof = params_infos["buffer_size"]
+                    sizeof = str(params_infos["buffer_size"])
                 else:
-                    sizeof = str(max(len(values[subindex]), context.default_string_size))
-            elif typeinfos[2] == "domain":
-                sizeof = str(len(values[subindex]))
+                    value = values[subindex]
+                    # FIXME: It should be a str type with visible_string
+                    assert isinstance(value, str)
+                    sizeof = str(max(len(value), ctx.default_string_size))
+            elif typeinfos.ctype == "domain":
+                value = values[subindex]
+                # FIXME: Value should be string
+                assert isinstance(value, str)
+                sizeof = str(len(value))
             else:
-                sizeof = f"sizeof ({typeinfos[0]})"
+                sizeof = f"sizeof ({typeinfos.type})"
             params = node.GetParamsEntry(index, subindex)
             # FIXME: As subindex is non-zero, params can't be a list
             assert not isinstance(params, list)
@@ -437,35 +505,35 @@ def generate_file_content(node: NodeProtocol, headerfile: str, pointers_dict=Non
             strindex += (
                 f"                       {{ "
                 f"{subentry_infos['access'].upper()}{save}, "
-                f"{typeinfos[2]}, {sizeof}, (void*)&{start_digit}, NULL "
+                f"{typeinfos.ctype}, {sizeof}, (void*)&{start_digit}, NULL "
                 f"}}{sep}\n"
             )
             pointer_name = pointers_dict.get((index, subindex), None)
             if pointer_name is not None:
-                pointedVariableContent += f"{typeinfos[0]}* {pointer_name} = &{name};\n"
+                pointedVariableContent += f"{typeinfos.type}* {pointer_name} = &{name};\n"
             if not entry_infos["struct"] & OD.IdenticalSubindexes:
                 generateSubIndexArrayComment = True
-                headerObjectDefinitionContent += (
-                    f"#define {RE_NOTW.sub('_', texts['NodeName'])}"
-                    f"_{RE_NOTW.sub('_', texts['EntryName'])}"
+                headerObjDefinitionContent += (
+                    f"#define {RE_NOTW.sub('_', ctx['NodeName'])}"
+                    f"_{RE_NOTW.sub('_', ctx['EntryName'])}"
                     f"_{RE_NOTW.sub('_', subentry_infos['name'])}"
                     f"_sIdx {subindex:#04x}"
                 )
                 if params_infos["comment"]:
-                    headerObjectDefinitionContent += "    /* " + params_infos["comment"] + " */\n"
+                    headerObjDefinitionContent += "    /* " + params_infos["comment"] + " */\n"
                 else:
-                    headerObjectDefinitionContent += "\n"
+                    headerObjDefinitionContent += "\n"
             elif generateSubIndexArrayComment:
                 generateSubIndexArrayComment = False
                 # Generate Number_of_Entries_sIdx define and write comment
                 # about not generating defines for the rest of the array objects
-                headerObjectDefinitionContent += (
-                    f"#define {RE_NOTW.sub('_', texts['NodeName'])}"
-                    f"_{RE_NOTW.sub('_', texts['EntryName'])}"
+                headerObjDefinitionContent += (
+                    f"#define {RE_NOTW.sub('_', ctx['NodeName'])}"
+                    f"_{RE_NOTW.sub('_', ctx['EntryName'])}"
                     f"_{RE_NOTW.sub('_', subentry_infos['name'])}"
                     f"_sIdx {subindex:#04x}\n"
                 )
-                headerObjectDefinitionContent += "/* subindex define not generated for array objects */\n"
+                headerObjDefinitionContent += "/* subindex define not generated for array objects */\n"
         strindex += "                     };\n"
         indexContents[index] = strindex
 
@@ -475,83 +543,93 @@ def generate_file_content(node: NodeProtocol, headerfile: str, pointers_dict=Non
 
     if 0x1003 not in communicationlist:
         entry_infos = node.GetEntryInfos(0x1003)
-        texts["EntryName"] = entry_infos["name"]
-        indexContents[0x1003] = """
-/* index 0x1003 :   %(EntryName)s */
-                    UNS8 %(NodeName)s_highestSubIndex_obj1003 = 0; /* number of subindex - 1*/
-                    UNS32 %(NodeName)s_obj1003[] =
-                    {
+        ctx["EntryName"] = entry_infos["name"]
+        indexContents[0x1003] = ctx.ftext("""
+/* index 0x1003 :   {EntryName} */
+                    UNS8 {NodeName}_highestSubIndex_obj1003 = 0; /* number of subindex - 1*/
+                    UNS32 {NodeName}_obj1003[] =
+                    {{
                       0x0	/* 0 */
-                    };
-                    subindex %(NodeName)s_Index1003[] =
-                     {
-                       { RW, valueRange_EMC, sizeof (UNS8), (void*)&%(NodeName)s_highestSubIndex_obj1003, NULL },
-                       { RO, uint32, sizeof (UNS32), (void*)&%(NodeName)s_obj1003[0], NULL }
-                     };
-""" % texts
+                    }};
+                    subindex {NodeName}_Index1003[] =
+                     {{
+                       {{ RW, valueRange_EMC, sizeof (UNS8), (void*)&{NodeName}_highestSubIndex_obj1003, NULL }},
+                       {{ RO, uint32, sizeof (UNS32), (void*)&{NodeName}_obj1003[0], NULL }}
+                     }};
+""")
 
     if 0x1005 not in communicationlist:
         entry_infos = node.GetEntryInfos(0x1005)
-        texts["EntryName"] = entry_infos["name"]
-        indexContents[0x1005] = """\n/* index 0x1005 :   %(EntryName)s */
-                    UNS32 %(NodeName)s_obj1005 = 0x0;   /* 0 */
-""" % texts
+        ctx["EntryName"] = entry_infos["name"]
+        indexContents[0x1005] = ctx.ftext("""
+/* index 0x1005 :   {EntryName} */
+                    UNS32 {NodeName}_obj1005 = 0x0;   /* 0 */
+""")
 
     if 0x1006 not in communicationlist:
         entry_infos = node.GetEntryInfos(0x1006)
-        texts["EntryName"] = entry_infos["name"]
-        indexContents[0x1006] = """\n/* index 0x1006 :   %(EntryName)s */
-                    UNS32 %(NodeName)s_obj1006 = 0x0;   /* 0 */
-""" % texts
+        ctx["EntryName"] = entry_infos["name"]
+        indexContents[0x1006] = ctx.ftext("""
+/* index 0x1006 :   {EntryName} */
+                    UNS32 {NodeName}_obj1006 = 0x0;   /* 0 */
+""")
 
     if 0x1014 not in communicationlist:
         entry_infos = node.GetEntryInfos(0x1014)
-        texts["EntryName"] = entry_infos["name"]
-        indexContents[0x1014] = """\n/* index 0x1014 :   %(EntryName)s */
-                    UNS32 %(NodeName)s_obj1014 = 0x80 + 0x%(NodeID)02X;   /* 128 + NodeID */
-""" % texts
+        ctx["EntryName"] = entry_infos["name"]
+        indexContents[0x1014] = ctx.ftext("""
+/* index 0x1014 :   {EntryName} */
+                    UNS32 {NodeName}_obj1014 = 0x80 + 0x{NodeID:02X};   /* 128 + NodeID */
+""")
 
     if 0x1016 in communicationlist:
-        texts["heartBeatTimers_number"] = node.GetEntry(0x1016, 0)
+        hbn = node.GetEntry(0x1016, 0)
+        # FIXME: Hardcoded assumption on data-type?
+        assert isinstance(hbn, int)
+        ctx["heartBeatTimers_number"] = hbn
     else:
-        texts["heartBeatTimers_number"] = 0
+        ctx["heartBeatTimers_number"] = 0
         entry_infos = node.GetEntryInfos(0x1016)
-        texts["EntryName"] = entry_infos["name"]
-        indexContents[0x1016] = """\n/* index 0x1016 :   %(EntryName)s */
-                    UNS8 %(NodeName)s_highestSubIndex_obj1016 = 0;
-                    UNS32 %(NodeName)s_obj1016[]={0};
-""" % texts
+        ctx["EntryName"] = entry_infos["name"]
+        indexContents[0x1016] = ctx.ftext("""
+/* index 0x1016 :   {EntryName} */
+                    UNS8 {NodeName}_highestSubIndex_obj1016 = 0;
+                    UNS32 {NodeName}_obj1016[]={{0}};
+""")
 
     if 0x1017 not in communicationlist:
         entry_infos = node.GetEntryInfos(0x1017)
-        texts["EntryName"] = entry_infos["name"]
-        indexContents[0x1017] = """\n/* index 0x1017 :   %(EntryName)s */
-                    UNS16 %(NodeName)s_obj1017 = 0x0;   /* 0 */
-""" % texts
+        ctx["EntryName"] = entry_infos["name"]
+        indexContents[0x1017] = ctx.ftext("""
+/* index 0x1017 :   {EntryName} */
+                    UNS16 {NodeName}_obj1017 = 0x0;   /* 0 */
+""")
 
     if 0x100C not in communicationlist:
         entry_infos = node.GetEntryInfos(0x100C)
-        texts["EntryName"] = entry_infos["name"]
-        indexContents[0x100C] = """\n/* index 0x100C :   %(EntryName)s */
-                    UNS16 %(NodeName)s_obj100C = 0x0;   /* 0 */
-""" % texts
+        ctx["EntryName"] = entry_infos["name"]
+        indexContents[0x100C] = ctx.ftext("""
+/* index 0x100C :   {EntryName} */
+                    UNS16 {NodeName}_obj100C = 0x0;   /* 0 */
+""")
 
     if 0x100D not in communicationlist:
         entry_infos = node.GetEntryInfos(0x100D)
-        texts["EntryName"] = entry_infos["name"]
-        indexContents[0x100D] = """\n/* index 0x100D :   %(EntryName)s */
-                    UNS8 %(NodeName)s_obj100D = 0x0;   /* 0 */
-""" % texts
+        ctx["EntryName"] = entry_infos["name"]
+        indexContents[0x100D] = ctx.ftext("""
+/* index 0x100D :   {EntryName} */
+                    UNS8 {NodeName}_obj100D = 0x0;   /* 0 */
+""")
 
     # --------------------------------------------------------------------------
     #           Declaration of navigation in the Object Dictionary
     # --------------------------------------------------------------------------
 
-    strDeclareIndex = ""
+    strDeclareIndex = ctx.text()
     strDeclareSwitch = ""
     strQuickIndex = ""
 
-    quick_index = {}
+    quick_index: dict[str, dict[str, int]] = {}
     for index_cat in INDEX_CATEGORIES:
         quick_index[index_cat] = {}
         for cat, idx_min, idx_max in CATEGORIES:
@@ -559,12 +637,12 @@ def generate_file_content(node: NodeProtocol, headerfile: str, pointers_dict=Non
 
     maxPDOtransmit = 0
     for i, index in enumerate(listindex):
-        texts["index"] = index
-        strDeclareIndex += (
-            "  { (subindex*)%(NodeName)s_Index%(index)04X,"
-            "sizeof(%(NodeName)s_Index%(index)04X)/"
-            "sizeof(%(NodeName)s_Index%(index)04X[0]), 0x%(index)04X},\n"
-        ) % texts
+        ctx["index"] = index
+        strDeclareIndex %= (
+            "  {{ (subindex*){NodeName}_Index{index:04X},"
+            "sizeof({NodeName}_Index{index:04X})/"
+            "sizeof({NodeName}_Index{index:04X}[0]), 0x{index:04X}}},\n"
+        )
         strDeclareSwitch += f"       case 0x{index:04X}: i = {i};break;\n"
         for cat, idx_min, idx_max in CATEGORIES:
             if idx_min <= index <= idx_max:
@@ -574,9 +652,9 @@ def generate_file_content(node: NodeProtocol, headerfile: str, pointers_dict=Non
                 if cat == "PDO_TRS":
                     maxPDOtransmit += 1
 
-    texts["maxPDOtransmit"] = max(1, maxPDOtransmit)
+    ctx["maxPDOtransmit"] = max(1, maxPDOtransmit)
     for index_cat in INDEX_CATEGORIES:
-        strQuickIndex += f"\nconst quick_index {texts['NodeName']}_{index_cat} = {{\n"
+        strQuickIndex += f"\nconst quick_index {ctx['NodeName']}_{index_cat} = {{\n"
         sep = ","
         for i, (cat, idx_min, idx_max) in enumerate(CATEGORIES):
             if i == len(CATEGORIES) - 1:
@@ -588,7 +666,8 @@ def generate_file_content(node: NodeProtocol, headerfile: str, pointers_dict=Non
     #                        Write File Content
     # --------------------------------------------------------------------------
 
-    fileContent = FILE_HEADER + f"""
+    fileContent = ctx.text(FILE_HEADER)
+    fileContent += f"""
 #include "{headerfile}"
 """
 
@@ -596,35 +675,35 @@ def generate_file_content(node: NodeProtocol, headerfile: str, pointers_dict=Non
 /**************************************************************************/
 /* Declaration of mapped variables                                        */
 /**************************************************************************/
-""" + mappedVariableContent
-
+"""
+    fileContent += mappedVariableContent
     fileContent += """
 /**************************************************************************/
 /* Declaration of value range types                                       */
 /**************************************************************************/
-""" + valueRangeContent
-
-    fileContent += """
+"""
+    fileContent += valueRangeContent
+    fileContent %= """
 /**************************************************************************/
 /* The node id                                                            */
 /**************************************************************************/
 /* node_id default value.*/
-UNS8 %(NodeName)s_bDeviceNodeId = 0x%(NodeID)02X;
+UNS8 {NodeName}_bDeviceNodeId = 0x{NodeID:02X};
 
 /**************************************************************************/
 /* Array of message processing information */
 
-const UNS8 %(NodeName)s_iam_a_slave = %(iam_a_slave)d;
+const UNS8 {NodeName}_iam_a_slave = {iam_a_slave};
 
-""" % texts
-    if texts["heartBeatTimers_number"] > 0:
-        declaration = (
-            "TIMER_HANDLE %(NodeName)s_heartBeatTimers[%(heartBeatTimers_number)d]"
-        ) % texts
-        initializer = "{TIMER_NONE" + ",TIMER_NONE" * (texts["heartBeatTimers_number"] - 1) + "}"
+"""
+    if ctx["heartBeatTimers_number"] > 0:
+        declaration = ctx.ftext(
+            "TIMER_HANDLE {NodeName}_heartBeatTimers[{heartBeatTimers_number}]"
+        )
+        initializer = "{TIMER_NONE" + ",TIMER_NONE" * (ctx["heartBeatTimers_number"] - 1) + "}"
         fileContent += declaration + " = " + initializer + ";\n"
     else:
-        fileContent += "TIMER_HANDLE %(NodeName)s_heartBeatTimers[1];\n" % texts
+        fileContent += f"TIMER_HANDLE {ctx['NodeName']}_heartBeatTimers[1];\n"
 
     fileContent += """
 /*
@@ -642,77 +721,76 @@ $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 /**************************************************************************/
 /* Declaration of pointed variables                                       */
 /**************************************************************************/
-""" + pointedVariableContent
-
-    fileContent += """
-const indextable %(NodeName)s_objdict[] =
-{
-""" % texts
+"""
+    fileContent += pointedVariableContent
+    fileContent %= """
+const indextable {NodeName}_objdict[] =
+{{
+"""
     fileContent += strDeclareIndex
-    fileContent += """};
+    fileContent %= """}};
 
-const indextable * %(NodeName)s_scanIndexOD (CO_Data *d, UNS16 wIndex, UNS32 * errorCode)
-{
+const indextable * {NodeName}_scanIndexOD (CO_Data *d, UNS16 wIndex, UNS32 * errorCode)
+{{
     int i;
     (void)d; /* unused parameter */
-    switch(wIndex){
-""" % texts
+    switch(wIndex){{
+"""
     fileContent += strDeclareSwitch
-    fileContent += """       default:
+    fileContent %= """       default:
             *errorCode = OD_NO_SUCH_OBJECT;
             return NULL;
-    }
+    }}
     *errorCode = OD_SUCCESSFUL;
-    return &%(NodeName)s_objdict[i];
-}
+    return &{NodeName}_objdict[i];
+}}
 
 /*
  * To count at which received SYNC a PDO must be sent.
  * Even if no pdoTransmit are defined, at least one entry is computed
  * for compilations issues.
  */
-s_PDO_status %(NodeName)s_PDO_status[%(maxPDOtransmit)d] = {""" % texts
+s_PDO_status {NodeName}_PDO_status[{maxPDOtransmit}] = {{"""
 
-    fileContent += ",".join(["s_PDO_status_Initializer"] * texts["maxPDOtransmit"]) + """};
-"""
-
+    fileContent += ",".join(["s_PDO_status_Initializer"] * ctx["maxPDOtransmit"]) + "};\n"
     fileContent += strQuickIndex
-    fileContent += """
-const UNS16 %(NodeName)s_ObjdictSize = sizeof(%(NodeName)s_objdict)/sizeof(%(NodeName)s_objdict[0]);
+    fileContent %= """
+const UNS16 {NodeName}_ObjdictSize = sizeof({NodeName}_objdict)/sizeof({NodeName}_objdict[0]);
 
-CO_Data %(NodeName)s_Data = CANOPEN_NODE_DATA_INITIALIZER(%(NodeName)s);
+CO_Data {NodeName}_Data = CANOPEN_NODE_DATA_INITIALIZER({NodeName});
 
-""" % texts
+"""
 
     # --------------------------------------------------------------------------
     #                      Write Header File Content
     # --------------------------------------------------------------------------
 
-    texts["file_include_name"] = headerfile.replace(".", "_").upper()
-    headerFileContent = FILE_HEADER + """
-#ifndef %(file_include_name)s
-#define %(file_include_name)s
+    ctx["file_include_name"] = headerfile.replace(".", "_").upper()
+    headerFileContent = ctx.text(FILE_HEADER)
+    headerFileContent %= """
+#ifndef {file_include_name}
+#define {file_include_name}
 
 #include "data.h"
 
 /* Prototypes of function provided by object dictionnary */
-UNS32 %(NodeName)s_valueRangeTest (UNS8 typeValue, void * value);
-const indextable * %(NodeName)s_scanIndexOD (CO_Data *d, UNS16 wIndex, UNS32 * errorCode);
+UNS32 {NodeName}_valueRangeTest (UNS8 typeValue, void * value);
+const indextable * {NodeName}_scanIndexOD (CO_Data *d, UNS16 wIndex, UNS32 * errorCode);
 
 /* Master node data struct */
-extern CO_Data %(NodeName)s_Data;
-""" % texts
+extern CO_Data {NodeName}_Data;
+"""
     headerFileContent += strDeclareHeader
-
-    headerFileContent += "\n#endif // %(file_include_name)s\n" % texts
+    headerFileContent %= "\n#endif // {file_include_name}\n"
 
     # --------------------------------------------------------------------------
     #                      Write Header Object Defintions Content
     # --------------------------------------------------------------------------
-    texts["file_include_objdef_name"] = headerfile.replace(".", "_OBJECTDEFINES_").upper()
-    headerObjectDefinitionContent = FILE_HEADER + """
-#ifndef %(file_include_objdef_name)s
-#define %(file_include_objdef_name)s
+    file_include_objdef_name = headerfile.replace(".", "_OBJECTDEFINES_").upper()
+    headerObjectDefinitionContent = ctx.text(FILE_HEADER)
+    headerObjectDefinitionContent += f"""
+#ifndef {file_include_objdef_name}
+#define {file_include_objdef_name}
 
 /*
     Object defines naming convention:
@@ -722,18 +800,20 @@ extern CO_Data %(NodeName)s_Data;
     Index : Node object dictionary name +_+ index name +_+ Idx
     SubIndex : Node object dictionary name +_+ index name +_+ subIndex name +_+ sIdx
 */
-""" % texts + headerObjectDefinitionContent + """
-#endif /* %(file_include_objdef_name)s */
-""" % texts
+"""
+    headerObjectDefinitionContent += headerObjDefinitionContent
+    headerObjectDefinitionContent += f"""
+#endif /* {file_include_objdef_name} */
+"""
 
-    return fileContent, headerFileContent, headerObjectDefinitionContent
+    return str(fileContent), str(headerFileContent), str(headerObjectDefinitionContent)
 
 
 # ------------------------------------------------------------------------------
 #                             Main Function
 # ------------------------------------------------------------------------------
 
-def generate_file(filepath: TPath, node: "NodeProtocol", pointers_dict=None):
+def GenerateFile(filepath: TPath, node: "NodeProtocol", pointers_dict=None):
     """Main function to generate the C file from a object dictionary node."""
     filepath = Path(filepath)
     headerpath = filepath.with_suffix(".h")

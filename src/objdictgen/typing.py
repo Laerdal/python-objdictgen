@@ -144,6 +144,30 @@ class NodeProtocol(Protocol):
         """Get the dictionary of the subentry with the given index and subindex."""
         ...
 
+    def GetIndexes(self) -> list[int]:
+        """ Return a sorted list of indexes in Object Dictionary """
+        ...
+
+    def GetNodeName(self) -> str:
+        """Get the name of the node."""
+        ...
+
+    def GetNodeID(self) -> int:
+        """Get the ID of the node."""
+        ...
+
+    def GetNodeType(self) -> str:
+        """Get the type of the node."""
+        ...
+
+    def GetNodeDescription(self) -> str:
+        """Get the description of the node."""
+        ...
+
+    def GetDefaultStringSize(self) -> int:
+        """Get the default string size setting."""
+        ...
+
 
 #  JSON
 # ======

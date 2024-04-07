@@ -128,6 +128,33 @@ class Node(NodeProtocol):
                 value = ODMapping(value)
         super().__setattr__(name, value)
 
+    # --------------------------------------------------------------------------
+    #                      Legacy access methods
+    # --------------------------------------------------------------------------
+
+    def GetNodeName(self) -> str:
+        """Get the name of the node"""
+        return self.Name
+
+    def GetNodeID(self) -> int:
+        """Get the ID of the node"""
+        return self.ID
+
+    def GetNodeType(self) -> str:
+        """Get the type of the node"""
+        return self.Type
+
+    def GetNodeDescription(self) -> str:
+        """Get the description of the node"""
+        return self.Description
+
+    def GetDefaultStringSize(self) -> int:
+        """Get the default string size"""
+        return self.DefaultStringSize
+
+    def GetIndexes(self) -> list[int]:
+        """ Return a sorted list of indexes in Object Dictionary """
+        return list(self)
 
     # --------------------------------------------------------------------------
     #                      Node Input/Output
@@ -193,7 +220,8 @@ class Node(NodeProtocol):
 
         if filetype == 'c':
             log.debug("Writing C files '%s'", filepath)
-            gen_cfile.generate_file(filepath, self)
+            # Convert filepath to str because it might be used with legacy code
+            gen_cfile.GenerateFile(str(filepath), self)
             return
 
         raise ValueError("Unknown file suffix, unable to write file")
@@ -367,13 +395,6 @@ class Node(NodeProtocol):
         if not isinstance(val, list):
             return 0
         return len(val)
-
-    # FIXME: Keep this or use the __iterator__ method?
-    def GetIndexes(self):
-        """
-        Return a sorted list of indexes in Object Dictionary
-        """
-        return list(sorted(self.Dictionary))
 
     def GetBaseIndex(self, index: int) -> int:
         """ Return the index number of the base object """
