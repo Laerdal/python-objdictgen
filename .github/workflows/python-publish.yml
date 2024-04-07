@@ -20,28 +20,23 @@ jobs:
 
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         python-version: ["3.x"]
 
     steps:
-    - uses: actions/checkout@v3
-    - name: Set up Python
-      uses: actions/setup-python@v4
+    - uses: actions/checkout@v4
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
-    - name: Install gtk3
-      run: |
-        sudo apt install libgtk-3-dev
+        cache: 'pip'
+        cache-dependency-path: '**/setup.cfg'
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip setuptools wheel
+        python -m pip install --upgrade pip setuptools
         python -m pip install build
-    # - name: Build 2.7 package
-    #   if: ${{ matrix.python-version == '2.7' }}
-    #   run: python -m build --wheel
     - name: Build package
-      if: ${{ matrix.python-version != '2.7' }}
       run: python -m build
     # - name: Publish package to TestPyPI
     #   uses: pypa/gh-action-pypi-publish@27b31702a0e7fc50959f5ad993c78deac1bdfc29
