@@ -1,44 +1,29 @@
-# -*- coding: utf-8 -*-
+"""Handler for EDS files, a standard file format in CANopen."""
 #
-#    This file is based on objdictgen from CanFestival
+# Copyright (C) 2022-2024  Svein Seldal, Laerdal Medical AS
+# Copyright (C): Edouard TISSERANT, Francis DUPIN and Laurent BESSARD
 #
-#    Copyright (C) 2022-2023  Svein Seldal, Laerdal Medical AS
-#    Copyright (C): Edouard TISSERANT, Francis DUPIN and Laurent BESSARD
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License, or (at your option) any later version.
 #
-#    This library is free software; you can redistribute it and/or
-#    modify it under the terms of the GNU Lesser General Public
-#    License as published by the Free Software Foundation; either
-#    version 2.1 of the License, or (at your option) any later version.
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
 #
-#    This library is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    Lesser General Public License for more details.
-#
-#    You should have received a copy of the GNU Lesser General Public
-#    License along with this library; if not, write to the Free Software
-#    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
-#    USA
-
-from __future__ import print_function
-from __future__ import absolute_import
-from builtins import range
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
+# USA
 
 import os
 import re
-import sys
 from time import localtime, strftime
-from past.builtins import long  # type: ignore
-from future.utils import raise_from
 
 import objdictgen
 from objdictgen.maps import OD
-
-if sys.version_info[0] >= 3:
-    unicode = str  # pylint: disable=invalid-name
-    INT_TYPES = int  # pylint: disable=invalid-name
-else:
-    INT_TYPES = (int, long)
 
 # Regular expression for finding index section names
 RE_INDEX = re.compile(r'([0-9A-F]{1,4}$)')
@@ -62,7 +47,7 @@ ACCESS_TRANSLATE = {"RO": "ro", "WO": "wo", "RW": "rw", "RWR": "rw", "RWW": "rw"
 
 # Function for verifying data values
 is_integer = lambda x: isinstance(x, int)  # noqa: E731
-is_string = lambda x: isinstance(x, (str, unicode))  # noqa: E731
+is_string = lambda x: isinstance(x, str)  # noqa: E731
 is_boolean = lambda x: x in (0, 1)  # noqa: E731
 
 # Define checking of value for each attribute
@@ -188,7 +173,7 @@ def ParseCPJFile(filepath):
                             try:
                                 computed_value = int(value, 16)
                             except ValueError:
-                                raise_from(ValueError("'%s' is not a valid value for attribute '%s' of section '[%s]'" % (value, keyname, section_name)), None)
+                                raise ValueError("'%s' is not a valid value for attribute '%s' of section '[%s]'" % (value, keyname, section_name)) from None
                         elif value.isdigit() or value.startswith("-") and value[1:].isdigit():
                             # Second case, value is a number and starts with "0" or "-0", then it's an octal value
                             if value.startswith("0") or value.startswith("-0"):
@@ -348,13 +333,13 @@ def ParseEDSFile(filepath):
                             _ = int(value.upper().replace("$NODEID+", ""), 16)
                             computed_value = '"%s"' % value
                         except ValueError:
-                            raise_from(ValueError("'%s' is not a valid formula for attribute '%s' of section '[%s]'" % (value, keyname, section_name)), None)
+                            raise ValueError("'%s' is not a valid formula for attribute '%s' of section '[%s]'" % (value, keyname, section_name)) from None
                     # Second case, value starts with "0x", then it's an hexadecimal value
                     elif value.startswith("0x") or value.startswith("-0x"):
                         try:
                             computed_value = int(value, 16)
                         except ValueError:
-                            raise_from(ValueError("'%s' is not a valid value for attribute '%s' of section '[%s]'" % (value, keyname, section_name)), None)
+                            raise ValueError("'%s' is not a valid value for attribute '%s' of section '[%s]'" % (value, keyname, section_name)) from None
                     elif value.isdigit() or value.startswith("-") and value[1:].isdigit():
                         # Third case, value is a number and starts with "0", then it's an octal value
                         if value.startswith("0") or value.startswith("-0"):
@@ -428,10 +413,10 @@ def VerifyValue(values, section_name, param):
                 values[uparam] = float(values[uparam])
             elif values["DATATYPE"] == 0x01:
                 values[uparam] = {0: False, 1: True}[values[uparam]]
-            elif not isinstance(values[uparam], INT_TYPES) and "$NODEID" not in values[uparam].upper():
-                raise ValueError()
+            elif not isinstance(values[uparam], int) and "$NODEID" not in values[uparam].upper():
+                raise ValueError()  # FIXME: Should this get something more specific?
         except ValueError:
-            raise_from(ValueError("Error on section '[%s]': '%s' incompatible with DataType" % (section_name, param)), None)
+            raise ValueError("Error on section '[%s]': '%s' incompatible with DataType" % (section_name, param)) from None
 
 
 # Function that generate the EDS file content for the current node in the manager
