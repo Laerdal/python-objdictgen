@@ -22,7 +22,7 @@ import re
 from collections import UserDict
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Self
+from typing import Any
 
 from objdictgen.maps import OD
 from objdictgen.typing import NodeProtocol, TODValue, TPath
@@ -71,7 +71,7 @@ class Text:
         self.text: str = text
         self.context: "CFileContext" = context
 
-    def __iadd__(self, other: "str|Text") -> Self:
+    def __iadd__(self, other: "str|Text") -> "Text":
         """Add a string to the text without formatting."""
         self.text += str(other)
         return self
@@ -80,7 +80,7 @@ class Text:
         """Add a string to the text without formatting."""
         return Text(self.context, self.text + str(other))
 
-    def __imod__(self, other: str) -> Self:
+    def __imod__(self, other: str) -> "Text":
         """Add a string to the text with formatting."""
         self.text += other.format(**self.context)
         return self

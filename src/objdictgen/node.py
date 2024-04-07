@@ -20,7 +20,7 @@
 
 import copy
 import logging
-from typing import Any, Generator, Iterable, Iterator, Self
+from typing import Any, Generator, Iterable, Iterator
 
 import colorama
 
@@ -236,7 +236,7 @@ class Node(NodeProtocol):
         """ Return the class data as a dict """
         return copy.deepcopy(self.__dict__)
 
-    def copy(self) -> Self:
+    def copy(self) -> "Node":
         """
         Return a copy of the node
         """
