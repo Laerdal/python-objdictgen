@@ -18,6 +18,7 @@
 # USA
 
 import codecs
+import os
 
 import wx
 import wx.grid
@@ -160,7 +161,8 @@ class SubindexTable(wx.grid.GridTableBase):
     def setCellTheme(self, row, col, grid):
         system_appearance = wx.SystemSettings.GetAppearance()
         background_colour = wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOW)
-        text_colour = wx.WHITE if system_appearance.IsDark() else wx.BLACK
+        # Windows widgets are white on dark mode, so we need to exclude win
+        text_colour = wx.WHITE if system_appearance.IsDark() and os.name != "nt" else wx.BLACK
         grid.SetCellBackgroundColour(row, col, background_colour)
         grid.SetCellTextColour(row, col, text_colour)
 
