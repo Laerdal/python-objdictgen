@@ -377,10 +377,7 @@ class NodeManager:
         length = node.GetEntry(index, 0)
         # FIXME: This code assumes that subindex 0 is the length of the entry
         assert isinstance(length, int)
-        if "nbmin" in infos:
-            nbmin = infos["nbmin"]
-        else:
-            nbmin = 1
+        nbmin = infos.get("nbmin", 1)
         # Entry is an array, or is an array/record of manufacturer specific
         # FIXME: What is the intended order of the conditions? or-and on same level
         if (infos["struct"] & OD.IdenticalSubindexes or 0x2000 <= index <= 0x5FFF
@@ -574,7 +571,7 @@ class NodeManager:
             node.RemoveMapVariable(index, subindex or 0)
             if not found:
                 infos = node.GetEntryInfos(index)
-                if not infos["need"]:
+                if not infos.get("need"):
                     node.RemoveEntry(index, subindex)
             if index in mappings[-1]:
                 node.RemoveMappingEntry(index, subindex)
@@ -700,8 +697,7 @@ class NodeManager:
                     # Might fail with binascii.Error if hex is malformed
                     if len(value) % 2 != 0:
                         value = "0" + value
-                    # FIXME: decode() produce bytes, which is not supported as of now
-                    bvalue = codecs.decode(value, 'hex_codec')
+                    bvalue = codecs.decode(value, 'hex_codec').decode()
                     node.SetEntry(index, subindex, bvalue)
                 elif editor == "dcf":
                     node.SetEntry(index, subindex, value)
@@ -737,12 +733,14 @@ class NodeManager:
                         raise ValueError("Number must be positive")
                     node.SetParamsEntry(index, subindex, params={"buffer_size": nvalue})
             else:
+                nvalue: str|int = value
                 if editor == "type":
                     nvalue = node.GetTypeIndex(value)
+                    # All type object shall have size
                     size = node.GetEntryInfos(nvalue)["size"]
                     node.UpdateMapVariable(index, subindex, size)
                 elif editor in ["access", "raccess"]:
-                    value = {
+                    nvalue = {  # type: ignore[assignment]
                         access: abbrev
                         for abbrev, access in maps.ACCESS_TYPE.items()
                     }[value]
@@ -753,7 +751,7 @@ class NodeManager:
                         node.AddMappingEntry(index, entry={"name": entry_infos["name"], "struct": OD.ARRAY})
                         node.AddMappingSubEntry(index, 0, values=subindex0_infos)
                         node.AddMappingSubEntry(index, 1, values=subindex1_infos)
-                node.SetMappingSubEntry(index, subindex, values={name: value})  # type: ignore[misc]
+                node.SetMappingSubEntry(index, subindex, values={name: nvalue})  # type: ignore[misc]
             if not disable_buffer:
                 self.BufferCurrentNode()
 
@@ -1049,7 +1047,7 @@ class NodeManager:
                                 editor["value"] = "dcf"
                             else:
                                 editor["value"] = "domain"
-                            dic["value"] = codecs.encode(dic["value"].encode(), 'hex_codec')
+                            dic["value"] = codecs.encode(dic["value"].encode(), 'hex_codec').decode()
                         elif dic["type"] == "BOOLEAN":
                             editor["value"] = "bool"
                             dic["value"] = maps.BOOL_TYPE[dic["value"]]
@@ -1065,7 +1063,7 @@ class NodeManager:
                                     raise  # FIXME: Originial code swallows exception
                                 try:
                                     dic["value"] = fmt.format(dic["value"])
-                                except TypeError as exc:
+                                except ValueError as exc:
                                     log.debug("ValueError: '%s': %s", dic["value"], exc)
                                     # FIXME: dict["value"] can contain $NODEID for PDOs i.e. $NODEID+0x200
                                 editor["value"] = "string"

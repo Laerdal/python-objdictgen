@@ -20,6 +20,7 @@
 
 import copy
 import logging
+from pathlib import Path
 from typing import Any, Generator, Iterable, Iterator
 
 import colorama
@@ -195,8 +196,15 @@ class Node(NodeProtocol):
         """ Import a new Node from a JSON string """
         return jsonod.generate_node(contents)
 
-    def DumpFile(self, filepath: TPath, filetype: str = "json", **kwargs):
+    def DumpFile(self, filepath: TPath, filetype: str|None = "json", **kwargs):
         """ Save node into file """
+
+        # Attempt to determine the filetype from the filepath
+        if not filetype:
+            filetype = Path(filepath).suffix[1:]
+        if not filetype:
+            filetype = "json"
+
         if filetype == 'od':
             log.debug("Writing XML OD '%s'", filepath)
             with open(filepath, "w", encoding="utf-8") as f:
@@ -860,8 +868,11 @@ class Node(NodeProtocol):
         if subindex is None:
             self.UserMapping.pop(index)
             return
-        if subindex == len(self.UserMapping[index]["values"]) - 1:
-            self.UserMapping[index]["values"].pop(subindex)
+        obj = self.UserMapping[index]
+        if subindex == len(obj["values"]) - 1:
+            obj["values"].pop(subindex)
+            return
+        if obj['struct'] & OD.IdenticalSubindexes:
             return
         raise ValueError(f"Invalid subindex {subindex} for index 0x{index:04x}")
 

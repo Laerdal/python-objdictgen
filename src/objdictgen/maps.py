@@ -67,10 +67,14 @@ class ODStructTypes:
     #
     # Properties of entry structure in the Object Dictionary
     #
-    Subindex = 1             # Entry has at least one subindex
-    MultipleSubindexes = 2   # Entry has more than one subindex
-    IdenticalSubindexes = 4  # Subindexes of entry have the same description
-    IdenticalIndexes = 8     # Entry has the same description on multiple indexes
+    Subindex = 1
+    """Entry has at least one subindex"""
+    MultipleSubindexes = 2
+    """Entry has more than one subindex"""
+    IdenticalSubindexes = 4
+    """Subindexes of entry have the same description"""
+    IdenticalIndexes = 8
+    """Entry has the same description on multiple objects"""
 
     #
     # Structures of entry in the Object Dictionary, sum of the properties described above
@@ -78,12 +82,18 @@ class ODStructTypes:
     #
     NOSUB = 0  # Entry without subindex (only for type declaration)
     VAR = Subindex  # 1
+    """Variable object structure"""
     RECORD = Subindex | MultipleSubindexes  # 3
+    """Record object structure, i.e. subindexes with different descriptions"""
     ARRAY = Subindex | MultipleSubindexes | IdenticalSubindexes  # 7
+    """Array object structure, i.e. subindexes with the same type"""
     # Entries identical on multiple indexes
     NVAR = Subindex | IdenticalIndexes  # 9
+    """Variable object structure that spans several objects"""
     NRECORD = Subindex | MultipleSubindexes | IdenticalIndexes  # 11, Example : PDO Parameters
+    """Record object structure that spans several objects"""
     NARRAY = Subindex | MultipleSubindexes | IdenticalSubindexes | IdenticalIndexes  # 15, Example : PDO Mapping
+    """Array object structure that spans several objects"""
 
     #
     # Mapping against name and structure number
@@ -425,7 +435,7 @@ class ODMapping(UserDict[int, TODObj]):
         return [
             index
             for index in self
-            if index >= 0x1000 and self[index]["need"]
+            if index >= 0x1000 and self[index].get("need")
         ]
 
     def FindEntryName(self, index: int, compute=True) -> str:

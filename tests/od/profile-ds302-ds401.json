@@ -5,7 +5,7 @@
   "$tool": "odg 3.4",
   "$date": "2024-02-27T19:26:46.575697",
   "name": "profile_ds302_ds401",
-  "description": "Test profile DS-302 and DS-401",
+  "description": "Test DS-302 and DS-401 profile",
   "type": "master",
   "id": 0,
   "profile": "DS-401",

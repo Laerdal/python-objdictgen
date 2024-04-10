@@ -89,7 +89,7 @@ class NodeEditorTemplate(wx.Frame):
                 entryinfos = node.GetEntryInfos(index)
                 name = entryinfos["name"]
                 category = "Optional"
-                if entryinfos["need"]:
+                if entryinfos.get("need"):
                     category = "Mandatory"
                 struct = "VAR"
                 number = ""

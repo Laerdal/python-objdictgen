@@ -432,7 +432,7 @@ class EditingPanel(wx.SplitterWindow):
 
         self.PartList = wx.ListBox(choices=[], id=ID_EDITINGPANELPARTLIST,
             name='PartList', parent=self, pos=wx.Point(0, 0),
-            size=wx.Size(-1, -1), style=0)
+            size=wx.Size(-1, 180), style=0)
         self.PartList.Bind(wx.EVT_LISTBOX, self.OnPartListBoxClick,
             id=ID_EDITINGPANELPARTLIST)
 
@@ -729,7 +729,10 @@ class EditingPanel(wx.SplitterWindow):
                     dialog.SetValues(codecs.decode(self.Table.GetValue(row, col), "hex_codec"))
                     if dialog.ShowModal() == wx.ID_OK and self.Editable:
                         value = dialog.GetValues()
-                        self.Manager.SetCurrentEntry(index, row, value, "value", "dcf")
+                        try:
+                            self.Manager.SetCurrentEntry(index, row, value, "value", "dcf")
+                        except Exception as e:  # pylint: disable=broad-except
+                            display_error_dialog(self, f"Failed to set value: {e}", "Failed to set value")
                         self.ParentWindow.RefreshBufferState()
                         wx.CallAfter(self.RefreshTable)
 
@@ -741,7 +744,10 @@ class EditingPanel(wx.SplitterWindow):
             name = self.Table.GetColLabelValue(col, False)
             value = self.Table.GetValue(subindex, col, False)
             editor = self.Table.GetEditor(subindex, col)
-            self.Manager.SetCurrentEntry(index, subindex, value, name, editor)
+            try:
+                self.Manager.SetCurrentEntry(index, subindex, value, name, editor)
+            except Exception as e:  # pylint: disable=broad-except
+                display_error_dialog(self, f"Failed to set value: {e}", "Failed to set value")
             self.ParentWindow.RefreshBufferState()
             wx.CallAfter(self.RefreshTable)
         event.Skip()

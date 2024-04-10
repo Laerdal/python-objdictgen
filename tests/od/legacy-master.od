@@ -3,7 +3,7 @@
 <PyObject module="node" class="Node" id="89998024">
 <attr name="Profile" type="dict" id="90010488" >
 </attr>
-<attr name="Description" type="string">Empty master node</attr>
+<attr name="Description" type="string">Empty master OD</attr>
 <attr name="Dictionary" type="dict" id="90010760" >
   <entry>
     <key type="numeric" value="4096" />

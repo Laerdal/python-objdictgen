@@ -4,7 +4,7 @@
 <attr name="Name" type="string" value="profile_ds302_ds401" />
 <attr name="Type" type="string" value="master" />
 <attr name="ID" type="numeric" value="0" />
-<attr name="Description" type="string" value="Test profile DS-302 and DS-401" />
+<attr name="Description" type="string" value="Test DS-302 and DS-401 profile" />
 <attr name="ProfileName" type="string" value="DS-401" />
 <attr name="Profile" type="dict" id="1513954911040" >
   <entry>

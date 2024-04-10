@@ -5,7 +5,7 @@
   "$tool": "odg 3.4",
   "$date": "2024-02-28T00:46:18.111927",
   "name": "Slave",
-  "description": "",
+  "description": "Slave with heartbeat",
   "type": "slave",
   "id": 0,
   "profile": "None",

@@ -380,30 +380,13 @@ def test_save_with_profile(odpath, oddut, suffix, wd, profile):
     assert a == b
 
 
-EQUIVS = [
-    ('alltypes',             'legacy-alltypes'),
-    ('master',               'legacy-master'),
-    ('slave',                'legacy-slave'),
-    #( "profile-test",        "legacy-profile-test"),
-    ( "profile-ds302",       "legacy-profile-ds302"),
-    ( "profile-ds401",       "legacy-profile-ds401"),
-    ( "profile-ds302-ds401", "legacy-profile-ds302-ds401"),
-    #( "profile-ds302-test",  "legacy-profile-ds302-test"),
-    ( "slave-ds302",         "legacy-slave-ds302"),
-    ( "slave-emcy",          "legacy-slave-emcy"),
-    ( "slave-heartbeat",     "legacy-slave-heartbeat"),
-    ( "slave-nodeguarding",  "legacy-slave-nodeguarding"),
-    ( "slave-sync",          "legacy-slave-sync"),
-    ( "strings",             "legacy-strings"),
-]
 
 
-@pytest.mark.parametrize("equivs", EQUIVS, ids=(e[0] for e in EQUIVS))
 @pytest.mark.parametrize("suffix", ['od', 'json'])
-def test_equiv_compare(odpath, equivs, suffix):
+def test_equiv_compare(odpath, equiv_files, suffix):
     """ Test reading the od and compare it with the corresponding json file
     """
-    a, b = equivs
+    a, b = equiv_files
 
     oda = (odpath / a) + '.' + suffix
     odb = (odpath / b) + '.od'

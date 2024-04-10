@@ -3,7 +3,7 @@
 <PyObject module="node" class="Node" id="86825096">
 <attr name="Profile" type="dict" id="86831448" >
 </attr>
-<attr name="Description" type="string">Slave generated with legacy objdictedit. Emergency support</attr>
+<attr name="Description" type="string">Slave with emergency support</attr>
 <attr name="Dictionary" type="dict" id="86831720" >
   <entry>
     <key type="numeric" value="4096" />

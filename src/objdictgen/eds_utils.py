@@ -655,7 +655,7 @@ def generate_eds_content(node: "Node", filepath: TPath):
         if 0x2000 <= entry <= 0x5FFF:
             manufacturers.append(entry)
         # Second case, entry is required, then it's a mandatory entry
-        elif entry_infos["need"]:
+        elif entry_infos.get("need"):
             mandatories.append(entry)
         # In any other case, it's an optional entry
         else:

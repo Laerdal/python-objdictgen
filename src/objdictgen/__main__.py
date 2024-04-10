@@ -311,7 +311,8 @@ def main(debugopts: DebugOpts, args: Sequence[str]|None = None):
             print(f"{objdictgen.ODG_PROGRAM}: '{opts.od1}' and '{opts.od2}' are equal")
 
         print_diffs(diffs, show=opts.show)
-        parser.exit(errcode)
+        if errcode:
+            parser.exit(errcode)
 
 
     # -- EDIT command --

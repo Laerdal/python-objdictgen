@@ -5,7 +5,7 @@
   "$tool": "odg 3.4",
   "$date": "2024-02-27T00:53:43.165540",
   "name": "slave",
-  "description": "Default slave OD",
+  "description": "Slave OD",
   "type": "slave",
   "id": 0,
   "profile": "None",

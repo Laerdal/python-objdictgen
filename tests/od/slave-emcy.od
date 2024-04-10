@@ -4,7 +4,7 @@
 <attr name="Name" type="string" value="Slave" />
 <attr name="Type" type="string" value="slave" />
 <attr name="ID" type="numeric" value="0" />
-<attr name="Description" type="string" value="" />
+<attr name="Description" type="string" value="Slave with emergency support" />
 <attr name="ProfileName" type="string" value="None" />
 <attr name="Profile" type="dict" id="2399518120128" >
 </attr>

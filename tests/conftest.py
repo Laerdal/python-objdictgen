@@ -39,6 +39,25 @@ PY2_EDS_EXCLUDE = [
     ODDIR / "legacy-strings.od",  # The legacy tool silently crash on this input
 ]
 
+# Equivalent files that should compare as equal
+COMPARE_EQUIVS = [
+    ('alltypes',             'legacy-alltypes'),
+    ('master',               'legacy-master'),
+    ('slave',                'legacy-slave'),
+    #( "profile-test",        "legacy-profile-test"),
+    ( "profile-ds302",       "legacy-profile-ds302"),
+    ( "profile-ds401",       "legacy-profile-ds401"),
+    ( "profile-ds302-ds401", "legacy-profile-ds302-ds401"),
+    #( "profile-ds302-test",  "legacy-profile-ds302-test"),
+    ( "slave-ds302",         "legacy-slave-ds302"),
+    ( "slave-emcy",          "legacy-slave-emcy"),
+    ( "slave-heartbeat",     "legacy-slave-heartbeat"),
+    ( "slave-nodeguarding",  "legacy-slave-nodeguarding"),
+    ( "slave-sync",          "legacy-slave-sync"),
+    ( "strings",             "legacy-strings"),
+    ( "domain",              "legacy-domain"),
+]
+
 
 class ODPath(type(Path())):
     """ Overload on Path to add OD specific methods """
@@ -222,6 +241,11 @@ def pytest_generate_tests(metafunc):
             objdictgen_dir = objdictgen_dir.absolute()
 
         metafunc.parametrize("py2", [Py2(py2_path, objdictgen_dir)],
+                                indirect=False, scope="session")
+
+    # Add "equiv_files" fixture
+    if "equiv_files" in metafunc.fixturenames:
+        metafunc.parametrize("equiv_files", COMPARE_EQUIVS, ids=(e[0] for e in COMPARE_EQUIVS),
                                 indirect=False, scope="session")
 
 
