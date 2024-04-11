@@ -1,0 +1,30 @@
+{
+  "$id": "od data",
+  "$version": "1",
+  "$description": "Canfestival object dictionary data",
+  "$tool": "odg 3.4",
+  "$date": "2024-04-10T22:48:13.333406",
+  "name": "domain",
+  "description": "",
+  "type": "master",
+  "id": 0,
+  "profile": "None",
+  "dictionary": [
+    {
+      "index": "0x2000",  // 8192
+      "name": "Domain",
+      "struct": "var",
+      "group": "user",
+      "mandatory": false,
+      "sub": [
+        {
+          "name": "Domain",
+          "type": "DOMAIN",  // 15
+          "access": "rw",
+          "pdo": true,
+          "value": "\u0002@ABC\u0001"
+        }
+      ]
+    }
+  ]
+}

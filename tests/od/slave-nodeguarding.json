@@ -1,0 +1,967 @@
+{
+  "$id": "od data",
+  "$version": "1",
+  "$description": "Canfestival object dictionary data",
+  "$tool": "odg 3.4",
+  "$date": "2024-02-28T00:46:53.202929",
+  "name": "Slave",
+  "description": "Slave with Node Guarding",
+  "type": "slave",
+  "id": 0,
+  "profile": "None",
+  "dictionary": [
+    {
+      "index": "0x1000",  // 4096
+      "name": "Device Type",
+      "struct": "var",
+      "group": "built-in",
+      "mandatory": true,
+      "sub": [
+        {
+          "name": "Device Type",
+          "type": "UNSIGNED32",  // 7
+          "access": "ro",
+          "pdo": false,
+          "value": 0
+        }
+      ]
+    },
+    {
+      "index": "0x1001",  // 4097
+      "name": "Error Register",
+      "struct": "var",
+      "group": "built-in",
+      "mandatory": true,
+      "sub": [
+        {
+          "name": "Error Register",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": true,
+          "value": 0
+        }
+      ]
+    },
+    {
+      "index": "0x1018",  // 4120
+      "name": "Identity",
+      "struct": "record",
+      "group": "built-in",
+      "mandatory": true,
+      "sub": [
+        {
+          "name": "Number of Entries",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        },
+        {
+          "name": "Vendor ID",
+          "type": "UNSIGNED32",  // 7
+          "access": "ro",
+          "pdo": false,
+          "value": 0
+        },
+        {
+          "name": "Product Code",
+          "type": "UNSIGNED32",  // 7
+          "access": "ro",
+          "pdo": false,
+          "value": 0
+        },
+        {
+          "name": "Revision Number",
+          "type": "UNSIGNED32",  // 7
+          "access": "ro",
+          "pdo": false,
+          "value": 0
+        },
+        {
+          "name": "Serial Number",
+          "type": "UNSIGNED32",  // 7
+          "access": "ro",
+          "pdo": false,
+          "value": 0
+        }
+      ]
+    },
+    {
+      "index": "0x100C",  // 4108
+      "name": "Guard Time",
+      "struct": "var",
+      "group": "built-in",
+      "mandatory": false,
+      "sub": [
+        {
+          "name": "Guard Time",
+          "type": "UNSIGNED16",  // 6
+          "access": "rw",
+          "pdo": false,
+          "value": 0
+        }
+      ]
+    },
+    {
+      "index": "0x100D",  // 4109
+      "name": "Life Time Factor",
+      "struct": "var",
+      "group": "built-in",
+      "mandatory": false,
+      "sub": [
+        {
+          "name": "Life Time Factor",
+          "type": "UNSIGNED8",  // 5
+          "access": "rw",
+          "pdo": false,
+          "value": 0
+        }
+      ]
+    },
+    {
+      "index": "0x1200",  // 4608
+      "name": "Server SDO Parameter",
+      "struct": "record",
+      "group": "built-in",
+      "mandatory": false,
+      "sub": [
+        {
+          "name": "Number of Entries",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        },
+        {
+          "name": "COB ID Client to Server (Receive SDO)",
+          "type": "UNSIGNED32",  // 7
+          "access": "ro",
+          "pdo": false,
+          "default": "\"$NODEID+0x600\"",
+          "value": "\"$NODEID+0x600\""
+        },
+        {
+          "name": "COB ID Server to Client (Transmit SDO)",
+          "type": "UNSIGNED32",  // 7
+          "access": "ro",
+          "pdo": false,
+          "default": "\"$NODEID+0x580\"",
+          "value": "\"$NODEID+0x580\""
+        }
+      ]
+    },
+    {
+      "index": "0x1400",  // 5120
+      "name": "Receive PDO %d Parameter[(idx)]",
+      "struct": "nrecord",
+      "group": "built-in",
+      "mandatory": false,
+      "incr": 1,
+      "nbmax": 512,
+      "sub": [
+        {
+          "name": "Highest SubIndex Supported",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        },
+        {
+          "name": "COB ID used by PDO",
+          "type": "UNSIGNED32",  // 7
+          "access": "rw",
+          "pdo": false,
+          "default": "{True:\"$NODEID+0x%X00\"%(base+2),False:0x80000000}[base<4]",
+          "value": "{True:\"$NODEID+0x%X00\"%(base+2),False:0x80000000}[base<4]"
+        },
+        {
+          "name": "Transmission Type",
+          "type": "UNSIGNED8",  // 5
+          "access": "rw",
+          "pdo": false,
+          "value": 0
+        },
+        {
+          "name": "Inhibit Time",
+          "type": "UNSIGNED16",  // 6
+          "access": "rw",
+          "pdo": false,
+          "value": 0
+        },
+        {
+          "name": "Compatibility Entry",
+          "type": "UNSIGNED8",  // 5
+          "access": "rw",
+          "pdo": false,
+          "value": 0
+        },
+        {
+          "name": "Event Timer",
+          "type": "UNSIGNED16",  // 6
+          "access": "rw",
+          "pdo": false,
+          "value": 0
+        },
+        {
+          "name": "SYNC start value",
+          "type": "UNSIGNED8",  // 5
+          "access": "rw",
+          "pdo": false,
+          "value": 0
+        }
+      ]
+    },
+    {
+      "index": "0x1401",  // 5121
+      // "name": "Receive PDO 2 Parameter"
+      "repeat": true,
+      "struct": "nrecord",
+      "sub": [
+        {
+          // "name": "Highest SubIndex Supported"
+          // "type": "UNSIGNED8"  // 5
+        },
+        {
+          // "name": "COB ID used by PDO"
+          // "type": "UNSIGNED32"  // 7
+          "value": "{True:\"$NODEID+0x%X00\"%(base+2),False:0x80000000}[base<4]"
+        },
+        {
+          // "name": "Transmission Type"
+          // "type": "UNSIGNED8"  // 5
+          "value": 0
+        },
+        {
+          // "name": "Inhibit Time"
+          // "type": "UNSIGNED16"  // 6
+          "value": 0
+        },
+        {
+          // "name": "Compatibility Entry"
+          // "type": "UNSIGNED8"  // 5
+          "value": 0
+        },
+        {
+          // "name": "Event Timer"
+          // "type": "UNSIGNED16"  // 6
+          "value": 0
+        },
+        {
+          // "name": "SYNC start value"
+          // "type": "UNSIGNED8"  // 5
+          "value": 0
+        }
+      ]
+    },
+    {
+      "index": "0x1402",  // 5122
+      // "name": "Receive PDO 3 Parameter"
+      "repeat": true,
+      "struct": "nrecord",
+      "sub": [
+        {
+          // "name": "Highest SubIndex Supported"
+          // "type": "UNSIGNED8"  // 5
+        },
+        {
+          // "name": "COB ID used by PDO"
+          // "type": "UNSIGNED32"  // 7
+          "value": "{True:\"$NODEID+0x%X00\"%(base+2),False:0x80000000}[base<4]"
+        },
+        {
+          // "name": "Transmission Type"
+          // "type": "UNSIGNED8"  // 5
+          "value": 0
+        },
+        {
+          // "name": "Inhibit Time"
+          // "type": "UNSIGNED16"  // 6
+          "value": 0
+        },
+        {
+          // "name": "Compatibility Entry"
+          // "type": "UNSIGNED8"  // 5
+          "value": 0
+        },
+        {
+          // "name": "Event Timer"
+          // "type": "UNSIGNED16"  // 6
+          "value": 0
+        },
+        {
+          // "name": "SYNC start value"
+          // "type": "UNSIGNED8"  // 5
+          "value": 0
+        }
+      ]
+    },
+    {
+      "index": "0x1403",  // 5123
+      // "name": "Receive PDO 4 Parameter"
+      "repeat": true,
+      "struct": "nrecord",
+      "sub": [
+        {
+          // "name": "Highest SubIndex Supported"
+          // "type": "UNSIGNED8"  // 5
+        },
+        {
+          // "name": "COB ID used by PDO"
+          // "type": "UNSIGNED32"  // 7
+          "value": "{True:\"$NODEID+0x%X00\"%(base+2),False:0x80000000}[base<4]"
+        },
+        {
+          // "name": "Transmission Type"
+          // "type": "UNSIGNED8"  // 5
+          "value": 0
+        },
+        {
+          // "name": "Inhibit Time"
+          // "type": "UNSIGNED16"  // 6
+          "value": 0
+        },
+        {
+          // "name": "Compatibility Entry"
+          // "type": "UNSIGNED8"  // 5
+          "value": 0
+        },
+        {
+          // "name": "Event Timer"
+          // "type": "UNSIGNED16"  // 6
+          "value": 0
+        },
+        {
+          // "name": "SYNC start value"
+          // "type": "UNSIGNED8"  // 5
+          "value": 0
+        }
+      ]
+    },
+    {
+      "index": "0x1600",  // 5632
+      "name": "Receive PDO %d Mapping[(idx)]",
+      "struct": "narray",
+      "group": "built-in",
+      "mandatory": false,
+      "incr": 1,
+      "nbmax": 512,
+      "each": {
+        "name": "PDO %d Mapping for an application object %d[(idx,sub)]",
+        "type": "UNSIGNED32",  // 7
+        "access": "rw",
+        "pdo": false,
+        "nbmin": 0,
+        "nbmax": 64
+      },
+      "sub": [
+        {
+          "name": "Number of Entries",
+          "type": "UNSIGNED8",  // 5
+          "access": "rw",
+          "pdo": false
+        },
+        {
+          // "name": "PDO 1 Mapping for an application object 1"
+          // "type": "UNSIGNED32"  // 7
+          "value": 0
+        },
+        {
+          // "name": "PDO 1 Mapping for an application object 2"
+          // "type": "UNSIGNED32"  // 7
+          "value": 0
+        },
+        {
+          // "name": "PDO 1 Mapping for an application object 3"
+          // "type": "UNSIGNED32"  // 7
+          "value": 0
+        },
+        {
+          // "name": "PDO 1 Mapping for an application object 4"
+          // "type": "UNSIGNED32"  // 7
+          "value": 0
+        },
+        {
+          // "name": "PDO 1 Mapping for an application object 5"
+          // "type": "UNSIGNED32"  // 7
+          "value": 0
+        },
+        {
+          // "name": "PDO 1 Mapping for an application object 6"
+          // "type": "UNSIGNED32"  // 7
+          "value": 0
+        },
+        {
+          // "name": "PDO 1 Mapping for an application object 7"
+          // "type": "UNSIGNED32"  // 7
+          "value": 0
+        },
+        {
+          // "name": "PDO 1 Mapping for an application object 8"
+          // "type": "UNSIGNED32"  // 7
+          "value": 0
+        }
+      ]
+    },
+    {
+      "index": "0x1601",  // 5633
+      // "name": "Receive PDO 2 Mapping"
+      "repeat": true,
+      "struct": "narray",
+      "sub": [
+        {
+          // "name": "Number of Entries"
+          // "type": "UNSIGNED8"  // 5
+        },
+        {
+          // "name": "PDO 2 Mapping for an application object 1"
+          // "type": "UNSIGNED32"  // 7
+          "value": 0
+        },
+        {
+          // "name": "PDO 2 Mapping for an application object 2"
+          // "type": "UNSIGNED32"  // 7
+          "value": 0
+        },
+        {
+          // "name": "PDO 2 Mapping for an application object 3"
+          // "type": "UNSIGNED32"  // 7
+          "value": 0
+        },
+        {
+          // "name": "PDO 2 Mapping for an application object 4"
+          // "type": "UNSIGNED32"  // 7
+          "value": 0
+        },
+        {
+          // "name": "PDO 2 Mapping for an application object 5"
+          // "type": "UNSIGNED32"  // 7
+          "value": 0
+        },
+        {
+          // "name": "PDO 2 Mapping for an application object 6"
+          // "type": "UNSIGNED32"  // 7
+          "value": 0
+        },
+        {
+          // "name": "PDO 2 Mapping for an application object 7"
+          // "type": "UNSIGNED32"  // 7
+          "value": 0
+        },
+        {
+          // "name": "PDO 2 Mapping for an application object 8"
+          // "type": "UNSIGNED32"  // 7
+          "value": 0
+        }
+      ]
+    },
+    {
+      "index": "0x1602",  // 5634
+      // "name": "Receive PDO 3 Mapping"
+      "repeat": true,
+      "struct": "narray",
+      "sub": [
+        {
+          // "name": "Number of Entries"
+          // "type": "UNSIGNED8"  // 5
+        },
+        {
+          // "name": "PDO 3 Mapping for an application object 1"
+          // "type": "UNSIGNED32"  // 7
+          "value": 0
+        },
+        {
+          // "name": "PDO 3 Mapping for an application object 2"
+          // "type": "UNSIGNED32"  // 7
+          "value": 0
+        },
+        {
+          // "name": "PDO 3 Mapping for an application object 3"
+          // "type": "UNSIGNED32"  // 7
+          "value": 0
+        },
+        {
+          // "name": "PDO 3 Mapping for an application object 4"
+          // "type": "UNSIGNED32"  // 7
+          "value": 0
+        },
+        {
+          // "name": "PDO 3 Mapping for an application object 5"
+          // "type": "UNSIGNED32"  // 7
+          "value": 0
+        },
+        {
+          // "name": "PDO 3 Mapping for an application object 6"
+          // "type": "UNSIGNED32"  // 7
+          "value": 0
+        },
+        {
+          // "name": "PDO 3 Mapping for an application object 7"
+          // "type": "UNSIGNED32"  // 7
+          "value": 0
+        },
+        {
+          // "name": "PDO 3 Mapping for an application object 8"
+          // "type": "UNSIGNED32"  // 7
+          "value": 0
+        }
+      ]
+    },
+    {
+      "index": "0x1603",  // 5635
+      // "name": "Receive PDO 4 Mapping"
+      "repeat": true,
+      "struct": "narray",
+      "sub": [
+        {
+          // "name": "Number of Entries"
+          // "type": "UNSIGNED8"  // 5
+        },
+        {
+          // "name": "PDO 4 Mapping for an application object 1"
+          // "type": "UNSIGNED32"  // 7
+          "value": 0
+        },
+        {
+          // "name": "PDO 4 Mapping for an application object 2"
+          // "type": "UNSIGNED32"  // 7
+          "value": 0
+        },
+        {
+          // "name": "PDO 4 Mapping for an application object 3"
+          // "type": "UNSIGNED32"  // 7
+          "value": 0
+        },
+        {
+          // "name": "PDO 4 Mapping for an application object 4"
+          // "type": "UNSIGNED32"  // 7
+          "value": 0
+        },
+        {
+          // "name": "PDO 4 Mapping for an application object 5"
+          // "type": "UNSIGNED32"  // 7
+          "value": 0
+        },
+        {
+          // "name": "PDO 4 Mapping for an application object 6"
+          // "type": "UNSIGNED32"  // 7
+          "value": 0
+        },
+        {
+          // "name": "PDO 4 Mapping for an application object 7"
+          // "type": "UNSIGNED32"  // 7
+          "value": 0
+        },
+        {
+          // "name": "PDO 4 Mapping for an application object 8"
+          // "type": "UNSIGNED32"  // 7
+          "value": 0
+        }
+      ]
+    },
+    {
+      "index": "0x1800",  // 6144
+      "name": "Transmit PDO %d Parameter[(idx)]",
+      "struct": "nrecord",
+      "group": "built-in",
+      "mandatory": false,
+      "profile_callback": true,
+      "incr": 1,
+      "nbmax": 512,
+      "sub": [
+        {
+          "name": "Highest SubIndex Supported",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        },
+        {
+          "name": "COB ID used by PDO",
+          "type": "UNSIGNED32",  // 7
+          "access": "rw",
+          "pdo": false,
+          "default": "{True:\"$NODEID+0x%X80\"%(base+1),False:0x80000000}[base<4]",
+          "value": "{True:\"$NODEID+0x%X80\"%(base+1),False:0x80000000}[base<4]"
+        },
+        {
+          "name": "Transmission Type",
+          "type": "UNSIGNED8",  // 5
+          "access": "rw",
+          "pdo": false,
+          "value": 0
+        },
+        {
+          "name": "Inhibit Time",
+          "type": "UNSIGNED16",  // 6
+          "access": "rw",
+          "pdo": false,
+          "value": 0
+        },
+        {
+          "name": "Compatibility Entry",
+          "type": "UNSIGNED8",  // 5
+          "access": "rw",
+          "pdo": false,
+          "value": 0
+        },
+        {
+          "name": "Event Timer",
+          "type": "UNSIGNED16",  // 6
+          "access": "rw",
+          "pdo": false,
+          "value": 0
+        },
+        {
+          "name": "SYNC start value",
+          "type": "UNSIGNED8",  // 5
+          "access": "rw",
+          "pdo": false,
+          "value": 0
+        }
+      ]
+    },
+    {
+      "index": "0x1801",  // 6145
+      // "name": "Transmit PDO 2 Parameter"
+      "repeat": true,
+      "struct": "nrecord",
+      "sub": [
+        {
+          // "name": "Highest SubIndex Supported"
+          // "type": "UNSIGNED8"  // 5
+        },
+        {
+          // "name": "COB ID used by PDO"
+          // "type": "UNSIGNED32"  // 7
+          "value": "{True:\"$NODEID+0x%X80\"%(base+1),False:0x80000000}[base<4]"
+        },
+        {
+          // "name": "Transmission Type"
+          // "type": "UNSIGNED8"  // 5
+          "value": 0
+        },
+        {
+          // "name": "Inhibit Time"
+          // "type": "UNSIGNED16"  // 6
+          "value": 0
+        },
+        {
+          // "name": "Compatibility Entry"
+          // "type": "UNSIGNED8"  // 5
+          "value": 0
+        },
+        {
+          // "name": "Event Timer"
+          // "type": "UNSIGNED16"  // 6
+          "value": 0
+        },
+        {
+          // "name": "SYNC start value"
+          // "type": "UNSIGNED8"  // 5
+          "value": 0
+        }
+      ]
+    },
+    {
+      "index": "0x1802",  // 6146
+      // "name": "Transmit PDO 3 Parameter"
+      "repeat": true,
+      "struct": "nrecord",
+      "sub": [
+        {
+          // "name": "Highest SubIndex Supported"
+          // "type": "UNSIGNED8"  // 5
+        },
+        {
+          // "name": "COB ID used by PDO"
+          // "type": "UNSIGNED32"  // 7
+          "value": "{True:\"$NODEID+0x%X80\"%(base+1),False:0x80000000}[base<4]"
+        },
+        {
+          // "name": "Transmission Type"
+          // "type": "UNSIGNED8"  // 5
+          "value": 0
+        },
+        {
+          // "name": "Inhibit Time"
+          // "type": "UNSIGNED16"  // 6
+          "value": 0
+        },
+        {
+          // "name": "Compatibility Entry"
+          // "type": "UNSIGNED8"  // 5
+          "value": 0
+        },
+        {
+          // "name": "Event Timer"
+          // "type": "UNSIGNED16"  // 6
+          "value": 0
+        },
+        {
+          // "name": "SYNC start value"
+          // "type": "UNSIGNED8"  // 5
+          "value": 0
+        }
+      ]
+    },
+    {
+      "index": "0x1803",  // 6147
+      // "name": "Transmit PDO 4 Parameter"
+      "repeat": true,
+      "struct": "nrecord",
+      "sub": [
+        {
+          // "name": "Highest SubIndex Supported"
+          // "type": "UNSIGNED8"  // 5
+        },
+        {
+          // "name": "COB ID used by PDO"
+          // "type": "UNSIGNED32"  // 7
+          "value": "{True:\"$NODEID+0x%X80\"%(base+1),False:0x80000000}[base<4]"
+        },
+        {
+          // "name": "Transmission Type"
+          // "type": "UNSIGNED8"  // 5
+          "value": 0
+        },
+        {
+          // "name": "Inhibit Time"
+          // "type": "UNSIGNED16"  // 6
+          "value": 0
+        },
+        {
+          // "name": "Compatibility Entry"
+          // "type": "UNSIGNED8"  // 5
+          "value": 0
+        },
+        {
+          // "name": "Event Timer"
+          // "type": "UNSIGNED16"  // 6
+          "value": 0
+        },
+        {
+          // "name": "SYNC start value"
+          // "type": "UNSIGNED8"  // 5
+          "value": 0
+        }
+      ]
+    },
+    {
+      "index": "0x1A00",  // 6656
+      "name": "Transmit PDO %d Mapping[(idx)]",
+      "struct": "narray",
+      "group": "built-in",
+      "mandatory": false,
+      "incr": 1,
+      "nbmax": 512,
+      "each": {
+        "name": "PDO %d Mapping for a process data variable %d[(idx,sub)]",
+        "type": "UNSIGNED32",  // 7
+        "access": "rw",
+        "pdo": false,
+        "nbmin": 0,
+        "nbmax": 64
+      },
+      "sub": [
+        {
+          "name": "Number of Entries",
+          "type": "UNSIGNED8",  // 5
+          "access": "rw",
+          "pdo": false
+        },
+        {
+          // "name": "PDO 1 Mapping for a process data variable 1"
+          // "type": "UNSIGNED32"  // 7
+          "value": 0
+        },
+        {
+          // "name": "PDO 1 Mapping for a process data variable 2"
+          // "type": "UNSIGNED32"  // 7
+          "value": 0
+        },
+        {
+          // "name": "PDO 1 Mapping for a process data variable 3"
+          // "type": "UNSIGNED32"  // 7
+          "value": 0
+        },
+        {
+          // "name": "PDO 1 Mapping for a process data variable 4"
+          // "type": "UNSIGNED32"  // 7
+          "value": 0
+        },
+        {
+          // "name": "PDO 1 Mapping for a process data variable 5"
+          // "type": "UNSIGNED32"  // 7
+          "value": 0
+        },
+        {
+          // "name": "PDO 1 Mapping for a process data variable 6"
+          // "type": "UNSIGNED32"  // 7
+          "value": 0
+        },
+        {
+          // "name": "PDO 1 Mapping for a process data variable 7"
+          // "type": "UNSIGNED32"  // 7
+          "value": 0
+        },
+        {
+          // "name": "PDO 1 Mapping for a process data variable 8"
+          // "type": "UNSIGNED32"  // 7
+          "value": 0
+        }
+      ]
+    },
+    {
+      "index": "0x1A01",  // 6657
+      // "name": "Transmit PDO 2 Mapping"
+      "repeat": true,
+      "struct": "narray",
+      "sub": [
+        {
+          // "name": "Number of Entries"
+          // "type": "UNSIGNED8"  // 5
+        },
+        {
+          // "name": "PDO 2 Mapping for a process data variable 1"
+          // "type": "UNSIGNED32"  // 7
+          "value": 0
+        },
+        {
+          // "name": "PDO 2 Mapping for a process data variable 2"
+          // "type": "UNSIGNED32"  // 7
+          "value": 0
+        },
+        {
+          // "name": "PDO 2 Mapping for a process data variable 3"
+          // "type": "UNSIGNED32"  // 7
+          "value": 0
+        },
+        {
+          // "name": "PDO 2 Mapping for a process data variable 4"
+          // "type": "UNSIGNED32"  // 7
+          "value": 0
+        },
+        {
+          // "name": "PDO 2 Mapping for a process data variable 5"
+          // "type": "UNSIGNED32"  // 7
+          "value": 0
+        },
+        {
+          // "name": "PDO 2 Mapping for a process data variable 6"
+          // "type": "UNSIGNED32"  // 7
+          "value": 0
+        },
+        {
+          // "name": "PDO 2 Mapping for a process data variable 7"
+          // "type": "UNSIGNED32"  // 7
+          "value": 0
+        },
+        {
+          // "name": "PDO 2 Mapping for a process data variable 8"
+          // "type": "UNSIGNED32"  // 7
+          "value": 0
+        }
+      ]
+    },
+    {
+      "index": "0x1A02",  // 6658
+      // "name": "Transmit PDO 3 Mapping"
+      "repeat": true,
+      "struct": "narray",
+      "sub": [
+        {
+          // "name": "Number of Entries"
+          // "type": "UNSIGNED8"  // 5
+        },
+        {
+          // "name": "PDO 3 Mapping for a process data variable 1"
+          // "type": "UNSIGNED32"  // 7
+          "value": 0
+        },
+        {
+          // "name": "PDO 3 Mapping for a process data variable 2"
+          // "type": "UNSIGNED32"  // 7
+          "value": 0
+        },
+        {
+          // "name": "PDO 3 Mapping for a process data variable 3"
+          // "type": "UNSIGNED32"  // 7
+          "value": 0
+        },
+        {
+          // "name": "PDO 3 Mapping for a process data variable 4"
+          // "type": "UNSIGNED32"  // 7
+          "value": 0
+        },
+        {
+          // "name": "PDO 3 Mapping for a process data variable 5"
+          // "type": "UNSIGNED32"  // 7
+          "value": 0
+        },
+        {
+          // "name": "PDO 3 Mapping for a process data variable 6"
+          // "type": "UNSIGNED32"  // 7
+          "value": 0
+        },
+        {
+          // "name": "PDO 3 Mapping for a process data variable 7"
+          // "type": "UNSIGNED32"  // 7
+          "value": 0
+        },
+        {
+          // "name": "PDO 3 Mapping for a process data variable 8"
+          // "type": "UNSIGNED32"  // 7
+          "value": 0
+        }
+      ]
+    },
+    {
+      "index": "0x1A03",  // 6659
+      // "name": "Transmit PDO 4 Mapping"
+      "repeat": true,
+      "struct": "narray",
+      "sub": [
+        {
+          // "name": "Number of Entries"
+          // "type": "UNSIGNED8"  // 5
+        },
+        {
+          // "name": "PDO 4 Mapping for a process data variable 1"
+          // "type": "UNSIGNED32"  // 7
+          "value": 0
+        },
+        {
+          // "name": "PDO 4 Mapping for a process data variable 2"
+          // "type": "UNSIGNED32"  // 7
+          "value": 0
+        },
+        {
+          // "name": "PDO 4 Mapping for a process data variable 3"
+          // "type": "UNSIGNED32"  // 7
+          "value": 0
+        },
+        {
+          // "name": "PDO 4 Mapping for a process data variable 4"
+          // "type": "UNSIGNED32"  // 7
+          "value": 0
+        },
+        {
+          // "name": "PDO 4 Mapping for a process data variable 5"
+          // "type": "UNSIGNED32"  // 7
+          "value": 0
+        },
+        {
+          // "name": "PDO 4 Mapping for a process data variable 6"
+          // "type": "UNSIGNED32"  // 7
+          "value": 0
+        },
+        {
+          // "name": "PDO 4 Mapping for a process data variable 7"
+          // "type": "UNSIGNED32"  // 7
+          "value": 0
+        },
+        {
+          // "name": "PDO 4 Mapping for a process data variable 8"
+          // "type": "UNSIGNED32"  // 7
+          "value": 0
+        }
+      ]
+    }
+  ]
+}

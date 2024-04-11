@@ -1,0 +1,567 @@
+{
+  "$id": "od data",
+  "$version": "1",
+  "$description": "Canfestival object dictionary data",
+  "$tool": "odg 3.4",
+  "$date": "2024-02-27T18:19:39.536308",
+  "name": "profile_test",
+  "description": "Custom test profile",
+  "type": "master",
+  "id": 0,
+  "profile": "Test",
+  "dictionary": [
+    {
+      "index": "0x1000",  // 4096
+      "name": "Device Type",
+      "struct": "var",
+      "group": "built-in",
+      "mandatory": true,
+      "sub": [
+        {
+          "name": "Device Type",
+          "type": "UNSIGNED32",  // 7
+          "access": "ro",
+          "pdo": false,
+          "value": 0
+        }
+      ]
+    },
+    {
+      "index": "0x1001",  // 4097
+      "name": "Error Register",
+      "struct": "var",
+      "group": "built-in",
+      "mandatory": true,
+      "sub": [
+        {
+          "name": "Error Register",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": true,
+          "value": 0
+        }
+      ]
+    },
+    {
+      "index": "0x1018",  // 4120
+      "name": "Identity",
+      "struct": "record",
+      "group": "built-in",
+      "mandatory": true,
+      "sub": [
+        {
+          "name": "Number of Entries",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        },
+        {
+          "name": "Vendor ID",
+          "type": "UNSIGNED32",  // 7
+          "access": "ro",
+          "pdo": false,
+          "value": 0
+        },
+        {
+          "name": "Product Code",
+          "type": "UNSIGNED32",  // 7
+          "access": "ro",
+          "pdo": false,
+          "value": 0
+        },
+        {
+          "name": "Revision Number",
+          "type": "UNSIGNED32",  // 7
+          "access": "ro",
+          "pdo": false,
+          "value": 0
+        },
+        {
+          "name": "Serial Number",
+          "type": "UNSIGNED32",  // 7
+          "access": "ro",
+          "pdo": false,
+          "value": 0
+        }
+      ]
+    },
+    {
+      "index": "0x5000",  // 20480
+      "name": "VAR: Global Interrupt Enable Digital",
+      "struct": "var",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "sub": [
+        {
+          "name": "Global Interrupt Enable Digital Sure",
+          "type": "BOOLEAN",  // 1
+          "access": "rw",
+          "pdo": false,
+          "default": true
+        }
+      ]
+    },
+    {
+      "index": "0x5100",  // 20736
+      "name": "RECORD: Software position limit",
+      "struct": "record",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "sub": [
+        {
+          "name": "Number of things",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        },
+        {
+          "name": "Minimal position limit",
+          "type": "INTEGER32",  // 4
+          "access": "rw",
+          "pdo": false,
+          "default": 16
+        },
+        {
+          "name": "Maximal position limit",
+          "type": "INTEGER32",  // 4
+          "access": "rw",
+          "pdo": false,
+          "default": 23
+        }
+      ]
+    },
+    {
+      "index": "0x5180",  // 20864
+      "name": "RECORD: AL Action",
+      "struct": "record",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "AL %d Action %d[(idx,sub)]",
+        "type": "INTEGER16",  // 3
+        "access": "rw",
+        "pdo": false,
+        "nbmax": 6,
+        "default": 16
+      },
+      "sub": [
+        {
+          "name": "Number of subs",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x5200",  // 20992
+      "name": "ARRAY: Acceleration Value",
+      "struct": "array",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Acceleration Value Channel %d[(sub)]",
+        "type": "INTEGER16",  // 3
+        "access": "ro",
+        "pdo": true,
+        "nbmax": 4,
+        "default": 16
+      },
+      "sub": [
+        {
+          "name": "Number of Available Channels",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x5300",  // 21248
+      "name": "NVAR: Test profile %d[(idx)]",
+      "struct": "nvar",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "incr": 2,
+      "nbmax": 8,
+      "sub": [
+        {
+          "name": "Device Type %d and %d[(idx,sub)]",
+          "type": "UNSIGNED32",  // 7
+          "access": "ro",
+          "pdo": true,
+          "default": 16
+        }
+      ]
+    },
+    {
+      "index": "0x5400",  // 21504
+      "name": "NARRAY: CAM%d Low Limit[(idx)]",
+      "struct": "narray",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "incr": 2,
+      "nbmax": 8,
+      "each": {
+        "name": "CAM%d Low Limit Channel %d[(idx,sub)]",
+        "type": "INTEGER32",  // 4
+        "access": "rw",
+        "pdo": false,
+        "nbmax": 4,
+        "default": 16
+      },
+      "sub": [
+        {
+          "name": "Number of Available Channels",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x5500",  // 21760
+      "name": "NRECORD: Receive PDO %d Parameter[(idx)]",
+      "struct": "nrecord",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "incr": 2,
+      "nbmax": 8,
+      "sub": [
+        {
+          "name": "Highest SubIndex Supported",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        },
+        {
+          "name": "COB ID used by PDO",
+          "type": "UNSIGNED32",  // 7
+          "access": "rw",
+          "pdo": false,
+          "default": 12
+        },
+        {
+          "name": "Transmission Type",
+          "type": "UNSIGNED8",  // 5
+          "access": "rw",
+          "pdo": false
+        },
+        {
+          "name": "Inhibit Time",
+          "type": "UNSIGNED16",  // 6
+          "access": "rw",
+          "pdo": false
+        },
+        {
+          "name": "Compatibility Entry",
+          "type": "UNSIGNED8",  // 5
+          "access": "rw",
+          "pdo": false
+        },
+        {
+          "name": "Event Timer",
+          "type": "UNSIGNED16",  // 6
+          "access": "rw",
+          "pdo": false
+        },
+        {
+          "name": "SYNC start value",
+          "type": "UNSIGNED8",  // 5
+          "access": "rw",
+          "pdo": false,
+          "default": 16
+        }
+      ]
+    },
+    {
+      "index": "0x5580",  // 21888
+      "name": "NRECORD: AL %d Action[(idx)]",
+      "struct": "nrecord",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "incr": 2,
+      "nbmax": 16,
+      "each": {
+        "name": "AL %d Action %d[(idx,sub)]",
+        "type": "UNSIGNED32",  // 7
+        "access": "rw",
+        "pdo": false,
+        "nbmax": 3,
+        "default": 16
+      },
+      "sub": [
+        {
+          "name": "Number of Actions",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x5600",  // 22016
+      "name": "Producer Heartbeat Time",
+      "struct": "var",
+      "group": "profile",
+      "mandatory": false,
+      "profile_callback": true,
+      "unused": true,
+      "sub": [
+        {
+          "name": "Producer Heartbeat Time",
+          "type": "UNSIGNED16",  // 6
+          "access": "rw",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6000",  // 24576
+      "name": "VAR: Global Interrupt Enable Digital",
+      "struct": "var",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "sub": [
+        {
+          "name": "Global Interrupt Enable Digital Sure",
+          "type": "BOOLEAN",  // 1
+          "access": "rw",
+          "pdo": false,
+          "default": true
+        }
+      ]
+    },
+    {
+      "index": "0x6100",  // 24832
+      "name": "RECORD: Software position limit",
+      "struct": "record",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "sub": [
+        {
+          "name": "Number of things",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        },
+        {
+          "name": "Minimal position limit",
+          "type": "INTEGER32",  // 4
+          "access": "rw",
+          "pdo": false,
+          "default": 16
+        },
+        {
+          "name": "Maximal position limit",
+          "type": "INTEGER32",  // 4
+          "access": "rw",
+          "pdo": false,
+          "default": 23
+        }
+      ]
+    },
+    {
+      "index": "0x6180",  // 24960
+      "name": "RECORD: AL Action",
+      "struct": "record",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "AL %d Action %d[(idx,sub)]",
+        "type": "INTEGER16",  // 3
+        "access": "rw",
+        "pdo": false,
+        "nbmax": 6,
+        "default": 16
+      },
+      "sub": [
+        {
+          "name": "Number of subs",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6200",  // 25088
+      "name": "ARRAY: Acceleration Value",
+      "struct": "array",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Acceleration Value Channel %d[(sub)]",
+        "type": "INTEGER16",  // 3
+        "access": "ro",
+        "pdo": true,
+        "nbmax": 4,
+        "default": 16
+      },
+      "sub": [
+        {
+          "name": "Number of Available Channels",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6300",  // 25344
+      "name": "NVAR: Test profile %d[(idx)]",
+      "struct": "nvar",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "incr": 2,
+      "nbmax": 8,
+      "sub": [
+        {
+          "name": "Device Type %d and %d[(idx,sub)]",
+          "type": "UNSIGNED32",  // 7
+          "access": "ro",
+          "pdo": true,
+          "default": 16
+        }
+      ]
+    },
+    {
+      "index": "0x6400",  // 25600
+      "name": "NARRAY: CAM%d Low Limit[(idx)]",
+      "struct": "narray",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "incr": 2,
+      "nbmax": 8,
+      "each": {
+        "name": "CAM%d Low Limit Channel %d[(idx,sub)]",
+        "type": "INTEGER32",  // 4
+        "access": "rw",
+        "pdo": false,
+        "nbmax": 4,
+        "default": 16
+      },
+      "sub": [
+        {
+          "name": "Number of Available Channels",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6500",  // 25856
+      "name": "NRECORD: Receive PDO %d Parameter[(idx)]",
+      "struct": "nrecord",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "incr": 2,
+      "nbmax": 8,
+      "sub": [
+        {
+          "name": "Highest SubIndex Supported",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        },
+        {
+          "name": "COB ID used by PDO",
+          "type": "UNSIGNED32",  // 7
+          "access": "rw",
+          "pdo": false,
+          "default": 12
+        },
+        {
+          "name": "Transmission Type",
+          "type": "UNSIGNED8",  // 5
+          "access": "rw",
+          "pdo": false
+        },
+        {
+          "name": "Inhibit Time",
+          "type": "UNSIGNED16",  // 6
+          "access": "rw",
+          "pdo": false
+        },
+        {
+          "name": "Compatibility Entry",
+          "type": "UNSIGNED8",  // 5
+          "access": "rw",
+          "pdo": false
+        },
+        {
+          "name": "Event Timer",
+          "type": "UNSIGNED16",  // 6
+          "access": "rw",
+          "pdo": false
+        },
+        {
+          "name": "SYNC start value",
+          "type": "UNSIGNED8",  // 5
+          "access": "rw",
+          "pdo": false,
+          "default": 16
+        }
+      ]
+    },
+    {
+      "index": "0x6580",  // 25984
+      "name": "NRECORD: AL %d Action[(idx)]",
+      "struct": "nrecord",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "incr": 2,
+      "nbmax": 16,
+      "each": {
+        "name": "AL %d Action %d[(idx,sub)]",
+        "type": "UNSIGNED32",  // 7
+        "access": "rw",
+        "pdo": false,
+        "nbmax": 3,
+        "default": 16
+      },
+      "sub": [
+        {
+          "name": "Number of Actions",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6600",  // 26112
+      "name": "Producer Heartbeat Time",
+      "struct": "var",
+      "group": "profile",
+      "mandatory": false,
+      "profile_callback": true,
+      "unused": true,
+      "sub": [
+        {
+          "name": "Producer Heartbeat Time",
+          "type": "UNSIGNED16",  // 6
+          "access": "rw",
+          "pdo": false
+        }
+      ]
+    }
+  ]
+}

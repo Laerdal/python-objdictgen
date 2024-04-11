@@ -1,0 +1,278 @@
+{
+  "$id": "od data",
+  "$version": "1",
+  "$description": "Canfestival object dictionary data",
+  "$tool": "odg 3.4",
+  "$date": "2024-02-27T18:18:29.388619",
+  "name": "profile_ds302",
+  "description": "Test DS-302 profile",
+  "type": "master",
+  "id": 0,
+  "profile": "None",
+  "dictionary": [
+    {
+      "index": "0x1000",  // 4096
+      "name": "Device Type",
+      "struct": "var",
+      "group": "built-in",
+      "mandatory": true,
+      "sub": [
+        {
+          "name": "Device Type",
+          "type": "UNSIGNED32",  // 7
+          "access": "ro",
+          "pdo": false,
+          "value": 0
+        }
+      ]
+    },
+    {
+      "index": "0x1001",  // 4097
+      "name": "Error Register",
+      "struct": "var",
+      "group": "built-in",
+      "mandatory": true,
+      "sub": [
+        {
+          "name": "Error Register",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": true,
+          "value": 0
+        }
+      ]
+    },
+    {
+      "index": "0x1018",  // 4120
+      "name": "Identity",
+      "struct": "record",
+      "group": "built-in",
+      "mandatory": true,
+      "sub": [
+        {
+          "name": "Number of Entries",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        },
+        {
+          "name": "Vendor ID",
+          "type": "UNSIGNED32",  // 7
+          "access": "ro",
+          "pdo": false,
+          "value": 0
+        },
+        {
+          "name": "Product Code",
+          "type": "UNSIGNED32",  // 7
+          "access": "ro",
+          "pdo": false,
+          "value": 0
+        },
+        {
+          "name": "Revision Number",
+          "type": "UNSIGNED32",  // 7
+          "access": "ro",
+          "pdo": false,
+          "value": 0
+        },
+        {
+          "name": "Serial Number",
+          "type": "UNSIGNED32",  // 7
+          "access": "ro",
+          "pdo": false,
+          "value": 0
+        }
+      ]
+    },
+    {
+      "index": "0x1F20",  // 7968
+      "name": "Store DCF",
+      "struct": "array",
+      "group": "ds302",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Store DCF for node %d[(sub)]",
+        "type": "DOMAIN",  // 15
+        "access": "rw",
+        "pdo": false,
+        "nbmax": 127
+      },
+      "sub": [
+        {
+          "name": "Number of Entries",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x1F21",  // 7969
+      "name": "Storage Format",
+      "struct": "array",
+      "group": "ds302",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Storage Format for Node %d[(sub)]",
+        "type": "INTEGER8",  // 2
+        "access": "rw",
+        "pdo": false,
+        "nbmax": 127
+      },
+      "sub": [
+        {
+          "name": "Number of Entries",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x1F22",  // 7970
+      "name": "Concise DCF",
+      "struct": "array",
+      "group": "ds302",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Concise DCF for Node %d[(sub)]",
+        "type": "DOMAIN",  // 15
+        "access": "rw",
+        "pdo": false,
+        "nbmax": 127
+      },
+      "sub": [
+        {
+          "name": "Number of Entries",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x1F50",  // 8016
+      "name": "Download Program Data",
+      "struct": "array",
+      "group": "ds302",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Program Number %d[(sub)]",
+        "type": "DOMAIN",  // 15
+        "access": "rw",
+        "pdo": false,
+        "nbmax": 127
+      },
+      "sub": [
+        {
+          "name": "Number of different programs supported on the node",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x1F51",  // 8017
+      "name": "Program Control",
+      "struct": "array",
+      "group": "ds302",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Program Number %d[(sub)]",
+        "type": "UNSIGNED8",  // 5
+        "access": "rw",
+        "pdo": false,
+        "nbmax": 127
+      },
+      "sub": [
+        {
+          "name": "Number of different programs on the node",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x1F52",  // 8018
+      "name": "Verify Application Software",
+      "struct": "record",
+      "group": "ds302",
+      "mandatory": false,
+      "unused": true,
+      "sub": [
+        {
+          "name": "Number of Entries",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        },
+        {
+          "name": "Application software date",
+          "type": "UNSIGNED32",  // 7
+          "access": "rw",
+          "pdo": false
+        },
+        {
+          "name": "Application sofware time",
+          "type": "UNSIGNED32",  // 7
+          "access": "rw",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x1F53",  // 8019
+      "name": "Expected Application SW Date",
+      "struct": "array",
+      "group": "ds302",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Program number %d[(sub)]",
+        "type": "UNSIGNED32",  // 7
+        "access": "rw",
+        "pdo": false,
+        "nbmax": 127
+      },
+      "sub": [
+        {
+          "name": "Number of different programs on the node",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x1F55",  // 8021
+      "name": "Expected Application SW Time",
+      "struct": "array",
+      "group": "ds302",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Program number %d[(sub)]",
+        "type": "UNSIGNED32",  // 7
+        "access": "rw",
+        "pdo": false,
+        "nbmax": 127
+      },
+      "sub": [
+        {
+          "name": "Number of different programs on the node",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    }
+  ]
+}

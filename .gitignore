@@ -8,6 +8,8 @@ htmlcov/
 .coverage
 tmp*/
 dist/
+.nox
+coverage.xml
 
 *.pyc
 *.bak

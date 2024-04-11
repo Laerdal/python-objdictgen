@@ -1,0 +1,65 @@
+<?xml version="1.0"?>
+<!DOCTYPE PyObject SYSTEM "PyObjects.dtd">
+<PyObject module="node" class="Node" id="57522696">
+<attr name="Profile" type="dict" id="57530840" >
+</attr>
+<attr name="Description" type="string" value="" />
+<attr name="Dictionary" type="dict" id="57531112" >
+  <entry>
+    <key type="numeric" value="8192" />
+    <val type="string" value="\x02@ABC\x01" />
+  </entry>
+</attr>
+<attr name="SpecificMenu" type="list" id="57482888" >
+</attr>
+<attr name="ParamsDictionary" type="dict" id="57531384" >
+</attr>
+<attr name="UserMapping" type="dict" id="57531656" >
+  <entry>
+    <key type="numeric" value="8192" />
+    <val type="dict" id="57531928" >
+      <entry>
+        <key type="string" value="need" />
+        <val type="False" value="" />
+      </entry>
+      <entry>
+        <key type="string" value="values" />
+        <val type="list" id="57482824" >
+          <item type="dict" id="57532488" >
+            <entry>
+              <key type="string" value="access" />
+              <val type="string" value="rw" />
+            </entry>
+            <entry>
+              <key type="string" value="pdo" />
+              <val type="True" value="" />
+            </entry>
+            <entry>
+              <key type="string" value="type" />
+              <val type="numeric" value="15" />
+            </entry>
+            <entry>
+              <key type="string" value="name" />
+              <val type="string">Domain</val>
+            </entry>
+          </item>
+        </val>
+      </entry>
+      <entry>
+        <key type="string" value="name" />
+        <val type="string">Domain</val>
+      </entry>
+      <entry>
+        <key type="string" value="struct" />
+        <val type="numeric" value="1" />
+      </entry>
+    </val>
+  </entry>
+</attr>
+<attr name="DS302" type="dict" id="57532760" >
+</attr>
+<attr name="ProfileName" type="string" value="None" />
+<attr name="Type" type="string" value="master" />
+<attr name="ID" type="numeric" value="0" />
+<attr name="Name" type="string">domain</attr>
+</PyObject>

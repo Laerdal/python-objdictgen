@@ -1,5 +1,3 @@
-import os
-import shutil
 
 from objdictgen.nodemanager import NodeManager
 from objdictgen.nodelist import NodeList
