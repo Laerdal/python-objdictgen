@@ -167,10 +167,10 @@ SUBINDEX0 = {
 
 # Remove jsonc annotations
 # Copied from https://github.com/NickolaiBeloguzov/jsonc-parser/blob/master/jsonc_parser/parser.py#L11-L39
-RE_JSONC = re.compile(r"(\".*?\"|\'.*?\')|(/\*.*?\*/|//[^\r\n]*$)", re.MULTILINE | re.DOTALL)
+RE_JSONC = re.compile(r"(\".*?(?<!\\)\"|\'.*?\')|(\s*/\*.*?\*/\s*|\s*//[^\r\n]*$)", re.MULTILINE | re.DOTALL)
 
 
-def remove_jasonc(text: str) -> str:
+def remove_jsonc(text: str) -> str:
     """ Remove jsonc annotations """
     def _re_sub(match: re.Match[str]) -> str:
         if match.group(2) is not None:
@@ -406,7 +406,7 @@ def generate_node(contents: str|TODJson) -> "Node":
     if isinstance(contents, str):
 
         # Remove jsonc annotations
-        jsontext = remove_jasonc(contents)
+        jsontext = remove_jsonc(contents)
 
         # Load the json
         jd: TODJson = json.loads(jsontext)
@@ -426,7 +426,7 @@ def generate_node(contents: str|TODJson) -> "Node":
     global SCHEMA  # pylint: disable=global-statement
     if not SCHEMA:
         with open(objdictgen.JSON_SCHEMA, 'r', encoding="utf-8") as f:
-            SCHEMA = json.loads(remove_jasonc(f.read()))
+            SCHEMA = json.loads(remove_jsonc(f.read()))
 
     if SCHEMA and jd.get('$version') == JSON_VERSION:
         jsonschema.validate(jd, schema=SCHEMA)
