@@ -1,8 +1,50 @@
 import pytest
 from pprint import pprint
 from objdictgen import Node
-from objdictgen.jsonod import generate_jsonc, generate_node
+from objdictgen.jsonod import generate_jsonc, generate_node, remove_jsonc
 from .test_odcompare import shave_equal
+
+
+def test_jsonod_remove_jsonc():
+    """ Test that the remove_jsonc function works as expected. """
+
+    out = remove_jsonc("""{
+"a": "abc",  // remove
+"b": 42
+}""")
+    assert out == """{
+"a": "abc",
+"b": 42
+}"""
+
+    # This was a bug where there quoted string made jsonc parsing fail
+    out = remove_jsonc("""{
+"a": "a\\"bc",  // remove
+"b": 42
+}""")
+    assert out == """{
+"a": "a\\"bc",
+"b": 42
+}"""
+
+    out = remove_jsonc("""{
+"a": "a\\"bc",  /* remove it */ "c": 42,
+"b": 42
+}""")
+    assert out == """{
+"a": "a\\"bc","c": 42,
+"b": 42
+}"""
+
+    out = remove_jsonc("""{
+"a": "a'bc",  // remove
+"b": 42
+}""")
+    assert out == """{
+"a": "a'bc",
+"b": 42
+}"""
+
 
 def test_jsonod_roundtrip(odjsoneds):
     """ Test that the file can be exported to json and that the loaded file
