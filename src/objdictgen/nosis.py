@@ -198,7 +198,7 @@ def safe_string(s: str, isattr: bool = True) -> str:
 
     if isattr:
         # for others, use Python style escapes
-        return repr(s)[1:-1]  # without the extra single-quotes
+        return s.encode('unicode_escape').decode('utf-8')
 
     return s
 
@@ -279,7 +279,7 @@ def xmldump(filehandle: io.TextIOWrapper|None, py_obj: object,
 
     id_tag = f' id="{objid}"' if objid is not None else ""
 
-    fh.write(f"""<?xml version="1.0"?>
+    fh.write(f"""<?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE PyObject SYSTEM "PyObjects.dtd">
 <PyObject module="{module}" class="{klass_tag}"{id_tag}>
 """)

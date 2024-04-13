@@ -9,7 +9,7 @@ def test_objdictgen_run(odjsoneds, mocker, wd):
     od = odjsoneds
     tmpod = od.stem
 
-    if tmpod in ('legacy-strings', 'strings', 'unicode'):
+    if tmpod in ('legacy-strings', 'strings'):
         pytest.xfail("UNICODE_STRINGS is not supported in C")
 
     mocker.patch("sys.argv", [
@@ -28,7 +28,7 @@ def test_objdictgen_py2_compare(py2_cfile, mocker, wd, fn):
     od, py2od = py2_cfile
     tmpod = od.stem
 
-    if tmpod in ('legacy-strings'):
+    if tmpod in ('strings', 'legacy-strings', 'domain'):
         pytest.xfail("UNICODE_STRINGS is not supported in C")
 
     mocker.patch("sys.argv", [

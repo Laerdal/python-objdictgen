@@ -697,7 +697,9 @@ class NodeManager:
                     # Might fail with binascii.Error if hex is malformed
                     if len(value) % 2 != 0:
                         value = "0" + value
-                    bvalue = codecs.decode(value, 'hex_codec').decode()
+                    # The latin-1 encoding supports using 0x80-0xFF as values
+                    # FIXME: Doesn't work with unicode
+                    bvalue = codecs.decode(value, 'hex_codec').decode('latin-1')
                     node.SetEntry(index, subindex, bvalue)
                 elif editor == "dcf":
                     node.SetEntry(index, subindex, value)
@@ -1047,7 +1049,9 @@ class NodeManager:
                                 editor["value"] = "dcf"
                             else:
                                 editor["value"] = "domain"
-                            dic["value"] = codecs.encode(dic["value"].encode(), 'hex_codec').decode()
+                            # The latin-1 encoding supports using 0x80-0xFF as values
+                            # FIXME: Doesn't work with unicode
+                            dic["value"] = codecs.encode(dic["value"].encode('latin-1'), 'hex_codec').decode().upper()
                         elif dic["type"] == "BOOLEAN":
                             editor["value"] = "bool"
                             dic["value"] = maps.BOOL_TYPE[dic["value"]]

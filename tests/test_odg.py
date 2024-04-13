@@ -35,6 +35,12 @@ def test_odg_compare(odpath, equiv_files, suffix):
     if not oda.exists():
         pytest.skip(f"No {oda.rel_to_wd()} file")
 
+    # Due to well-known differences between py2 and p3 handling
+    # we skip the domain comparison
+    excludes = ('legacy-domain',)
+    if oda.stem in excludes or odb.stem in excludes:
+        pytest.skip("py2 and py3 are by design different and can't be compared with this OD")
+
     main((
         'compare', '-D',
         str(oda),

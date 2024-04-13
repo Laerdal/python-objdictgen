@@ -1094,7 +1094,10 @@ class Node(NodeProtocol):
 
                 # Special formatting on value
                 if isinstance(value, str):
-                    value = '"' + value + '"'
+                    length = len(value)
+                    if typename == 'DOMAIN':
+                        value = value.encode('unicode_escape').decode()
+                    value = '"' + value + f'"  ({length})'
                 elif i and index_range and index_range.name in ('rpdom', 'tpdom'):
                     # FIXME: In PDO mappings, the value is ints
                     assert isinstance(value, int)

@@ -3,7 +3,7 @@
   "$version": "1",
   "$description": "Canfestival object dictionary data",
   "$tool": "odg 3.4",
-  "$date": "2024-02-28T01:14:57.869658",
+  "$date": "2024-04-13T22:20:40.007581",
   "name": "a",
   "description": "Complicated strings with unicode",
   "type": "master",
@@ -15,6 +15,7 @@
       "index": "0x2000",  // 8192
       "name": "brod",
       "struct": "var",
+      "group": "user",
       "mandatory": false,
       "sub": [
         {
@@ -30,6 +31,7 @@
       "index": "0x2001",  // 8193
       "name": "br\u00f8d",
       "struct": "var",
+      "group": "user",
       "mandatory": false,
       "sub": [
         {
@@ -45,6 +47,7 @@
       "index": "0x2002",  // 8194
       "name": "OCTET_STRING",
       "struct": "record",
+      "group": "user",
       "mandatory": false,
       "sub": [
         {
@@ -80,6 +83,7 @@
       "index": "0x2003",  // 8195
       "name": "DOMAIN",
       "struct": "record",
+      "group": "user",
       "mandatory": false,
       "sub": [
         {
@@ -100,14 +104,28 @@
           "type": "DOMAIN",  // 15
           "access": "rw",
           "pdo": true,
-          "value": "abc\u00f8"
+          "value": "abc\u00c3\u00b8"
         },
         {
           "name": "Unicode",
           "type": "DOMAIN",  // 15
           "access": "rw",
           "pdo": true,
-          "value": "abc\u2713"
+          "value": "abc\u00e2\u009c\u0093"
+        },
+        {
+          "name": "Extended",
+          "type": "DOMAIN",  // 15
+          "access": "rw",
+          "pdo": true,
+          "value": "\u0000\u0011\"3DUfw\u0088\u0099\u00aa\u00bb\u00cc\u00dd\u00ee\u00ff"
+        },
+        {
+          "name": "Bytes",
+          "type": "DOMAIN",  // 15
+          "access": "rw",
+          "pdo": true,
+          "value": "\u00e2\u009c\u0093"
         }
       ]
     },
@@ -115,6 +133,7 @@
       "index": "0x2004",  // 8196
       "name": "UNICODE_STRING",
       "struct": "record",
+      "group": "user",
       "mandatory": false,
       "sub": [
         {
@@ -150,6 +169,7 @@
       "index": "0x2006",  // 8198
       "name": "VISIBLE_STRING",
       "struct": "record",
+      "group": "user",
       "mandatory": false,
       "sub": [
         {
@@ -178,81 +198,6 @@
           "access": "rw",
           "pdo": true,
           "value": "abc\u2713"
-        }
-      ]
-    },
-    {
-      "index": "0x1000",  // 4096
-      "name": "Device Type",
-      "struct": "var",
-      "group": "built-in",
-      "mandatory": true,
-      "sub": [
-        {
-          "name": "Device Type",
-          "type": "UNSIGNED32",  // 7
-          "access": "ro",
-          "pdo": false,
-          "value": 0
-        }
-      ]
-    },
-    {
-      "index": "0x1001",  // 4097
-      "name": "Error Register",
-      "struct": "var",
-      "group": "built-in",
-      "mandatory": true,
-      "sub": [
-        {
-          "name": "Error Register",
-          "type": "UNSIGNED8",  // 5
-          "access": "ro",
-          "pdo": true,
-          "value": 0
-        }
-      ]
-    },
-    {
-      "index": "0x1018",  // 4120
-      "name": "Identity",
-      "struct": "record",
-      "group": "built-in",
-      "mandatory": true,
-      "sub": [
-        {
-          "name": "Number of Entries",
-          "type": "UNSIGNED8",  // 5
-          "access": "ro",
-          "pdo": false
-        },
-        {
-          "name": "Vendor ID",
-          "type": "UNSIGNED32",  // 7
-          "access": "ro",
-          "pdo": false,
-          "value": 0
-        },
-        {
-          "name": "Product Code",
-          "type": "UNSIGNED32",  // 7
-          "access": "ro",
-          "pdo": false,
-          "value": 0
-        },
-        {
-          "name": "Revision Number",
-          "type": "UNSIGNED32",  // 7
-          "access": "ro",
-          "pdo": false,
-          "value": 0
-        },
-        {
-          "name": "Serial Number",
-          "type": "UNSIGNED32",  // 7
-          "access": "ro",
-          "pdo": false,
-          "value": 0
         }
       ]
     }

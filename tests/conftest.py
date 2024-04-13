@@ -29,14 +29,15 @@ ODTESTDIRS = [
 ]
 
 # Files to exclude from py2 legacy testing
-PY2_OD_EXCLUDE = [
-    ODDIR / "unicode.json",
-    ODDIR / "unicode.od",
+PY2_OD_EXCLUDE: list[Path] = [
 ]
 
 # Files to exclude in EDS testing
-PY2_EDS_EXCLUDE = [
-    ODDIR / "legacy-strings.od",  # The legacy tool silently crash on this input
+PY2_EDS_EXCLUDE: list[Path] = [
+]
+
+# Files to exclude in pickle testing
+PY2_PICKLE_EXCLUDE: list[Path] = [
 ]
 
 # Equivalent files that should compare as equal
@@ -377,6 +378,9 @@ def py2_pickle(odfile, py2, wd_session):
     if not odfile.exists():
         pytest.skip(f"File not found: {odfile.rel_to_wd()}")
 
+    if odfile in PY2_PICKLE_EXCLUDE:
+        pytest.skip(f"File {odfile.rel_to_wd()} is excluded from py2 testing")
+
     tmpod = odfile.stem
 
     shutil.copy(odfile, tmpod + '.od')
@@ -398,7 +402,9 @@ with open(r'{tmpod}.pickle', 'wb') as f:
 
     # Load the pickled data
     with open(tmpod + '.pickle', 'rb') as f:
-        data = pickle.load(f, encoding='utf-8')
+        # It seems unicode_escape is needed to be able to encode low and high
+        # ascii characters as well as unicode characters
+        data = pickle.load(f, encoding='unicode_escape')
 
     return odfile, data
 

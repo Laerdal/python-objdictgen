@@ -201,7 +201,7 @@ def main(debugopts: DebugOpts, args: Sequence[str]|None = None):
     # -- LIST --
     subp = subparser.add_parser('list', help="""
         List
-    """)
+    """, aliases=['cat'])
     subp.add_argument('od', nargs="+", help="Object dictionary")
     subp.add_argument('-i', '--index', action="append", help="Specify parameter index to show")
     subp.add_argument('--all', action="store_true",
@@ -325,7 +325,7 @@ def main(debugopts: DebugOpts, args: Sequence[str]|None = None):
 
 
     # -- LIST command --
-    elif opts.command == "list":
+    elif opts.command in ("list", "cat"):
 
         for n, name in enumerate(opts.od):
 
