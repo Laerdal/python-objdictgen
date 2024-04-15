@@ -1,29 +1,25 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE PyObject SYSTEM "PyObjects.dtd">
-<PyObject module="node" class="Node" id="79132488">
-<attr name="Profile" type="dict" id="82727528" >
+<PyObject module="node" class="Node" id="2495365292240">
+<attr name="Profile" type="dict" id="2493746856208">
 </attr>
-<attr name="Description" type="string">Complicated strings with unicode</attr>
-<attr name="Dictionary" type="dict" id="82745000" >
+<attr name="Description" type="string" value="Complicated strings with unicode" />
+<attr name="Dictionary" type="dict" id="2493746856640">
   <entry>
     <key type="numeric" value="8192" />
     <val type="numeric" value="1" />
   </entry>
   <entry>
-    <key type="numeric" value="8193" />
-    <val type="numeric" value="0" />
-  </entry>
-  <entry>
     <key type="numeric" value="8194" />
-    <val type="list" id="82681288" >
-      <item type="string">abcd</item>
-      <item type="string">abcø</item>
-      <item type="string">abc✓</item>
+    <val type="list" id="2493746856704">
+      <item type="string" value="abcd" />
+      <item type="string" value="abc\xf8" />
+      <item type="string" value="abc\u2713" />
     </val>
   </entry>
   <entry>
     <key type="numeric" value="8195" />
-    <val type="list" id="82679496" >
+    <val type="list" id="2493746856768">
       <item type="string" value="abcd" />
       <item type="string" value="abc\xc3\xb8" />
       <item type="string" value="abc\xe2\x9c\x93" />
@@ -32,39 +28,43 @@
     </val>
   </entry>
   <entry>
-    <key type="numeric" value="8196" />
-    <val type="list" id="82680520" >
-      <item type="string">abcd</item>
-      <item type="string">abcø</item>
-      <item type="string">abc✓</item>
+    <key type="numeric" value="8198" />
+    <val type="list" id="2493746856832">
+      <item type="string" value="abcd" />
+      <item type="string" value="abc\xf8" />
+      <item type="string" value="abc\u2713" />
     </val>
   </entry>
   <entry>
-    <key type="numeric" value="8198" />
-    <val type="list" id="82681352" >
-      <item type="string">abcd</item>
-      <item type="string">abcø</item>
-      <item type="string">abc✓</item>
+    <key type="numeric" value="8193" />
+    <val type="numeric" value="0" />
+  </entry>
+  <entry>
+    <key type="numeric" value="8196" />
+    <val type="list" id="2493746856896">
+      <item type="string" value="abcd" />
+      <item type="string" value="abc\xf8" />
+      <item type="string" value="abc\u2713" />
     </val>
   </entry>
 </attr>
-<attr name="SpecificMenu" type="list" id="82681416" >
+<attr name="SpecificMenu" type="list" id="2493746856960">
 </attr>
 <attr name="DefaultStringSize" type="numeric" value="10" />
-<attr name="ParamsDictionary" type="dict" id="82745272" >
+<attr name="ParamsDictionary" type="dict" id="2493746856512">
 </attr>
-<attr name="UserMapping" type="dict" id="82745544" >
+<attr name="UserMapping" type="dict" id="2493746857104">
   <entry>
     <key type="numeric" value="8192" />
-    <val type="dict" id="82745816" >
+    <val type="dict" id="2493746857280">
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="82681608" >
-          <item type="dict" id="82746088" >
+        <val type="list" id="2493746857024">
+          <item type="dict" id="2493746857344">
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -79,14 +79,14 @@
             </entry>
             <entry>
               <key type="string" value="name" />
-              <val type="string">brod</val>
+              <val type="string" value="brod" />
             </entry>
           </item>
         </val>
       </entry>
       <entry>
         <key type="string" value="name" />
-        <val type="string">brod</val>
+        <val type="string" value="brod" />
       </entry>
       <entry>
         <key type="string" value="struct" />
@@ -96,15 +96,15 @@
   </entry>
   <entry>
     <key type="numeric" value="8193" />
-    <val type="dict" id="82746360" >
+    <val type="dict" id="2493746857408">
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="82681672" >
-          <item type="dict" id="82746632" >
+        <val type="list" id="2493746857472">
+          <item type="dict" id="2493746857536">
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -119,14 +119,14 @@
             </entry>
             <entry>
               <key type="string" value="name" />
-              <val type="string">brød</val>
+              <val type="string" value="br\xf8d" />
             </entry>
           </item>
         </val>
       </entry>
       <entry>
         <key type="string" value="name" />
-        <val type="string">brød</val>
+        <val type="string" value="br\xf8d" />
       </entry>
       <entry>
         <key type="string" value="struct" />
@@ -136,15 +136,15 @@
   </entry>
   <entry>
     <key type="numeric" value="8194" />
-    <val type="dict" id="82746904" >
+    <val type="dict" id="2493746857600">
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="82681736" >
-          <item type="dict" id="82751560" >
+        <val type="list" id="2493746857664">
+          <item type="dict" id="2493746857728">
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -162,7 +162,7 @@
               <val type="string" value="Number of Entries" />
             </entry>
           </item>
-          <item type="dict" id="82751832" >
+          <item type="dict" id="2493746857792">
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -177,10 +177,10 @@
             </entry>
             <entry>
               <key type="string" value="name" />
-              <val type="string">Plain</val>
+              <val type="string" value="Plain" />
             </entry>
           </item>
-          <item type="dict" id="82752104" >
+          <item type="dict" id="2493746857856">
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -195,10 +195,10 @@
             </entry>
             <entry>
               <key type="string" value="name" />
-              <val type="string">Latin1</val>
+              <val type="string" value="Latin1" />
             </entry>
           </item>
-          <item type="dict" id="82752376" >
+          <item type="dict" id="2493746857920">
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -213,14 +213,14 @@
             </entry>
             <entry>
               <key type="string" value="name" />
-              <val type="string">Unicode</val>
+              <val type="string" value="Unicode" />
             </entry>
           </item>
         </val>
       </entry>
       <entry>
         <key type="string" value="name" />
-        <val type="string">OCTET_STRING</val>
+        <val type="string" value="OCTET_STRING" />
       </entry>
       <entry>
         <key type="string" value="struct" />
@@ -230,15 +230,15 @@
   </entry>
   <entry>
     <key type="numeric" value="8195" />
-    <val type="dict" id="82752648" >
+    <val type="dict" id="2493746857984">
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="82755656" >
-          <item type="dict" id="82752920" >
+        <val type="list" id="2493746858048">
+          <item type="dict" id="2493746858112">
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -256,7 +256,7 @@
               <val type="string" value="Number of Entries" />
             </entry>
           </item>
-          <item type="dict" id="82753192" >
+          <item type="dict" id="2493746858176">
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -271,10 +271,10 @@
             </entry>
             <entry>
               <key type="string" value="name" />
-              <val type="string">Plain</val>
+              <val type="string" value="Plain" />
             </entry>
           </item>
-          <item type="dict" id="82753464" >
+          <item type="dict" id="2493746858240">
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -289,10 +289,10 @@
             </entry>
             <entry>
               <key type="string" value="name" />
-              <val type="string">Latin1</val>
+              <val type="string" value="Latin1" />
             </entry>
           </item>
-          <item type="dict" id="82753736" >
+          <item type="dict" id="2493746858304">
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -307,10 +307,18 @@
             </entry>
             <entry>
               <key type="string" value="name" />
-              <val type="string">Unicode</val>
+              <val type="string" value="Unicode" />
             </entry>
           </item>
-          <item type="dict" id="83112008" >
+          <item type="dict" id="2493746860224">
+            <entry>
+              <key type="string" value="name" />
+              <val type="string" value="Extended" />
+            </entry>
+            <entry>
+              <key type="string" value="type" />
+              <val type="numeric" value="15" />
+            </entry>
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -318,17 +326,17 @@
             <entry>
               <key type="string" value="pdo" />
               <val type="True" value="" />
-            </entry>
-            <entry>
-              <key type="string" value="type" />
-              <val type="numeric" value="15" />
-            </entry>
-            <entry>
-              <key type="string" value="name" />
-              <val type="string">Extended</val>
             </entry>
           </item>
-          <item type="dict" id="83163880" >
+          <item type="dict" id="2493746856320">
+            <entry>
+              <key type="string" value="name" />
+              <val type="string" value="Bytes" />
+            </entry>
+            <entry>
+              <key type="string" value="type" />
+              <val type="numeric" value="15" />
+            </entry>
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -336,21 +344,13 @@
             <entry>
               <key type="string" value="pdo" />
               <val type="True" value="" />
-            </entry>
-            <entry>
-              <key type="string" value="type" />
-              <val type="numeric" value="15" />
-            </entry>
-            <entry>
-              <key type="string" value="name" />
-              <val type="string">Bytes</val>
             </entry>
           </item>
         </val>
       </entry>
       <entry>
         <key type="string" value="name" />
-        <val type="string">DOMAIN</val>
+        <val type="string" value="DOMAIN" />
       </entry>
       <entry>
         <key type="string" value="struct" />
@@ -360,15 +360,15 @@
   </entry>
   <entry>
     <key type="numeric" value="8196" />
-    <val type="dict" id="82754008" >
+    <val type="dict" id="2493746858368">
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="82755784" >
-          <item type="dict" id="82754280" >
+        <val type="list" id="2493746858432">
+          <item type="dict" id="2493746858496">
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -386,7 +386,7 @@
               <val type="string" value="Number of Entries" />
             </entry>
           </item>
-          <item type="dict" id="82754552" >
+          <item type="dict" id="2493746858560">
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -401,10 +401,10 @@
             </entry>
             <entry>
               <key type="string" value="name" />
-              <val type="string">Plain</val>
+              <val type="string" value="Plain" />
             </entry>
           </item>
-          <item type="dict" id="82754824" >
+          <item type="dict" id="2493746858624">
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -419,10 +419,10 @@
             </entry>
             <entry>
               <key type="string" value="name" />
-              <val type="string">Latin1</val>
+              <val type="string" value="Latin1" />
             </entry>
           </item>
-          <item type="dict" id="82755096" >
+          <item type="dict" id="2493746858688">
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -437,14 +437,14 @@
             </entry>
             <entry>
               <key type="string" value="name" />
-              <val type="string">Unicode</val>
+              <val type="string" value="Unicode" />
             </entry>
           </item>
         </val>
       </entry>
       <entry>
         <key type="string" value="name" />
-        <val type="string">UNICODE_STRING</val>
+        <val type="string" value="UNICODE_STRING" />
       </entry>
       <entry>
         <key type="string" value="struct" />
@@ -454,15 +454,15 @@
   </entry>
   <entry>
     <key type="numeric" value="8198" />
-    <val type="dict" id="82759752" >
+    <val type="dict" id="2493746858752">
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="82755912" >
-          <item type="dict" id="82760024" >
+        <val type="list" id="2493746858816">
+          <item type="dict" id="2493746858880">
             <entry>
               <key type="string" value="access" />
               <val type="string" value="ro" />
@@ -480,7 +480,7 @@
               <val type="string" value="Number of Entries" />
             </entry>
           </item>
-          <item type="dict" id="82760296" >
+          <item type="dict" id="2493746858944">
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -495,10 +495,10 @@
             </entry>
             <entry>
               <key type="string" value="name" />
-              <val type="string">Plain</val>
+              <val type="string" value="Plain" />
             </entry>
           </item>
-          <item type="dict" id="82760568" >
+          <item type="dict" id="2493746859008">
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -513,10 +513,10 @@
             </entry>
             <entry>
               <key type="string" value="name" />
-              <val type="string">Latin1</val>
+              <val type="string" value="Latin1" />
             </entry>
           </item>
-          <item type="dict" id="82760840" >
+          <item type="dict" id="2493746859072">
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -531,14 +531,14 @@
             </entry>
             <entry>
               <key type="string" value="name" />
-              <val type="string">Unicode</val>
+              <val type="string" value="Unicode" />
             </entry>
           </item>
         </val>
       </entry>
       <entry>
         <key type="string" value="name" />
-        <val type="string">VISIBLE_STRING</val>
+        <val type="string" value="VISIBLE_STRING" />
       </entry>
       <entry>
         <key type="string" value="struct" />
@@ -547,10 +547,10 @@
     </val>
   </entry>
 </attr>
-<attr name="DS302" type="dict" id="82761112" >
+<attr name="DS302" type="dict" id="2493746859280">
 </attr>
 <attr name="ProfileName" type="string" value="None" />
 <attr name="Type" type="string" value="master" />
 <attr name="ID" type="numeric" value="0" />
-<attr name="Name" type="string">a</attr>
+<attr name="Name" type="string" value="a" />
 </PyObject>

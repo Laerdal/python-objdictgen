@@ -1,31 +1,43 @@
 <?xml version="1.0"?>
 <!DOCTYPE PyObject SYSTEM "PyObjects.dtd">
-<PyObject module="node" class="Node" id="57522696">
-<attr name="Profile" type="dict" id="57530840" >
+<PyObject module="node" class="Node" id="76314440">
+<attr name="Profile" type="dict" id="46613640" >
 </attr>
 <attr name="Description" type="string" value="" />
-<attr name="Dictionary" type="dict" id="57531112" >
+<attr name="Dictionary" type="dict" id="46625928" >
   <entry>
     <key type="numeric" value="8192" />
-    <val type="string" value="\x02@ABC\x01" />
+    <val type="string" value="\x00\x11&quot;3DUfw\x88\x99\xaa\xbb\xcc\xdd\xee\xff" />
+  </entry>
+  <entry>
+    <key type="numeric" value="8193" />
+    <val type="string" value="\xe2\x9c\x93" />
+  </entry>
+  <entry>
+    <key type="numeric" value="8194" />
+    <val type="string">✓</val>
+  </entry>
+  <entry>
+    <key type="numeric" value="8195" />
+    <val type="string">\u2713</val>
   </entry>
 </attr>
-<attr name="SpecificMenu" type="list" id="57482888" >
+<attr name="SpecificMenu" type="list" id="46528712" >
 </attr>
-<attr name="ParamsDictionary" type="dict" id="57531384" >
+<attr name="ParamsDictionary" type="dict" id="46626200" >
 </attr>
-<attr name="UserMapping" type="dict" id="57531656" >
+<attr name="UserMapping" type="dict" id="46626472" >
   <entry>
     <key type="numeric" value="8192" />
-    <val type="dict" id="57531928" >
+    <val type="dict" id="46626744" >
       <entry>
         <key type="string" value="need" />
         <val type="False" value="" />
       </entry>
       <entry>
         <key type="string" value="values" />
-        <val type="list" id="57482824" >
-          <item type="dict" id="57532488" >
+        <val type="list" id="46528968" >
+          <item type="dict" id="46627016" >
             <entry>
               <key type="string" value="access" />
               <val type="string" value="rw" />
@@ -40,14 +52,134 @@
             </entry>
             <entry>
               <key type="string" value="name" />
-              <val type="string">Domain</val>
+              <val type="string">Extended</val>
             </entry>
           </item>
         </val>
       </entry>
       <entry>
         <key type="string" value="name" />
-        <val type="string">Domain</val>
+        <val type="string">Extended</val>
+      </entry>
+      <entry>
+        <key type="string" value="struct" />
+        <val type="numeric" value="1" />
+      </entry>
+    </val>
+  </entry>
+  <entry>
+    <key type="numeric" value="8193" />
+    <val type="dict" id="46627288" >
+      <entry>
+        <key type="string" value="need" />
+        <val type="False" value="" />
+      </entry>
+      <entry>
+        <key type="string" value="values" />
+        <val type="list" id="46528904" >
+          <item type="dict" id="46627560" >
+            <entry>
+              <key type="string" value="access" />
+              <val type="string" value="rw" />
+            </entry>
+            <entry>
+              <key type="string" value="pdo" />
+              <val type="True" value="" />
+            </entry>
+            <entry>
+              <key type="string" value="type" />
+              <val type="numeric" value="15" />
+            </entry>
+            <entry>
+              <key type="string" value="name" />
+              <val type="string">Bytes</val>
+            </entry>
+          </item>
+        </val>
+      </entry>
+      <entry>
+        <key type="string" value="name" />
+        <val type="string">Bytes</val>
+      </entry>
+      <entry>
+        <key type="string" value="struct" />
+        <val type="numeric" value="1" />
+      </entry>
+    </val>
+  </entry>
+  <entry>
+    <key type="numeric" value="8194" />
+    <val type="dict" id="46627832" >
+      <entry>
+        <key type="string" value="need" />
+        <val type="False" value="" />
+      </entry>
+      <entry>
+        <key type="string" value="values" />
+        <val type="list" id="46529096" >
+          <item type="dict" id="46628104" >
+            <entry>
+              <key type="string" value="access" />
+              <val type="string" value="rw" />
+            </entry>
+            <entry>
+              <key type="string" value="pdo" />
+              <val type="True" value="" />
+            </entry>
+            <entry>
+              <key type="string" value="type" />
+              <val type="numeric" value="15" />
+            </entry>
+            <entry>
+              <key type="string" value="name" />
+              <val type="string">Utf8</val>
+            </entry>
+          </item>
+        </val>
+      </entry>
+      <entry>
+        <key type="string" value="name" />
+        <val type="string">Utf8</val>
+      </entry>
+      <entry>
+        <key type="string" value="struct" />
+        <val type="numeric" value="1" />
+      </entry>
+    </val>
+  </entry>
+  <entry>
+    <key type="numeric" value="8195" />
+    <val type="dict" id="46583320" >
+      <entry>
+        <key type="string" value="need" />
+        <val type="False" value="" />
+      </entry>
+      <entry>
+        <key type="string" value="values" />
+        <val type="list" id="46528200" >
+          <item type="dict" id="46613912" >
+            <entry>
+              <key type="string" value="access" />
+              <val type="string" value="rw" />
+            </entry>
+            <entry>
+              <key type="string" value="pdo" />
+              <val type="True" value="" />
+            </entry>
+            <entry>
+              <key type="string" value="type" />
+              <val type="numeric" value="15" />
+            </entry>
+            <entry>
+              <key type="string" value="name" />
+              <val type="string">Unicode</val>
+            </entry>
+          </item>
+        </val>
+      </entry>
+      <entry>
+        <key type="string" value="name" />
+        <val type="string">Unicode</val>
       </entry>
       <entry>
         <key type="string" value="struct" />
@@ -56,7 +188,7 @@
     </val>
   </entry>
 </attr>
-<attr name="DS302" type="dict" id="57532760" >
+<attr name="DS302" type="dict" id="46628376" >
 </attr>
 <attr name="ProfileName" type="string" value="None" />
 <attr name="Type" type="string" value="master" />

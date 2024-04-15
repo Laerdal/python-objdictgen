@@ -5,6 +5,7 @@ import os
 import pytest
 
 from objdictgen import Node
+from objdictgen.nosis import unsafe_string
 
 
 def shave_dict(a, b):
@@ -60,6 +61,21 @@ def test_odload_py2_compare(py2_pickle, wd):
 
     # Load the OD
     m1 = Node.LoadFile(od)
+
+    # Special handling for string handling in py2. Py3 puts everything in OD
+    # as value attributes, which py2 reads as strings. A py2 string does not
+    # support unicode, so the data will be coming over as raw bytes in the
+    # string. If they differ, attempt to convert the py2 string to utf-8
+    def convert_to_utf8(index: int):
+        """Convert the string to utf-8 if it is different from the py2 data"""
+        a = m1.Dictionary[index]
+        b = py2data["Dictionary"][index]
+        if a != b:
+            py2data["Dictionary"][index] = b.encode('latin-1').decode('utf-8')
+
+    # # Convert the known string that are encoded differently in py2
+    if od.stem == 'domain':
+        convert_to_utf8(8194)
 
     a, b = shave_dict(py2data, m1.__dict__)
     assert a == b
@@ -128,7 +144,7 @@ def test_cexport(odjsoneds, wd, fn):
     od = odjsoneds
     tmpod = od.stem
 
-    if tmpod in ('strings', 'legacy-strings', 'unicode'):
+    if tmpod in ('strings', 'legacy-strings'):
         pytest.xfail("UNICODE_STRINGS is not supported in C")
 
     m0 = Node.LoadFile(od)
@@ -149,7 +165,7 @@ def test_cexport_py2_compare(py2_cfile, wd, fn):
     od, py2od = py2_cfile
     tmpod = od.stem
 
-    if tmpod in ('strings', 'legacy-strings'):
+    if tmpod in ('strings', 'legacy-strings', 'domain'):
         pytest.xfail("UNICODE_STRINGS is not supported in C")
 
     m0 = Node.LoadFile(od)
@@ -380,8 +396,6 @@ def test_save_with_profile(odpath, oddut, suffix, wd, profile):
     assert a == b
 
 
-
-
 @pytest.mark.parametrize("suffix", ['od', 'json'])
 def test_equiv_compare(odpath, equiv_files, suffix):
     """ Test reading the od and compare it with the corresponding json file
@@ -396,6 +410,21 @@ def test_equiv_compare(odpath, equiv_files, suffix):
 
     m1 = Node.LoadFile(oda)
     m2 = Node.LoadFile(odb)
+
+    # Special handling for string handling in py2. Py3 puts everything in OD
+    # as value attributes, which py2 reads as strings. A py2 string does not
+    # support unicode, so the data will be coming over as raw bytes in the
+    # string. If they differ, attempt to convert the py2 string to utf-8
+    def convert_to_utf8(index: int):
+        """Convert the string to utf-8 if it is different from the py2 data"""
+        a = m1.Dictionary[index]
+        b = m2.Dictionary[index]
+        if a != b:
+            m2.Dictionary[index] = unsafe_string(b, True)
+
+    # Convert the known string that are encoded differently in py2
+    if oda.stem == 'domain':
+        convert_to_utf8(8195)
 
     a, b = shave_equal(m1, m2, ignore=('Description', 'IndexOrder'))
     assert a == b
