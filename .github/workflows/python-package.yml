@@ -42,3 +42,7 @@ jobs:
       uses: SonarSource/sonarcloud-github-action@master
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      args: >
+        -Dsonar.projectKey=Laerdal_python-objdictgen
+        -Dsonar.organization=laerdal-foss
+        -Dsonar.python.coverage.reportPaths=coverage.xml
