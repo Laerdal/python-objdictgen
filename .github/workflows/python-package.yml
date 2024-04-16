@@ -32,7 +32,7 @@ jobs:
         python -m pip install .[dev]
     - name: Test with pytest
       run: |
-        pytest --cov=objdictgen --cov-report=xml -p no:logging --tb=no
+        pytest --cov=objdictgen --cov-report=xml --cov-branch -p no:logging --tb=no
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v4.0.1
       with:
