@@ -38,3 +38,7 @@ jobs:
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         slug: Laerdal/python-objdictgen
+    - name: SonarCloud Scan
+      uses: SonarSource/sonarcloud-github-action@master
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
