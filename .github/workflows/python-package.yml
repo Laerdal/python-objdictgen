@@ -34,11 +34,11 @@ jobs:
     - name: Test with pytest
       run: |
         venv/bin/pytest --cov=objdictgen --cov-report=xml --cov-branch -p no:logging --tb=no
-    - name: Upload coverage reports to Codecov
-      uses: codecov/codecov-action@v4.0.1
-      with:
-        token: ${{ secrets.CODECOV_TOKEN }}
-        slug: Laerdal/python-objdictgen
+    # - name: Upload coverage reports to Codecov
+    #   uses: codecov/codecov-action@v4.0.1
+    #   with:
+    #     token: ${{ secrets.CODECOV_TOKEN }}
+    #     slug: Laerdal/python-objdictgen
     - name: SonarCloud Scan
       uses: SonarSource/sonarcloud-github-action@master
       env:
