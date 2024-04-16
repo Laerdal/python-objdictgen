@@ -28,13 +28,18 @@ jobs:
         sudo apt install libgtk-3-dev
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip setuptools
-        python -m pip install .[dev]
+        python -m venv venv
+        venv/bin/python -m pip install --upgrade pip setuptools
+        venv/bin/python -m pip install -e .[dev]
     - name: Test with pytest
       run: |
-        pytest --cov=objdictgen --cov-report=xml -p no:logging --tb=no
+        venv/bin/pytest --cov=objdictgen --cov-report=xml --cov-branch -p no:logging --tb=no
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v4.0.1
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         slug: Laerdal/python-objdictgen
+    - name: SonarCloud Scan
+      uses: SonarSource/sonarcloud-github-action@master
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
