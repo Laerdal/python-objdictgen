@@ -268,11 +268,11 @@ def main(projectdir):
     print("MasterNode :")
     node = manager.CurrentNode
     if node:
-        for line in node.GetPrintParams(raw=True):
+        for line in node.GetPrintEntry(raw=True):
             print(line)
     print()
     for nodeid, nodeinfo in nodelist.SlaveNodes.items():
         print(f"SlaveNode name={nodeinfo.Name} id=0x{nodeid:02X} :")
-        for line in nodeinfo.Node.GetPrintParams():
+        for line in nodeinfo.Node.GetPrintEntry():
             print(line)
         print()
