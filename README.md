@@ -48,7 +48,7 @@ the top in a command-prompt (here assuming Windows and git bash):
     $ venv/Scripts/python -mpip install --upgrade pip wheel setuptools
     $ venv/Scripts/pip install .
 
-After this `venv/Scripts/odg.exe` will exist and can be called
+After this `venv/Scripts/odg.exe` (on Windows) will exist and can be called
 from anywhere to run it.
 
 ## `odg` command-line tool
