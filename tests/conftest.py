@@ -28,6 +28,11 @@ ODTESTDIRS = [
     ODDIR,
 ]
 
+# Files to exclude from testing all ODs
+OD_EXCLUDE: list[Path] = [
+    ODDIR / 'fail-validation.od',
+]
+
 # Files to exclude from py2 legacy testing
 PY2_OD_EXCLUDE: list[Path] = [
 ]
@@ -65,7 +70,11 @@ class ODPath(type(Path())):
 
     @classmethod
     def nfactory(cls, iterable):
-        return [cls(p.absolute()) for p in iterable]
+        excl = [p.absolute() for p in OD_EXCLUDE]
+        return [
+            cls(p.absolute()) for p in iterable
+            if p.absolute() not in excl
+        ]
 
     def __add__(self, other):
         return ODPath(self.parent / (self.name + other))
@@ -211,6 +220,7 @@ def pytest_generate_tests(metafunc):
         return [str(o.relative_to(ODDIR).as_posix()) for o in odlist]
 
     # Add "odfile" fixture
+    # Fixture for each of the .od files in the test directory
     if "odfile" in metafunc.fixturenames:
         data = sorted(odfiles)
         metafunc.parametrize(
@@ -218,6 +228,7 @@ def pytest_generate_tests(metafunc):
         )
 
     # Add "odjson" fixture
+    # Fixture for each of the .od and .json files in the test directory
     if "odjson" in metafunc.fixturenames:
         data = sorted(odfiles + jsonfiles)
         metafunc.parametrize(
@@ -225,6 +236,7 @@ def pytest_generate_tests(metafunc):
         )
 
     # Add "odjsoneds" fixture
+    # Fixture for each of the .od, .json, and .eds files in the test directory
     if "odjsoneds" in metafunc.fixturenames:
         data = sorted(odfiles + jsonfiles + edsfiles)
         metafunc.parametrize(
@@ -232,6 +244,7 @@ def pytest_generate_tests(metafunc):
         )
 
     # Add "py2" fixture
+    # Fixture for a python2 interpreter
     if "py2" in metafunc.fixturenames:
         py2_path = metafunc.config.getoption("py2")
         objdictgen_dir = metafunc.config.getoption("objdictgen")
@@ -245,6 +258,7 @@ def pytest_generate_tests(metafunc):
                                 indirect=False, scope="session")
 
     # Add "equiv_files" fixture
+    # Fixture for equivalent files that should compare as equal
     if "equiv_files" in metafunc.fixturenames:
         metafunc.parametrize("equiv_files", COMPARE_EQUIVS, ids=(e[0] for e in COMPARE_EQUIVS),
                                 indirect=False, scope="session")
@@ -273,12 +287,6 @@ def fn():
     return Fn()
 
 
-@pytest.fixture(scope="session")
-def odfile(request) -> Generator[ODPath, None, None]:
-    """ Fixture for each of the od files in the test directory """
-    return request.param
-
-
 @pytest.fixture
 def odpath():
     """ Fixture returning the path for the od test directory """
@@ -295,12 +303,6 @@ def profile(monkeypatch):
     newdirs.append(ODDIR)
     monkeypatch.setattr(objdictgen, 'PROFILE_DIRECTORIES', newdirs)
     return None
-
-
-@pytest.fixture
-def py2(request) -> Generator[Py2, None, None]:
-    """ Fixture for each of the od files in the test directory """
-    return request.param
 
 
 @pytest.fixture(scope="session")

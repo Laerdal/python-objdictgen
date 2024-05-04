@@ -3,6 +3,7 @@ import pytest
 from objdictgen import __main__
 from objdictgen.__main__ import main
 
+
 @pytest.mark.parametrize("file", ['master', 'slave'])
 def test_main_open_od(odpath, file):
 
@@ -10,11 +11,20 @@ def test_main_open_od(odpath, file):
     assert od is not None
     assert od.Name == 'master' if file == 'master' else 'slave'
 
+    with pytest.raises(ValueError) as exc:
+        __main__.open_od(odpath / 'fail-validation.od')
+    assert "not found in mapping dictionary" in str(exc.value)
 
-@pytest.mark.parametrize("file", ['master', 'slave'])
+
+@pytest.mark.parametrize("file", [
+    'master', 'slave',
+    'profile-ds302', 'profile-ds302-modified',
+    'profile-ds401', 'profile-ds401-modified',
+])
 def test_main_list_od(odpath, file):
 
     od = __main__.open_od(odpath / (file + '.json'))
+    od.ID = 1
 
     import argparse
     ns = argparse.Namespace(
@@ -22,8 +32,23 @@ def test_main_list_od(odpath, file):
         all=True, raw=False
     )
 
-    for line in __main__.list_od(od, file, ns):
-        print(line)
+    lines = list(__main__.list_od(od, file, ns))
+
+    ns = argparse.Namespace(
+        no_sort=False, index=[0x1000], compact=False, short=False, unused=True,
+        all=True, raw=False
+    )
+
+    lines = list(__main__.list_od(od, file, ns))
+
+    ns = argparse.Namespace(
+        no_sort=False, index=[0x5000], compact=False, short=False, unused=True,
+        all=True, raw=False
+    )
+
+    with pytest.raises(ValueError) as exc:
+        lines = list(__main__.list_od(od, file, ns))
+    assert "Unknown index 20480" in str(exc.value)
 
 
 def test_main_odg_help():
@@ -86,5 +111,3 @@ def test_main_odg_compare(odpath, equiv_files, suffix):
         str(oda),
         str(odb),
     ))
-
-# def test_main_main()
