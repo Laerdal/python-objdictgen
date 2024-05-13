@@ -25,6 +25,7 @@ jobs:
     # This is needed for compiling wxwidgets
     - name: Install gtk3
       run: |
+        sudo apt update
         sudo apt install libgtk-3-dev
     - name: Install dependencies
       run: |
