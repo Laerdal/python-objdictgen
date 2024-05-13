@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<!DOCTYPE PyObject SYSTEM "PyObjects.dtd">
+<PyObject module="node" class="Node" id="2147943634192">
+<attr name="Name" type="string" value="master" />
+<attr name="Type" type="string" value="master" />
+<attr name="ID" type="numeric" value="0" />
+<attr name="Description" type="string" value="Empty master OD" />
+<attr name="ProfileName" type="string" value="None" />
+<attr name="Profile" type="dict" id="2147943633984" >
+</attr>
+<attr name="SpecificMenu" type="list" id="2147943634048" >
+</attr>
+<attr name="Dictionary" type="dict" id="2147943633664" >
+  <entry>
+    <key type="numeric" value="4096" />
+    <val type="numeric" value="0" />
+  </entry>
+  <entry>
+    <key type="numeric" value="4097" />
+    <val type="numeric" value="0" />
+  </entry>
+  <entry>
+    <key type="numeric" value="4120" />
+    <val type="list" id="2147943635712" >
+      <item type="numeric" value="0" />
+      <item type="numeric" value="0" />
+      <item type="numeric" value="0" />
+      <item type="numeric" value="0" />
+    </val>
+  </entry>
+</attr>
+<attr name="ParamsDictionary" type="dict" id="2147943633728" >
+  <entry>
+    <key type="numeric" value="8202" />
+    <val type="dict" id="140299579633008" >
+      <entry>
+        <key type="string" value="comment" />
+        <val type="string">Test</val>
+      </entry>
+    </val>
+  </entry>
+</attr>
+<attr name="DS302" type="dict" id="2147943633792" >
+</attr>
+<attr name="UserMapping" type="dict" id="2147943633920" >
+</attr>
+</PyObject>

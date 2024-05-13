@@ -360,18 +360,18 @@ class Node(NodeProtocol):
 
         raise ValueError(f"Invalid subindex {subindex} for index 0x{index:04x}")
 
-    def GetIndexEntry(self, index: int) -> TIndexEntry:
+    def GetIndexEntry(self, index: int, withbase: bool = False) -> TIndexEntry:
         """ Return a full and raw representation of the index """
 
         def _mapping_for_index(index: int) -> Generator[tuple[str, TODObj], None, None]:
-            for n, o in (
+            for name, o in (
                 ('profile', self.Profile),
                 ('ds302', self.DS302),
                 ('user', self.UserMapping),
                 ('built-in', maps.MAPPING_DICTIONARY),
             ):
                 if index in o:
-                    yield n, o[index]
+                    yield name, o[index]
 
         objmaps = list(_mapping_for_index(index))
         firstobj: TODObj = objmaps[0][1] if objmaps else {}
@@ -391,8 +391,14 @@ class Node(NodeProtocol):
         baseindex = self.GetBaseIndex(index)
         if index != baseindex:
             obj['base'] = baseindex
-            baseobject = next(_mapping_for_index(baseindex))
-            obj['basestruct'] = baseobject[1]["struct"]
+            _, baseobject = next(_mapping_for_index(baseindex))
+            obj['basestruct'] = baseobject["struct"]
+            if withbase:
+                # If "object" is not present, add the base object
+                obj.setdefault("object", baseobject)
+
+        # FIXME: Add the ability to evaluate the names and the values
+        # with the "compute" flag
 
         # Ensure that the object is safe to mutate
         return copy.deepcopy(obj)
@@ -454,30 +460,6 @@ class Node(NodeProtocol):
         except ValueError:
             pass
         return result
-
-    def GetEntryFlags(self, index: int) -> set[str]:
-        """Return the flags for the given index"""
-        flags: set[str] = set()
-        info = self.GetEntryInfos(index)
-        if not info:
-            return flags
-
-        if info.get('need'):
-            flags.add("Mandatory")
-        if index in self.UserMapping:
-            flags.add("User")
-        if index in self.DS302:
-            flags.add("DS-302")
-        if index in self.Profile:
-            flags.add("Profile")
-        if self.HasEntryCallbacks(index):
-            flags.add('CB')
-        if index not in self.Dictionary:
-            if index in self.DS302 or index in self.Profile:
-                flags.add("Unused")
-            else:
-                flags.add("Missing")
-        return flags
 
     def GetTypeIndex(self, typename: str) -> int:
         """Return the type index for the given type name."""
@@ -1020,14 +1002,38 @@ class Node(NodeProtocol):
     #                      Printing and output
     # --------------------------------------------------------------------------
 
-    def GetPrintLine(self, index: int, unused=False, compact=False):
+    def GetPrintEntryHeader(
+            self, index: int, unused=False, compact=False, raw=False,
+            entry: TIndexEntry|None = None
+    ) -> tuple[str, dict[str, str]]:
 
-        obj = self.GetEntryInfos(index)
-        if not obj:
-            return '', {}
+        # Get the information about the index if it wasn't passed along
+        if not entry:
+            entry = self.GetIndexEntry(index, withbase=True)
+        obj = entry["object"]
 
-        # Get the node flags
-        flags = self.GetEntryFlags(index)
+        # Get the flags for the entry
+        flags: set[str] = set()
+        for group in entry["groups"]:
+            v = {
+                "built-in": None,
+                "user": "User",
+                "ds302": "DS-302",
+                "profile": "Profile",
+            }.get(group, group)
+            if v:
+                flags.add(v)
+        if obj.get('need'):
+            flags.add("Mandatory")
+        if entry.get("params", {}).get("callback"):
+            flags.add('CB')
+        if "dictionary" not in entry:
+            if "ds302" in entry["groups"] or "profile" in entry["groups"]:
+                flags.add("Unused")
+            else:
+                flags.add("Missing")
+
+        # Skip printing if the entry is unused and we are not printing unused
         if 'Unused' in flags and not unused:
             return '', {}
 
@@ -1038,20 +1044,26 @@ class Node(NodeProtocol):
                 flags.add(Fore.RED + ' *MISSING* ' + Style.RESET_ALL)
 
         # Print formattings
+        idx = (index - entry.get("base", index)) // obj.get("incr", 1) + 1
+        t_name = obj['name']
+        if not raw:
+            t_name = maps.eval_name(t_name, idx=idx, sub=0)
         t_flags = ', '.join(flags)
         t_string = maps.ODStructTypes.to_string(obj['struct']) or '???'
-        fmt = {
-            'key': f"{Fore.GREEN}0x{index:04x} ({index}){Style.RESET_ALL}",
-            'name': self.GetEntryName(index),
-            'struct': t_string.upper(),
-            'flags': f"  {Fore.CYAN}{t_flags}{Style.RESET_ALL}" if flags else '',
+
+        # ** PRINT PARAMETER **
+        return "{pre}{key}  {name}   {struct}{flags}", {
+            'key': f"{Fore.LIGHTGREEN_EX}0x{index:04x} ({index}){Style.RESET_ALL}",
+            'name': f"{Fore.LIGHTWHITE_EX}{t_name}{Style.RESET_ALL}",
+            'struct': f"{Fore.LIGHTYELLOW_EX}[{t_string.upper()}]{Style.RESET_ALL}",
+            'flags': f"  {Fore.MAGENTA}{t_flags}{Style.RESET_ALL}" if flags else '',
             'pre': '    ' if not compact else '',
         }
 
-        # ** PRINT PARAMETER **
-        return "{pre}{key}  {name}   [{struct}]{flags}", fmt
-
-    def GetPrintParams(self, keys=None, short=False, compact=False, unused=False, verbose=False, raw=False):
+    def GetPrintEntry(
+            self, keys: list[int]|None = None, short=False, compact=False,
+            unused=False, verbose=False, raw=False,
+    ) -> Generator[str, None, None]:
         """
         Generator for printing the dictionary values
         """
@@ -1062,7 +1074,14 @@ class Node(NodeProtocol):
         index_range = None
         for k in keys:
 
-            line, fmt = self.GetPrintLine(k, unused=unused, compact=compact)
+            # Get the index entry information
+            param = self.GetIndexEntry(k, withbase=True)
+            obj = param["object"]
+
+            # Get the header for the entry
+            line, fmt = self.GetPrintEntryHeader(
+                k, unused=unused, compact=compact, entry=param, raw=raw
+            )
             if not line:
                 continue
 
@@ -1077,65 +1096,78 @@ class Node(NodeProtocol):
             yield line.format(**fmt)
 
             # Omit printing sub index data if:
-            if short or k not in self.Dictionary:
+            if short:
                 continue
 
-            values = self.GetEntry(k, aslist=True)
-            entries = self.GetParamsEntry(k, aslist=True)
-            # FIXME: Using aslist=True ensures that both are lists
-            assert isinstance(values, list) and isinstance(entries, list)
+            # Fetch the dictionary values and the parameters, if present
+            if k in self.Dictionary:
+                values = self.GetEntry(k, aslist=True, compute=not raw)
+            else:
+                values = ['__N/A__'] * len(obj["values"])
+            if k in self.ParamsDictionary:
+                params = self.GetParamsEntry(k, aslist=True)
+            else:
+                params = [maps.DEFAULT_PARAMS] * len(obj["values"])
+            # For mypy to ensure that values and entries are lists
+            assert isinstance(values, list) and isinstance(params, list)
 
             infos = []
-            for i, (value, entry) in enumerate(zip(values, entries)):
+            for i, (value, param) in enumerate(zip(values, params)):
 
                 # Prepare data for printing
                 info = self.GetSubentryInfos(k, i)
                 typename = self.GetTypeName(info['type'])
 
-                # Special formatting on value
-                if isinstance(value, str):
+                # Type specific formatting of the value
+                if value == "__N/A__":
+                    t_value = f'{Fore.LIGHTBLACK_EX}N/A{Style.RESET_ALL}'
+                elif isinstance(value, str):
                     length = len(value)
                     if typename == 'DOMAIN':
                         value = value.encode('unicode_escape').decode()
-                    value = '"' + value + f'"  ({length})'
+                    t_value = '"' + value + f'"  ({length})'
                 elif i and index_range and index_range.name in ('rpdom', 'tpdom'):
                     # FIXME: In PDO mappings, the value is ints
                     assert isinstance(value, int)
                     index, subindex, _ = self.GetMapIndex(value)
                     try:
                         pdo = self.GetSubentryInfos(index, subindex)
-                        value = f"0x{value:x}  {pdo['name']}"
+                        t_v = f"{value:x}"
+                        t_value = f"0x{t_v[0:4]}_{t_v[4:6]}_{t_v[6:]}  {Fore.LIGHTCYAN_EX}{pdo['name']}{Style.RESET_ALL}"
                     except ValueError:
                         suffix = '   ???' if value else ''
-                        value = f"0x{value:x}{suffix}"
+                        t_value = f"0x{value:x}{suffix}"
                 elif i and value and (k in (4120, ) or 'COB ID' in info["name"]):
-                    value = f"0x{value:x}"
+                    t_value = f"0x{value:x}"
                 else:
-                    value = str(value)
+                    t_value = str(value)
 
-                comment = entry['comment'] or ''
-                if comment:
-                    comment = f"{Fore.LIGHTBLACK_EX}/* {info.get('comment')} */{Style.RESET_ALL}"
+                # Add comment if present
+                t_comment = param['comment'] or ''
+                if t_comment:
+                    t_comment = f"{Fore.LIGHTBLACK_EX}/* {t_comment} */{Style.RESET_ALL}"
 
-                # Omit printing this subindex if:
+                # Omit printing the first element unless specifically requested
                 if (not verbose and i == 0
-                    and fmt['struct'] in ('RECORD', 'NRECORD', 'ARRAY', 'NARRAY')
-                    and not comment
+                    and obj['struct'] & OD.MultipleSubindexes
+                    and not t_comment
                 ):
                     continue
 
                 # Print formatting
                 infos.append({
-                    'i': f"{i:02d}",
+                    'i': f"{Fore.GREEN}{i:02d}{Style.RESET_ALL}",
                     'access': info['access'],
                     'pdo': 'P' if info['pdo'] else ' ',
                     'name': info['name'],
-                    'type': typename,
-                    'value': value,
-                    'comment': comment,
+                    'type': f"{Fore.LIGHTBLUE_EX}{typename}{Style.RESET_ALL}",
+                    'value': t_value,
+                    'comment': t_comment,
                     'pre': fmt['pre'],
                 })
 
+            # Must skip the next step if list is empty, as the first element is
+            # used for the header
             if not infos:
                 continue
 

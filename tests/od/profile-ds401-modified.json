@@ -1,0 +1,1937 @@
+{
+  "$id": "od data",
+  "$version": "1",
+  "$description": "Canfestival object dictionary data",
+  "$tool": "odg 3.4",
+  "$date": "2024-02-27T19:25:31.741401",
+  "name": "profile_ds401",
+  "description": "Test DS-401 profile",
+  "type": "master",
+  "id": 0,
+  "profile": "DS-401",
+  "dictionary": [
+    {
+      "index": "0x1000",  // 4096
+      "name": "Device Type",
+      "struct": "var",
+      "group": "built-in",
+      "mandatory": true,
+      "sub": [
+        {
+          "name": "Device Type",
+          "type": "UNSIGNED32",  // 7
+          "access": "ro",
+          "pdo": false,
+          "value": 0
+        }
+      ]
+    },
+    {
+      "index": "0x1001",  // 4097
+      "name": "Error Register",
+      "struct": "var",
+      "group": "built-in",
+      "mandatory": true,
+      "sub": [
+        {
+          "name": "Error Register",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": true,
+          "value": 0
+        }
+      ]
+    },
+    {
+      "index": "0x1018",  // 4120
+      "name": "Identity",
+      "struct": "record",
+      "group": "built-in",
+      "mandatory": true,
+      "sub": [
+        {
+          "name": "Number of Entries",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        },
+        {
+          "name": "Vendor ID",
+          "type": "UNSIGNED32",  // 7
+          "access": "ro",
+          "pdo": false,
+          "value": 0
+        },
+        {
+          "name": "Product Code",
+          "type": "UNSIGNED32",  // 7
+          "access": "ro",
+          "pdo": false,
+          "value": 0
+        },
+        {
+          "name": "Revision Number",
+          "type": "UNSIGNED32",  // 7
+          "access": "ro",
+          "pdo": false,
+          "value": 0
+        },
+        {
+          "name": "Serial Number",
+          "type": "UNSIGNED32",  // 7
+          "access": "ro",
+          "pdo": false,
+          "value": 0
+        }
+      ]
+    },
+    {
+      "index": "0x6000",  // 24576
+      "name": "This is no longer equal",
+      "struct": "array",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Read Inputs 0x%X to 0x%X[(sub*8-7,sub*8)]",
+        "type": "UNSIGNED8",  // 5
+        "access": "ro",
+        "pdo": true,
+        "nbmax": 254
+      },
+      "sub": [
+        {
+          "name": "Number of Input 8 bit",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6003",  // 24579
+      "name": "Filter Constant Input 8 Bit",
+      "struct": "array",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Filter Constant Input 0x%X to 0x%X[(sub*8-7,sub*8)]",
+        "type": "UNSIGNED8",  // 5
+        "access": "rw",
+        "pdo": true,
+        "nbmax": 254
+      },
+      "sub": [
+        {
+          "name": "Number of Input 8 bit",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6005",  // 24581
+      "name": "Global Interrupt Enable Digital",
+      "struct": "var",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "sub": [
+        {
+          "name": "Global Interrupt Enable Digital",
+          "type": "BOOLEAN",  // 1
+          "access": "rw",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6006",  // 24582
+      "name": "Interrupt Mask Any Change 8 Bit",
+      "struct": "array",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Interrupt Any Change 0x%X to 0x%X[(sub*8-7,sub*8)]",
+        "type": "UNSIGNED8",  // 5
+        "access": "rw",
+        "pdo": true,
+        "nbmax": 254
+      },
+      "sub": [
+        {
+          "name": "Number of Input 8 bit",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6007",  // 24583
+      "name": "Interrupt Mask Low to High 8 Bit",
+      "struct": "array",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Interrupt Low to High 0x%X to 0x%X[(sub*8-7,sub*8)]",
+        "type": "UNSIGNED8",  // 5
+        "access": "rw",
+        "pdo": true,
+        "nbmax": 254
+      },
+      "sub": [
+        {
+          "name": "Number of Input 8 bit",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6008",  // 24584
+      "name": "Interrupt Mask High to Low 8 Bit",
+      "struct": "array",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Interrupt High to Low 0x%X to 0x%X[(sub*8-7,sub*8)]",
+        "type": "UNSIGNED8",  // 5
+        "access": "rw",
+        "pdo": true,
+        "nbmax": 254
+      },
+      "sub": [
+        {
+          "name": "Number of Input 8 bit",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6020",  // 24608
+      "name": "Read Input Bit 0x%X to 0x%X[(idx*128-127,idx*128)]",
+      "struct": "narray",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "incr": 1,
+      "nbmax": 8,
+      "each": {
+        "name": "Read Single Input 0x%X[((idx-1)*128+sub)]",
+        "type": "BOOLEAN",  // 1
+        "access": "rw",
+        "pdo": true,
+        "nbmax": 128
+      },
+      "sub": [
+        {
+          "name": "Number of Input 1 bit",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6030",  // 24624
+      "name": "Polarity Input Bit 0x%X to 0x%X[(idx*128-127,idx*128)]",
+      "struct": "narray",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "incr": 1,
+      "nbmax": 8,
+      "each": {
+        "name": "Polarity Input bit 0x%X[((idx-1)*128+sub)]",
+        "type": "BOOLEAN",  // 1
+        "access": "rw",
+        "pdo": true,
+        "nbmax": 128
+      },
+      "sub": [
+        {
+          "name": "Number of Input 1 bit",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6038",  // 24632
+      "name": "Filter Constant Input Bit 0x%X to 0x%X[(idx*128-127,idx*128)]",
+      "struct": "narray",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "incr": 1,
+      "nbmax": 8,
+      "each": {
+        "name": "Filter Constant Input bit 0x%X[((idx-1)*128+sub)]",
+        "type": "BOOLEAN",  // 1
+        "access": "rw",
+        "pdo": true,
+        "nbmax": 128
+      },
+      "sub": [
+        {
+          "name": "Number of Input 1 bit",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6050",  // 24656
+      "name": "Interrupt Mask Input Any Change Bit 0x%X to 0x%X[(idx*128-127,idx*128)]",
+      "struct": "narray",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "incr": 1,
+      "nbmax": 8,
+      "each": {
+        "name": "Interrupt Mask Any Change Input bit 0x%X[((idx-1)*128+sub)]",
+        "type": "BOOLEAN",  // 1
+        "access": "rw",
+        "pdo": true,
+        "nbmax": 128
+      },
+      "sub": [
+        {
+          "name": "Number of Input 1 bit",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6060",  // 24672
+      "name": "Interrupt Mask Input Low to High Bit 0x%X to 0x%X[(idx*128-127,idx*128)]",
+      "struct": "narray",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "incr": 1,
+      "nbmax": 8,
+      "each": {
+        "name": "Interrupt Mask Any Change Input bit 0x%X[((idx-1)*128+sub)]",
+        "type": "BOOLEAN",  // 1
+        "access": "rw",
+        "pdo": true,
+        "nbmax": 128
+      },
+      "sub": [
+        {
+          "name": "Number of Input 1 bit",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6070",  // 24688
+      "name": "Interrupt Mask Input High  to Low Bit 0x%X to 0x%X[(idx*128-127,idx*128)]",
+      "struct": "narray",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "incr": 1,
+      "nbmax": 8,
+      "each": {
+        "name": "Interrupt Mask Any Change Input bit 0x%X[((idx-1)*128+sub)]",
+        "type": "BOOLEAN",  // 1
+        "access": "rw",
+        "pdo": true,
+        "nbmax": 128
+      },
+      "sub": [
+        {
+          "name": "Number of Input 1 bit",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6100",  // 24832
+      "name": "Read Inputs 16 Bit",
+      "struct": "array",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Read Inputs 0x%X to 0x%X[(sub*16-15,sub*16)]",
+        "type": "UNSIGNED16",  // 6
+        "access": "ro",
+        "pdo": true,
+        "nbmax": 254
+      },
+      "sub": [
+        {
+          "name": "Number of Input 16 bit",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6102",  // 24834
+      "name": "Polarity Input 16 Bit",
+      "struct": "array",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Polarity Input 0x%X to 0x%X[(sub*16-15,sub*16)]",
+        "type": "UNSIGNED16",  // 6
+        "access": "rw",
+        "pdo": true,
+        "nbmax": 254
+      },
+      "sub": [
+        {
+          "name": "Number of Input 16 bit",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6103",  // 24835
+      "name": "Filter Constant Input 16 Bit",
+      "struct": "array",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Filter Constant Input 0x%X to 0x%X[(sub*16-15,sub*16)]",
+        "type": "UNSIGNED16",  // 6
+        "access": "rw",
+        "pdo": true,
+        "nbmax": 254
+      },
+      "sub": [
+        {
+          "name": "Number of Input 16 bit",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6106",  // 24838
+      "name": "Interrupt Mask Any Change 16 Bit",
+      "struct": "array",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Interrupt Any Change 0x%X to 0x%X[(sub*16-15,sub*16)]",
+        "type": "UNSIGNED16",  // 6
+        "access": "rw",
+        "pdo": true,
+        "nbmax": 254
+      },
+      "sub": [
+        {
+          "name": "Number of Input 16 bit",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6107",  // 24839
+      "name": "Interrupt Mask Low to High 16 Bit",
+      "struct": "array",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Interrupt Low to High 0x%X to 0x%X[(sub*16-15,sub*16)]",
+        "type": "UNSIGNED16",  // 6
+        "access": "rw",
+        "pdo": true,
+        "nbmax": 254
+      },
+      "sub": [
+        {
+          "name": "Number of Input 16 bit",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6108",  // 24840
+      "name": "Interrupt Mask High to Low 16 Bit",
+      "struct": "array",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Interrupt High to Low 0x%X to 0x%X[(sub*16-15,sub*16)]",
+        "type": "UNSIGNED16",  // 6
+        "access": "rw",
+        "pdo": true,
+        "nbmax": 254
+      },
+      "sub": [
+        {
+          "name": "Number of Input 16 bit",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6120",  // 24864
+      "name": "Read Input 4 Byte",
+      "struct": "array",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Read Input 0x%X to 0x%X[(sub*32-31,sub*32)]",
+        "type": "UNSIGNED32",  // 7
+        "access": "rw",
+        "pdo": true,
+        "nbmax": 128
+      },
+      "sub": [
+        {
+          "name": "Number of Input 32 bit",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6122",  // 24866
+      "name": "Polarity Input 32 Bit",
+      "struct": "array",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Polarity Input 0x%X to 0x%X[(sub*32-31,sub*32)]",
+        "type": "UNSIGNED32",  // 7
+        "access": "rw",
+        "pdo": false,
+        "nbmax": 254
+      },
+      "sub": [
+        {
+          "name": "Number of Input 32 bit",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6123",  // 24867
+      "name": "Filter Constant Input 32 Bit",
+      "struct": "array",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Polarity Input  0x%X to 0x%X[(sub*32-31,sub*32)]",
+        "type": "UNSIGNED32",  // 7
+        "access": "rw",
+        "pdo": false,
+        "nbmax": 254
+      },
+      "sub": [
+        {
+          "name": "Number of Input 32 bit",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6126",  // 24870
+      "name": "Interrupt Mask Input Any Change 32 Bit",
+      "struct": "array",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Interrupt Any Change Input 0x%X to 0x%X[(sub*32-31,sub*32)]",
+        "type": "UNSIGNED32",  // 7
+        "access": "rw",
+        "pdo": true,
+        "nbmax": 254
+      },
+      "sub": [
+        {
+          "name": "Number of Input 32 bit",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6127",  // 24871
+      "name": "Interrupt Mask Input Low to High 32 Bit",
+      "struct": "array",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Interrupt Low to High Input  0x%X to 0x%X[(sub*32-31,sub*32)]",
+        "type": "UNSIGNED32",  // 7
+        "access": "rw",
+        "pdo": true,
+        "nbmax": 254
+      },
+      "sub": [
+        {
+          "name": "Number of Input 32 bit",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6128",  // 24872
+      "name": "Interrupt Mask Input High to Low 32 Bit",
+      "struct": "array",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Interrupt High to Low Input 0x%X to 0x%X[(sub*32-31,sub*32)]",
+        "type": "UNSIGNED32",  // 7
+        "access": "rw",
+        "pdo": true,
+        "nbmax": 254
+      },
+      "sub": [
+        {
+          "name": "Number of Input 32 bit",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6200",  // 25088
+      "name": "Write Outputs 8 Bit",
+      "struct": "array",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Write Outputs 0x%X to 0x%X[(sub*8-7,sub*8)]",
+        "type": "UNSIGNED8",  // 5
+        "access": "rw",
+        "pdo": true,
+        "nbmax": 254
+      },
+      "sub": [
+        {
+          "name": "Number of Output 8 Bit",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6202",  // 25090
+      "name": "Change Polarity Outputs 8 Bit",
+      "struct": "array",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Change Polarity Outputs 0x%X to 0x%X[(sub*8-7,sub*8)]",
+        "type": "UNSIGNED8",  // 5
+        "access": "rw",
+        "pdo": true,
+        "nbmax": 254
+      },
+      "sub": [
+        {
+          "name": "Number of Output 8 Bit",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6206",  // 25094
+      "name": "Error Mode Outputs 8 Bit",
+      "struct": "array",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Error Mode Outputs 0x%X to 0x%X[(sub*8-7,sub*8)]",
+        "type": "UNSIGNED8",  // 5
+        "access": "rw",
+        "pdo": true,
+        "nbmax": 254
+      },
+      "sub": [
+        {
+          "name": "Number of Output 8 Bit",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6207",  // 25095
+      "name": "Error Value Outputs 8 Bit",
+      "struct": "array",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Error Value Outputs 0x%X to 0x%X[(sub*8-7,sub*8)]",
+        "type": "UNSIGNED8",  // 5
+        "access": "rw",
+        "pdo": true,
+        "nbmax": 254
+      },
+      "sub": [
+        {
+          "name": "Number of Output 8 Bit",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6208",  // 25096
+      "name": "Filter Mask Outputs 8 Bit",
+      "struct": "array",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Filter Mask Outputs 0x%X to 0x%X[(sub*8-7,sub*8)]",
+        "type": "UNSIGNED8",  // 5
+        "access": "rw",
+        "pdo": true,
+        "nbmax": 254
+      },
+      "sub": [
+        {
+          "name": "Number of Output 8 Bit",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6220",  // 25120
+      "name": "Write Outputs Bit %d to %d[(idx*128-127,idx*128)]",
+      "struct": "narray",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "incr": 1,
+      "nbmax": 8,
+      "each": {
+        "name": "Write Outputs 0x%X[((idx-1)*128+sub)]",
+        "type": "BOOLEAN",  // 1
+        "access": "rw",
+        "pdo": true,
+        "nbmax": 128
+      },
+      "sub": [
+        {
+          "name": "Number of Output 1 Bit",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6240",  // 25152
+      "name": "Change Polarity Outputs Bit %d to %d[(idx*128-127,idx*128)]",
+      "struct": "narray",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "incr": 1,
+      "nbmax": 8,
+      "each": {
+        "name": "Change Polarity Outputs 0x%X[((idx-1)*128+sub)]",
+        "type": "BOOLEAN",  // 1
+        "access": "rw",
+        "pdo": true,
+        "nbmax": 128
+      },
+      "sub": [
+        {
+          "name": "Number of Output 1 Bit",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6250",  // 25168
+      "name": "Error Mode Outputs Lines %d to %d[(idx*128-127,idx*128)]",
+      "struct": "narray",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "incr": 1,
+      "nbmax": 8,
+      "each": {
+        "name": "Error Mode Outputs 0x%X[((idx-1)*128+sub)]",
+        "type": "BOOLEAN",  // 1
+        "access": "rw",
+        "pdo": true,
+        "nbmax": 128
+      },
+      "sub": [
+        {
+          "name": "Number of Output 1 Bit",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6260",  // 25184
+      "name": "Error Value Outputs Lines %d to %d[(idx*128-127,idx*128)]",
+      "struct": "narray",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "incr": 1,
+      "nbmax": 8,
+      "each": {
+        "name": "Error Value Outputs 0x%X[((idx-1)*128+sub)]",
+        "type": "BOOLEAN",  // 1
+        "access": "rw",
+        "pdo": true,
+        "nbmax": 128
+      },
+      "sub": [
+        {
+          "name": "Number of Output 1 Bit",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6270",  // 25200
+      "name": "Filter Constant Outputs Lines %d to %d[(idx*128-127,idx*128)]",
+      "struct": "narray",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "incr": 1,
+      "nbmax": 8,
+      "each": {
+        "name": "Filter Constant Outputs 0x%X[((idx-1)*128+sub)]",
+        "type": "BOOLEAN",  // 1
+        "access": "rw",
+        "pdo": true,
+        "nbmax": 128
+      },
+      "sub": [
+        {
+          "name": "Number of Output 1 Bit",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6300",  // 25344
+      "name": "Write Outputs 16 Bit",
+      "struct": "array",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Write Outputs 0x%X to 0x%X[(sub*16-15,sub*16)]",
+        "type": "UNSIGNED16",  // 6
+        "access": "rw",
+        "pdo": true,
+        "nbmax": 254
+      },
+      "sub": [
+        {
+          "name": "Number of Output 16 Bit",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6302",  // 25346
+      "name": "Change Polarity Outputs 16 Bit",
+      "struct": "array",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Change Polarity Outputs 0x%X to 0x%X[(sub*16-15,sub*16)]",
+        "type": "UNSIGNED16",  // 6
+        "access": "rw",
+        "pdo": true,
+        "nbmax": 254
+      },
+      "sub": [
+        {
+          "name": "Number of Output 16 Bit",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6306",  // 25350
+      "name": "Error Mode Outputs 16 Bit",
+      "struct": "array",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Error Mode Outputs 0x%X to 0x%X[(sub*16-15,sub*16)]",
+        "type": "UNSIGNED16",  // 6
+        "access": "rw",
+        "pdo": true,
+        "nbmax": 254
+      },
+      "sub": [
+        {
+          "name": "Number of Output 16 Bit",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6307",  // 25351
+      "name": "Error Value Outputs 16 Bit",
+      "struct": "array",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Error Value Outputs 0x%X to 0x%X[(sub*16-15,sub*16)]",
+        "type": "UNSIGNED16",  // 6
+        "access": "rw",
+        "pdo": true,
+        "nbmax": 254
+      },
+      "sub": [
+        {
+          "name": "Number of Output 16 Bit",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6308",  // 25352
+      "name": "Filter Mask Outputs 16 Bit",
+      "struct": "array",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Filter Mask Outputs 0x%X to 0x%X[(sub*16-15,sub*16)]",
+        "type": "UNSIGNED16",  // 6
+        "access": "rw",
+        "pdo": true,
+        "nbmax": 254
+      },
+      "sub": [
+        {
+          "name": "Number of Output 16 Bit",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6320",  // 25376
+      "name": "Write Output 32 Bit",
+      "struct": "array",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Write Outputs 0x%X to 0x%X[(sub*32-31,sub*32)]",
+        "type": "UNSIGNED32",  // 7
+        "access": "rw",
+        "pdo": true,
+        "nbmax": 254
+      },
+      "sub": [
+        {
+          "name": "Number of Output 32 Bit",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6322",  // 25378
+      "name": "Change Polarity Outputs 32 Bit",
+      "struct": "array",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Polarity Outputs 0x%X to 0x%X[(sub*32-31,sub*32)]",
+        "type": "UNSIGNED32",  // 7
+        "access": "rw",
+        "pdo": true,
+        "nbmax": 254
+      },
+      "sub": [
+        {
+          "name": "Number of Output 32 Bit",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6326",  // 25382
+      "name": "Error Mode Outputs 32 Bit",
+      "struct": "array",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Error Mode Outputs 0x%X to 0x%X[(sub*32-31,sub*32)]",
+        "type": "UNSIGNED32",  // 7
+        "access": "rw",
+        "pdo": true,
+        "nbmax": 254
+      },
+      "sub": [
+        {
+          "name": "Number of Output 32 Bit",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6327",  // 25383
+      "name": "Error Value Outputs 32 Bit",
+      "struct": "array",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Error Value Outputs 0x%X to 0x%X[(sub*32-31,sub*32)]",
+        "type": "UNSIGNED32",  // 7
+        "access": "rw",
+        "pdo": true,
+        "nbmax": 254
+      },
+      "sub": [
+        {
+          "name": "Number of Output 32 Bit",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6328",  // 25384
+      "name": "Filter Mask Outputs 32 Bit",
+      "struct": "array",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Filter Mask Outputs 0x%X to 0x%X[(sub*32-31,sub*32)]",
+        "type": "UNSIGNED32",  // 7
+        "access": "rw",
+        "pdo": true,
+        "nbmax": 254
+      },
+      "sub": [
+        {
+          "name": "Number of Output 32 Bit",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6400",  // 25600
+      "name": "Read Analogue Input 8 Bit",
+      "struct": "array",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Analogue Input %d[(sub)]",
+        "type": "INTEGER8",  // 2
+        "access": "ro",
+        "pdo": true,
+        "nbmax": 254
+      },
+      "sub": [
+        {
+          "name": "Number of Analogue Input 8 Bit",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6401",  // 25601
+      "name": "Read Analogue Input 16 Bit",
+      "struct": "array",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Analogue Input %d[(sub)]",
+        "type": "INTEGER16",  // 3
+        "access": "ro",
+        "pdo": true,
+        "nbmax": 254
+      },
+      "sub": [
+        {
+          "name": "Number of Analogue Input 16 Bit",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6402",  // 25602
+      "name": "Read Analogue Input 32 Bit",
+      "struct": "array",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Analogue Input %d[(sub)]",
+        "type": "INTEGER32",  // 4
+        "access": "ro",
+        "pdo": true,
+        "nbmax": 254
+      },
+      "sub": [
+        {
+          "name": "Number of Analogue Input 32 Bit",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6403",  // 25603
+      "name": "Read Analogue Input Float",
+      "struct": "array",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Analogue Input %d[(sub)]",
+        "type": "REAL32",  // 8
+        "access": "ro",
+        "pdo": true,
+        "nbmax": 254
+      },
+      "sub": [
+        {
+          "name": "Number of Analogue Input Float",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6404",  // 25604
+      "name": "Read Manufacturer specific Analogue Input",
+      "struct": "array",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Analogue Input %d[(sub)]",
+        "type": "REAL64",  // 17
+        "access": "ro",
+        "pdo": true,
+        "nbmax": 254
+      },
+      "sub": [
+        {
+          "name": "Number of Analogue Input",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6410",  // 25616
+      "name": "Write Analogue Output 8 Bit",
+      "struct": "array",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Analogue Input %d[(sub)]",
+        "type": "INTEGER8",  // 2
+        "access": "rw",
+        "pdo": true,
+        "nbmax": 254
+      },
+      "sub": [
+        {
+          "name": "Number of Analogue Input 8 Bit",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6411",  // 25617
+      "name": "Write Analogue Output 16 Bit",
+      "struct": "array",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Analogue Output %d[(sub)]",
+        "type": "INTEGER16",  // 3
+        "access": "rw",
+        "pdo": true,
+        "nbmax": 254
+      },
+      "sub": [
+        {
+          "name": "Number of Analogue Input 16 Bit",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6412",  // 25618
+      "name": "Write Analogue Output 32 Bit",
+      "struct": "array",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Analogue Output %d[(sub)]",
+        "type": "INTEGER32",  // 4
+        "access": "rw",
+        "pdo": true,
+        "nbmax": 254
+      },
+      "sub": [
+        {
+          "name": "Number of Analogue Outputs 32 Bit",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6413",  // 25619
+      "name": "Write Analogue Output Float",
+      "struct": "array",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Analogue Output %d[(sub)]",
+        "type": "REAL32",  // 8
+        "access": "rw",
+        "pdo": true,
+        "nbmax": 254
+      },
+      "sub": [
+        {
+          "name": "Number of Analogue Outputs Float",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6414",  // 25620
+      "name": "Write Manufacturer specific Analogue Output",
+      "struct": "array",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Analogue Output %d[(sub)]",
+        "type": "REAL64",  // 17
+        "access": "rw",
+        "pdo": true,
+        "nbmax": 254
+      },
+      "sub": [
+        {
+          "name": "Number of Analogue Outputs",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6421",  // 25633
+      "name": "Interrupt Trigger Selection",
+      "struct": "array",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Analog Inputs 0x%X[(sub)]",
+        "type": "UNSIGNED8",  // 5
+        "access": "rw",
+        "pdo": true,
+        "nbmax": 254
+      },
+      "sub": [
+        {
+          "name": "Number of Analogue Inputs",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6422",  // 25634
+      "name": "Analogue Input Interrupt Source",
+      "struct": "array",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Interrupt Source Bank 0x%X[(sub)]",
+        "type": "UNSIGNED32",  // 7
+        "access": "ro",
+        "pdo": true,
+        "nbmax": 254
+      },
+      "sub": [
+        {
+          "name": "Number of Interrupt Source Bank",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6423",  // 25635
+      "name": "Analogue Input Global Interrupt Enable",
+      "struct": "var",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "sub": [
+        {
+          "name": "Analogue Input Global Interrupt Enable",
+          "type": "BOOLEAN",  // 1
+          "access": "rw",
+          "pdo": true
+        }
+      ]
+    },
+    {
+      "index": "0x6424",  // 25636
+      "name": "Analogue Input Interrupt Upper Limit Interger",
+      "struct": "array",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Analogue Input %d[(sub)]",
+        "type": "INTEGER32",  // 4
+        "access": "rw",
+        "pdo": true,
+        "nbmax": 254
+      },
+      "sub": [
+        {
+          "name": "Number of Analogue Inputs",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6425",  // 25637
+      "name": "Analogue Input Interrupt Lower Limit Interger",
+      "struct": "array",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Analogue Input %d[(sub)]",
+        "type": "INTEGER32",  // 4
+        "access": "rw",
+        "pdo": true,
+        "nbmax": 254
+      },
+      "sub": [
+        {
+          "name": "Number of Analogue Inputs",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6426",  // 25638
+      "name": "Analogue Input Interrupt Delta Unsigned",
+      "struct": "array",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Analogue Input %d[(sub)]",
+        "type": "UNSIGNED32",  // 7
+        "access": "rw",
+        "pdo": true,
+        "nbmax": 254
+      },
+      "sub": [
+        {
+          "name": "Number of Analogue Inputs",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6427",  // 25639
+      "name": "Analogue Input Interrupt Negative Delta Unsigned",
+      "struct": "array",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Analogue Input %d[(sub)]",
+        "type": "UNSIGNED32",  // 7
+        "access": "rw",
+        "pdo": true,
+        "nbmax": 254
+      },
+      "sub": [
+        {
+          "name": "Number of Analogue Inputs",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6428",  // 25640
+      "name": "Analogue Input Interrupt Positive Delta Unsigned",
+      "struct": "array",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Analogue Input %d[(sub)]",
+        "type": "UNSIGNED32",  // 7
+        "access": "rw",
+        "pdo": true,
+        "nbmax": 254
+      },
+      "sub": [
+        {
+          "name": "Number of Analogue Inputs",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6429",  // 25641
+      "name": "Analogue Input Interrupt Upper Limit Float",
+      "struct": "array",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Analogue Input %d[(sub)]",
+        "type": "REAL32",  // 8
+        "access": "rw",
+        "pdo": true,
+        "nbmax": 254
+      },
+      "sub": [
+        {
+          "name": "Number of Analogue Inputs",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x642A",  // 25642
+      "name": "Analogue Input Interrupt Lower Limit Float",
+      "struct": "array",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Analogue Input %d[(sub)]",
+        "type": "REAL32",  // 8
+        "access": "rw",
+        "pdo": true,
+        "nbmax": 254
+      },
+      "sub": [
+        {
+          "name": "Number of Analogue Inputs",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x642B",  // 25643
+      "name": "Analogue Input Interrupt Delta Float",
+      "struct": "array",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Analogue Input %d[(sub)]",
+        "type": "REAL32",  // 8
+        "access": "rw",
+        "pdo": true,
+        "nbmax": 254
+      },
+      "sub": [
+        {
+          "name": "Number of Analogue Inputs",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x642C",  // 25644
+      "name": "Analogue Input Interrupt Negative Delta Float",
+      "struct": "array",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Analogue Input %d[(sub)]",
+        "type": "REAL32",  // 8
+        "access": "rw",
+        "pdo": true,
+        "nbmax": 254
+      },
+      "sub": [
+        {
+          "name": "Number of Analogue Inputs",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x642D",  // 25645
+      "name": "Analogue Input Interrupt Positive Delta Float",
+      "struct": "array",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Analogue Input %d[(sub)]",
+        "type": "REAL32",  // 8
+        "access": "rw",
+        "pdo": true,
+        "nbmax": 254
+      },
+      "sub": [
+        {
+          "name": "Number of Analogue Inputs",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x642E",  // 25646
+      "name": "Analogue Input Offset Float",
+      "struct": "array",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Analogue Input %d[(sub)]",
+        "type": "REAL32",  // 8
+        "access": "rw",
+        "pdo": true,
+        "nbmax": 254
+      },
+      "sub": [
+        {
+          "name": "Number of Analogue Inputs",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x642F",  // 25647
+      "name": "Analogue Input Scaling Float",
+      "struct": "array",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Analogue Input %d[(sub)]",
+        "type": "REAL32",  // 8
+        "access": "rw",
+        "pdo": true,
+        "nbmax": 254
+      },
+      "sub": [
+        {
+          "name": "Number of Analogue Inputs",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6430",  // 25648
+      "name": "Analogue Input SI unit",
+      "struct": "array",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Analogue Input %d[(sub)]",
+        "type": "UNSIGNED32",  // 7
+        "access": "rw",
+        "pdo": true,
+        "nbmax": 254
+      },
+      "sub": [
+        {
+          "name": "Number of Analogue Inputs",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6431",  // 25649
+      "name": "Analogue Input Offset Integer",
+      "struct": "array",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Analogue Input %d[(sub)]",
+        "type": "INTEGER32",  // 4
+        "access": "rw",
+        "pdo": true,
+        "nbmax": 254
+      },
+      "sub": [
+        {
+          "name": "Number of Analogue Inputs",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6432",  // 25650
+      "name": "Analogue Input Scaling Integer",
+      "struct": "array",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Analogue Input %d[(sub)]",
+        "type": "INTEGER32",  // 4
+        "access": "rw",
+        "pdo": true,
+        "nbmax": 254
+      },
+      "sub": [
+        {
+          "name": "Number of Analogue Inputs",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6441",  // 25665
+      "name": "Analogue Output Offset Float",
+      "struct": "array",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Analogue Output %d[(sub)]",
+        "type": "REAL32",  // 8
+        "access": "rw",
+        "pdo": true,
+        "nbmax": 254
+      },
+      "sub": [
+        {
+          "name": "Number of Analogue Outputs",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6442",  // 25666
+      "name": "Analogue Output Scaling Float",
+      "struct": "array",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Analogue Output %d[(sub)]",
+        "type": "REAL32",  // 8
+        "access": "rw",
+        "pdo": true,
+        "nbmax": 254
+      },
+      "sub": [
+        {
+          "name": "Number of Analogue Outputs",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6443",  // 25667
+      "name": "Analogue Output Error Mode",
+      "struct": "array",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Error Mode Analogue Output %d[(sub)]",
+        "type": "UNSIGNED8",  // 5
+        "access": "rw",
+        "pdo": true,
+        "nbmax": 254
+      },
+      "sub": [
+        {
+          "name": "Number of Analogue Outputs",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6444",  // 25668
+      "name": "Analogue Output Error Value Integer",
+      "struct": "array",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Analogue Output %d[(sub)]",
+        "type": "INTEGER32",  // 4
+        "access": "rw",
+        "pdo": true,
+        "nbmax": 254
+      },
+      "sub": [
+        {
+          "name": "Number of Analogue Outputs",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6445",  // 25669
+      "name": "Analogue Output Error Value Float",
+      "struct": "array",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Analogue Output %d[(sub)]",
+        "type": "REAL32",  // 8
+        "access": "rw",
+        "pdo": true,
+        "nbmax": 254
+      },
+      "sub": [
+        {
+          "name": "Number of Analogue Outputs",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6446",  // 25670
+      "name": "Analogue Output Offset Integer",
+      "struct": "array",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Analogue Output %d[(sub)]",
+        "type": "INTEGER32",  // 4
+        "access": "rw",
+        "pdo": true,
+        "nbmax": 254
+      },
+      "sub": [
+        {
+          "name": "Number of Analogue Outputs",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6447",  // 25671
+      "name": "Analogue Output Scaling Integer",
+      "struct": "array",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Analogue Output %d[(sub)]",
+        "type": "INTEGER32",  // 4
+        "access": "rw",
+        "pdo": true,
+        "nbmax": 254
+      },
+      "sub": [
+        {
+          "name": "Number of Analogue Outputs",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    },
+    {
+      "index": "0x6450",  // 25680
+      "name": "Analogue Output SI Unit",
+      "struct": "array",
+      "group": "profile",
+      "mandatory": false,
+      "unused": true,
+      "each": {
+        "name": "Analogue Output %d[(sub)]",
+        "type": "UNSIGNED32",  // 7
+        "access": "rw",
+        "pdo": true,
+        "nbmax": 254
+      },
+      "sub": [
+        {
+          "name": "Number of Analogue Outputs",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false
+        }
+      ]
+    }
+  ]
+}

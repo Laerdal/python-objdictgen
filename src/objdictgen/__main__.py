@@ -24,7 +24,7 @@ import logging
 import sys
 from dataclasses import dataclass, field
 from pprint import pformat
-from typing import TYPE_CHECKING, Callable, Sequence, TypeVar
+from typing import TYPE_CHECKING, Callable, Generator, Sequence, TypeVar
 
 from colorama import Fore, Style, init
 
@@ -36,9 +36,6 @@ T = TypeVar('T')
 
 if TYPE_CHECKING:
     from objdictgen.node import Node
-
-# For colored output
-init()
 
 # Initalize the python logger to simply output to stdout
 log = logging.getLogger()
@@ -124,6 +121,59 @@ def print_diffs(diffs: TDiffNodes, show=False):
         _printlines(diffs[index])
 
 
+def list_od(
+        od: "Node",
+        name: str,
+        opts: argparse.Namespace) -> Generator[str, None, None]:
+    """Generator for producing the output for odg list"""
+
+    # Get the indexes to print and determine the order
+    keys = od.GetAllIndices(sort=not opts.no_sort)
+    if opts.index:
+        indexp = [jsonod.str_to_int(i) for i in opts.index]
+        keys = [k for k in keys if k in indexp]
+        missing = ", ".join((str(k) for k in indexp if k not in keys))
+        if missing:
+            raise ValueError(f"Unknown index {missing}")
+
+    profiles = []
+    if od.DS302:
+        loaded, equal = jsonod.compare_profile("DS-302", od.DS302)
+        if equal:
+            extra = "DS-302 (equal)"
+        elif loaded:
+            extra = "DS-302 (not equal)"
+        else:
+            extra = "DS-302 (not loaded)"
+        profiles.append(extra)
+
+    pname = od.ProfileName
+    if pname and pname != 'None':
+        loaded, equal = jsonod.compare_profile(pname, od.Profile, od.SpecificMenu)
+        if equal:
+            extra = f"{pname} (equal)"
+        elif loaded:
+            extra = f"{pname} (not equal)"
+        else:
+            extra = f"{pname} (not loaded)"
+        profiles.append(extra)
+
+    if not opts.compact:
+        yield f"{Fore.CYAN}File:{Style.RESET_ALL}      {name}"
+        yield f"{Fore.CYAN}Name:{Style.RESET_ALL}      {od.Name}  [{od.Type.upper()}]  {od.Description}"
+        tp = ", ".join(profiles) or None
+        yield f"{Fore.CYAN}Profiles:{Style.RESET_ALL}  {tp}"
+        if od.ID:
+            yield f"{Fore.CYAN}ID:{Style.RESET_ALL}        {od.ID}"
+        yield ""
+
+    # Print the parameters
+    yield from od.GetPrintEntry(
+        keys=keys, short=opts.short, compact=opts.compact, unused=opts.unused,
+        verbose=opts.all, raw=opts.raw
+    )
+
+
 @debug_wrapper()
 def main(debugopts: DebugOpts, args: Sequence[str]|None = None):
     """ Main command dispatcher """
@@ -149,12 +199,14 @@ def main(debugopts: DebugOpts, args: Sequence[str]|None = None):
     opt_od = dict(metavar='od', default=None, help="Object dictionary")
 
     parser.add_argument('--version', action='version', version='%(prog)s ' + objdictgen.__version__)
+    parser.add_argument('--no-color', action='store_true', help="Disable colored output")
     parser.add_argument('-D', '--debug', **opt_debug)  # type: ignore[arg-type]
 
     # -- HELP --
     subp = subparser.add_parser('help', help="""
         Show help of all commands
     """)
+    subp.add_argument('subcommand', nargs='?', help="Show help of specific command")
     subp.add_argument('-D', '--debug', **opt_debug)  # type: ignore[arg-type]
 
     # -- CONVERT --
@@ -173,7 +225,7 @@ def main(debugopts: DebugOpts, args: Sequence[str]|None = None):
     subp.add_argument('--drop-unused', action="store_true", help="Remove unused parameters")
     subp.add_argument('--internal', action="store_true",
                         help="Store in internal format (json only)")
-    subp.add_argument('--nosort', action="store_true",
+    subp.add_argument('--no-sort', action="store_true",
                         help="Don't order of parameters in output OD")
     subp.add_argument('--novalidate', action="store_true",
                         help="Don't validate files before conversion")
@@ -190,6 +242,7 @@ def main(debugopts: DebugOpts, args: Sequence[str]|None = None):
                         help="Don't validate input files before diff")
     subp.add_argument('--show', action="store_true", help="Show difference data")
     subp.add_argument('-D', '--debug', **opt_debug)  # type: ignore[arg-type]
+    subp.add_argument('--no-color', action='store_true', help="Disable colored output")
 
     # -- EDIT --
     subp = subparser.add_parser('edit', help="""
@@ -206,13 +259,13 @@ def main(debugopts: DebugOpts, args: Sequence[str]|None = None):
     subp.add_argument('-i', '--index', action="append", help="Specify parameter index to show")
     subp.add_argument('--all', action="store_true",
                         help="Show all subindexes, including subindex 0")
-    subp.add_argument('--asis', action="store_true", help="Do not sort output")
+    subp.add_argument('--no-sort', action="store_true", help="Do not sort output")
     subp.add_argument('--compact', action="store_true", help="Compact listing")
-    subp.add_argument('--header', action="store_true", help="List header only")
     subp.add_argument('--raw', action="store_true", help="Show raw parameter values")
     subp.add_argument('--short', action="store_true", help="Do not list sub-index")
     subp.add_argument('--unused', action="store_true", help="Include unused profile parameters")
     subp.add_argument('-D', '--debug', **opt_debug)  # type: ignore[arg-type]
+    subp.add_argument('--no-color', action='store_true', help="Disable colored output")
 
     # -- NETWORK --
     subp = subparser.add_parser('network', help="""
@@ -238,25 +291,35 @@ def main(debugopts: DebugOpts, args: Sequence[str]|None = None):
     if opts.debug:
         debugopts.set_debug(opts.debug)
 
+    # Enable colored output
+    if opts.no_color:
+        init(strip=True)
+    else:
+        init()
 
     # -- HELP command --
     if opts.command == "help":
-        parser.print_help()
-        print()
+        if opts.subcommand:
+            for subparsers_action in (
+                    a for a in parser._actions  # pylint: disable=protected-access
+                    if isinstance(a, argparse._SubParsersAction)  # pylint: disable=protected-access
+            ):
+                for choice, subparser in subparsers_action.choices.items():
+                    if choice != opts.subcommand:
+                        continue
+                    # FIXME: Not sure why mypy doesn't know about format_help
+                    print(subparser.format_help(), end="")  # type: ignore[attr-defined]
 
-        for subparsers_action in (
-                a for a in parser._actions  # pylint: disable=protected-access
-                if isinstance(a, argparse._SubParsersAction)  # pylint: disable=protected-access
-        ):
-            for choice, subparser in subparsers_action.choices.items():
-                print(f"command '{choice}'")
-                # FIXME: Not sure why mypy doesn't know about format_help
-                for info in subparser.format_help().split('\n'):  # type: ignore[attr-defined]
-                    print("    " + info)
+        else:
+            parser.print_help()
+            print()
+            print("""For detailed help for each command:
+    odg <command> --help
+""")
 
 
     # -- CONVERT command --
-    if opts.command in ("convert", "conv", "gen"):
+    elif opts.command in ("convert", "conv", "gen"):
 
         od = open_od(opts.od, fix=opts.fix)
 
@@ -279,7 +342,7 @@ def main(debugopts: DebugOpts, args: Sequence[str]|None = None):
         if to_remove:
             print("Removed parameters:")
             info = [
-                od.GetPrintLine(k, unused=True)
+                od.GetPrintEntryHeader(k, unused=True)
                 for k in sorted(to_remove)
             ]
             od.RemoveIndex(to_remove)
@@ -288,7 +351,7 @@ def main(debugopts: DebugOpts, args: Sequence[str]|None = None):
 
         # Write the data
         od.DumpFile(opts.out,
-            filetype=opts.type, sort=not opts.nosort,
+            filetype=opts.type, sort=not opts.no_sort,
             internal=opts.internal, validate=not opts.novalidate
         )
 
@@ -335,55 +398,7 @@ def main(debugopts: DebugOpts, args: Sequence[str]|None = None):
                 print(Fore.LIGHTBLUE_EX + name + '\n' + "=" * len(name) + Style.RESET_ALL)
 
             od = open_od(name)
-
-            # Get the indexes to print and determine the order
-            keys = od.GetAllIndices(sort=not opts.asis)
-            if opts.index:
-                indexp = [jsonod.str_to_int(i) for i in opts.index]
-                keysp = [k for k in keys if k in indexp]
-                missing = ", ".join((str(k) for k in indexp if k not in keysp))
-                if missing:
-                    parser.error(f"Unknown index {missing}")
-
-            profiles = []
-            if od.DS302:
-                loaded, equal = jsonod.compare_profile("DS-302", od.DS302)
-                if equal:
-                    extra = "DS-302 (equal)"
-                elif loaded:
-                    extra = "DS-302 (not equal)"
-                else:
-                    extra = "DS-302 (not loaded)"
-                profiles.append(extra)
-
-            pname = od.ProfileName
-            if pname and pname != 'None':
-                loaded, equal = jsonod.compare_profile(pname, od.Profile, od.SpecificMenu)
-                if equal:
-                    extra = f"{pname} (equal)"
-                elif loaded:
-                    extra = f"{pname} (not equal)"
-                else:
-                    extra = f"{pname} (not loaded)"
-                profiles.append(extra)
-
-            if not opts.compact:
-                print(f"File:      {name}")
-                print(f"Name:      {od.Name}  [{od.Type.upper()}]  {od.Description}")
-                tp = ", ".join(profiles) or None
-                print(f"Profiles:  {tp}")
-                if od.ID:
-                    print(f"ID:        {od.ID}")
-                print("")
-
-            if opts.header:
-                continue
-
-            # Print the parameters
-            for line in od.GetPrintParams(
-                keys=keys, short=opts.short, compact=opts.compact, unused=opts.unused,
-                verbose=opts.all, raw=opts.raw
-            ):
+            for line in list_od(od, name, opts):
                 print(line)
 
 

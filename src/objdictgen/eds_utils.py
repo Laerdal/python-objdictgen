@@ -182,7 +182,7 @@ def parse_cpj_file(filepath: TPath):
                     if keyname.isalnum():
                         # value can be preceded and followed by whitespaces, so we escape them
                         value = value.strip()
-                        computed_value: int|str|bool
+                        computed_value: int|str
 
                         # First case, value starts with "0x" or "-0x", then it's an hexadecimal value
                         if value.startswith("0x") or value.startswith("-0x"):
@@ -234,10 +234,10 @@ def parse_cpj_file(filepath: TPath):
                             topology["Path"] = computed_value
 
                         elif nodepresent_result:
-                            if not isinstance(computed_value, bool):
+                            if not isinstance(computed_value, int):
                                 raise ValueError(
                                     f"Invalid value '{value}' for keyname '{keyname}' "
-                                    "of section '[{section_name}]'"
+                                    f"of section '[{section_name}]'"
                                 )
                             nodeid = int(nodepresent_result[1])
                             if nodeid not in topology["Nodes"]:
