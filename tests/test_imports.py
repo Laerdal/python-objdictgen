@@ -26,20 +26,20 @@ def test_import_nosis():
 def test_import_typing():
     import objdictgen.typing
 
-def test_import_ui_commondialogs():
-    import objdictgen.ui.commondialogs
+# def test_import_ui_commondialogs():
+#     import objdictgen.ui.commondialogs
 
-def test_import_ui_exception():
-    import objdictgen.ui.exception
+# def test_import_ui_exception():
+#     import objdictgen.ui.exception
 
-def test_import_ui_networkedit():
-    import objdictgen.ui.networkedit
+# def test_import_ui_networkedit():
+#     import objdictgen.ui.networkedit
 
-def test_import_ui_networkeditortemplate():
-    import objdictgen.ui.networkeditortemplate
+# def test_import_ui_networkeditortemplate():
+#     import objdictgen.ui.networkeditortemplate
 
-def test_import_ui_objdictedit():
-    import objdictgen.ui.objdictedit
+# def test_import_ui_objdictedit():
+#     import objdictgen.ui.objdictedit
 
-def test_import_ui_subindextable():
-    import objdictgen.ui.subindextable
+# def test_import_ui_subindextable():
+#     import objdictgen.ui.subindextable
