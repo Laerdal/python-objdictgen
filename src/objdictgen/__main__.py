@@ -424,51 +424,6 @@ def main(debugopts: DebugOpts, args: Sequence[str]|None = None):
         parser.error(f"Programming error: Uknown option '{opts.command}'")
 
 
-def main_objdictgen():
-    """ Legacy objdictgen command """
-
-    def usage():
-        print("\nUsage of objdictgen :")
-        print(f"\n   {sys.argv[0]} XMLFilePath CFilePath\n")
-
-    try:
-        opts, args = getopt.getopt(sys.argv[1:], "h", ["help"])
-    except getopt.GetoptError:
-        # print help information and exit:
-        usage()
-        sys.exit(2)
-
-    for opt, _ in opts:
-        if opt in ("-h", "--help"):
-            usage()
-            sys.exit()
-
-    filein = ""
-    fileout = ""
-    if len(args) == 2:
-        filein = args[0]
-        fileout = args[1]
-    else:
-        usage()
-        sys.exit()
-
-    if filein != "" and fileout != "":
-        print("Parsing input file", filein)
-        node = objdictgen.LoadFile(filein)
-        print("Writing output file", fileout)
-        node.DumpFile(fileout, filetype='c')
-        print("All done")
-
-
-def main_objdictedit():
-    """ Legacy objdictedit command """
-
-    # Import here to prevent including optional UI components for cmd-line use
-    from .ui.objdictedit import \
-        main as _main  # pylint: disable=import-outside-toplevel
-    _main()
-
-
 # To support -m objdictgen
 if __name__ == '__main__':
     # pylint: disable=no-value-for-parameter
