@@ -7,36 +7,19 @@ communication protocol.
 
 This repo is located:
 
-> https://github.com/laerdal/python-objdictgen
+> https://github.com/Laerdal/python-objdictgen
 
 objdictgen includes tools to generate c code that works in tandem with a
 canfestival library. This tool has been built to work together with the
 Laerdal Medical fork for the canfestival library:
 
-> https://github.com/laerdal/canfestival-laerdal
+> https://github.com/Laerdal/canfestival-laerdal
 
 objdictgen is a tool to parse, view and manipulate files containing object
 dictionary (OD). An object dictionary is entries with data and configuration
 in CANopen devices. The `odg` executable is installed. It supports
 reading and writing OD files in `.json` format, in legacy XML `.od` and `.eds`
 files. It can generate c code for use with the canfestival library.
-
-
-## Motivation
-
-The biggest improvement with the new tool over the original implementation is
-the introduction of a new `.json` based format to store the object dictionary.
-The JSON format is well-known and easy to read. The tool supports jsonc,
-allowing comments in the json file. `odg` will process the file in a repeatable
-manner, making it possible support diffing of the `.json` file output. `odg`
-remains 100% compatible with the legacy `.od` format on both input and output.
-
-The original objdictedit and objdictgen tool were written in legacy python2 and
-and this is a port to python3. 
-
-This tool is a fork from upstream canfestival-3-asc repo:
-
-> https://github.com/laerdal/canfestival-3-asc
 
 
 ## Install
@@ -46,10 +29,13 @@ the top in a command-prompt (here assuming Windows and git bash):
 
     $ py -3 -mvenv venv
     $ venv/Scripts/python -mpip install --upgrade pip wheel setuptools
-    $ venv/Scripts/pip install .
+    $ venv/Scripts/pip install .[ui]    # [ui] will install GUI tools
 
 After this `venv/Scripts/odg.exe` (on Windows) will exist and can be called
 from anywhere to run it.
+
+The `[ui]` suffix to `pip install` will install the wx dependency needed
+for the UI `odg edit`. If no UI is needed, this suffix can be omitted.
 
 ## `odg` command-line tool
 
@@ -72,8 +58,8 @@ The most useful commands are:
 
 ### Legacy commands
 
-The legacy commands `objdictgen` and `objdictedit` are still available. The
-same commands are available under `odg gen` and `odg edit` respectively.
+The legacy commands `objdictgen` and `objdictedit` are no longer available. The
+commands are available under `odg gen` and `odg edit` respectively.
 
 
 ## JSON schema
@@ -100,7 +86,6 @@ descriptions, help with values and validate the file.
     }
 ```
 
-
 ## Conversion
 
 The recommended way to convert existing/legacy `.od` files to the new JSON
@@ -114,6 +99,23 @@ parameters. The `--drop-unused` will remove any unused *profile* and *DS-302*
 parameter that might be used in the file.
 
 
+## Motivation
+
+The biggest improvement with the new tool over the original implementation is
+the introduction of a new `.json` based format to store the object dictionary.
+The JSON format is well-known and easy to read. The tool supports jsonc,
+allowing comments in the json file. `odg` will process the file in a repeatable
+manner, making it possible support diffing of the `.json` file output. `odg`
+remains 100% compatible with the legacy `.od` format on both input and output.
+
+The original objdictedit and objdictgen tool were written in legacy python 2 and
+and this is a port to python 3.
+
+This tool is a fork from upstream canfestival-3-asc repo:
+
+> https://github.com/Laerdal/canfestival-3-asc
+
+
 ## License
 
 Objdictgen has been based on the python tool included in CanFestival. This
@@ -123,4 +125,4 @@ original work from CanFestival is:
 
 The Python 3 port and tool improvements have been implemented under
 
-    Copyright (C) 2022-2023 Svein Seldal, Laerdal Medical AS
+    Copyright (C) 2022-2024 Svein Seldal, Laerdal Medical AS
