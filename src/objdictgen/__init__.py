@@ -23,7 +23,7 @@ from pathlib import Path
 from objdictgen.node import Node
 from objdictgen.nodemanager import NodeManager
 
-__version__ = "3.4"
+__version__ = "3.5a1"
 
 # Shortcuts
 LoadFile = Node.LoadFile

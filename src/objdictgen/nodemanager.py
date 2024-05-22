@@ -482,9 +482,13 @@ class NodeManager:
                         node.AddEntry(index, 1, default)
                 # Second case entry is a record
                 else:
-                    # FIXME: How to retrieve the number of subentries?
-                    for i in range(1, node.GetSubentryLength(index) + 1):
-                        subentry_infos = node.GetSubentryInfos(index, i)
+                    i = 0
+                    while True:
+                        try:
+                            i += 1
+                            subentry_infos = node.GetSubentryInfos(index, i)
+                        except ValueError:
+                            break
                         if "default" in subentry_infos:
                             default = subentry_infos["default"]
                         else:
