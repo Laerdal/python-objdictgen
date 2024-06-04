@@ -457,7 +457,8 @@ class ObjdictEdit(NodeEditorTemplate):
 
     def Save(self):
         try:
-            result = self.Manager.SaveCurrentInFile()
+            # Sort only applies if saving JSON file
+            result = self.Manager.SaveCurrentInFile(sort=True)
             if not result:
                 self.SaveAs()
             else:
@@ -487,8 +488,9 @@ class ObjdictEdit(NodeEditorTemplate):
             display_error_dialog(self, f"'{os.path.dirname(filepath)}' is not a valid folder!")
         else:
             try:
-                # Try and save the file and then update the filepath if successfull
-                if self.Manager.SaveCurrentInFile(filepath):
+                # Try and save the file and then update the filepath if successful
+                # Sort only applies if saving JSON file
+                if self.Manager.SaveCurrentInFile(filepath, sort=True):
                     self.Manager.SetCurrentFilePath(filepath)
                 self.RefreshBufferState()
             except Exception:  # pylint: disable=broad-except

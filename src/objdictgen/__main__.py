@@ -128,7 +128,7 @@ def list_od(
     """Generator for producing the output for odg list"""
 
     # Get the indexes to print and determine the order
-    keys = od.GetAllIndices(sort=not opts.no_sort)
+    keys = od.GetAllIndices(sort=opts.sort)
     if opts.index:
         indexp = [jsonod.str_to_int(i) for i in opts.index]
         keys = [k for k in keys if k in indexp]
@@ -259,7 +259,7 @@ def main(debugopts: DebugOpts, args: Sequence[str]|None = None):
     subp.add_argument('-i', '--index', action="append", help="Specify parameter index to show")
     subp.add_argument('--all', action="store_true",
                         help="Show all subindexes, including subindex 0")
-    subp.add_argument('--no-sort', action="store_true", help="Do not sort output")
+    subp.add_argument('--sort', action="store_true", help="Sort output")
     subp.add_argument('--compact', action="store_true", help="Compact listing")
     subp.add_argument('--raw', action="store_true", help="Show raw parameter values")
     subp.add_argument('--short', action="store_true", help="Do not list sub-index")

@@ -28,21 +28,21 @@ def test_main_list_od(odpath, file):
 
     import argparse
     ns = argparse.Namespace(
-        no_sort=False, index=[], compact=False, short=False, unused=True,
+        sort=True, index=[], compact=False, short=False, unused=True,
         all=True, raw=False
     )
 
     lines = list(__main__.list_od(od, file, ns))
 
     ns = argparse.Namespace(
-        no_sort=False, index=[0x1000], compact=False, short=False, unused=True,
+        sort=True, index=[0x1000], compact=False, short=False, unused=True,
         all=True, raw=False
     )
 
     lines = list(__main__.list_od(od, file, ns))
 
     ns = argparse.Namespace(
-        no_sort=False, index=[0x5000], compact=False, short=False, unused=True,
+        sort=True, index=[0x5000], compact=False, short=False, unused=True,
         all=True, raw=False
     )
 
