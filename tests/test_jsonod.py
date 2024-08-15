@@ -1,5 +1,7 @@
-import pytest
+import re
 from pprint import pprint
+import datetime
+from freezegun import freeze_time
 from objdictgen import Node
 from objdictgen.jsonod import generate_jsonc, generate_node, remove_jsonc
 from .test_odcompare import shave_equal
@@ -103,3 +105,28 @@ def test_jsonod_roundtrip_internal(odjsoneds):
 
     a, b = shave_equal(m1, m2, ignore=["IndexOrder", "DefaultStringSize"])
     assert a == b
+
+
+def test_jsonod_timezone():
+    """ Test timezone handling in the jsonod module. """
+
+    for now, offset, cmp in [
+        ("2020-01-01 12:00:00", None, "2020-01-01T12:00:00"),
+        ("2020-01-01 12:00:00", 5, "2020-01-01T17:00:00"),
+        ("2020-01-01 12:00:00", -5, "2020-01-01T07:00:00"),
+    ]:
+        kw = {}
+        if offset is not None:
+            kw["tz_offset"] = offset
+        with freeze_time(now, **kw):
+            # The tzoffset is dependent on the current time, so we need to calculate it
+            tzoffset = datetime.datetime.now().astimezone().utcoffset()
+            tz = f"{tzoffset.seconds//3600:02}:{tzoffset.seconds%60:02}"
+            print(f"tzoffset: {tzoffset}, {type(tzoffset)} {tz}")
+
+            od = Node()
+            out = generate_jsonc(od, compact=False, sort=False, internal=False, validate=True)
+            m = re.search(r'^\s+"\$date": "(.*?)",$', out, re.M)
+            if m:
+                print(m[1])
+                assert m[1] == cmp + "+" + tz
