@@ -240,6 +240,14 @@ def remove_underscore(d: T) -> T:
             remove_underscore(v)
             for v in d
         ]
+    if isinstance(d, str):
+        # Remove comments from any @@ fields
+        return re.sub(  # type: ignore[return-value]
+            r'@@"?(.*?)"?(\s*//.*?)?@@',
+            lambda m: m[1].replace('\\"', '"'),
+            d,
+            flags=re.MULTILINE,
+        )
     return d
 
 
@@ -353,7 +361,7 @@ def generate_jsonc(node: "Node", compact=False, sort=False, internal=False, vali
     """ Export a JSONC string representation of the node """
 
     # Get the dict representation
-    jd, objtypes_s2i = node_todict(
+    jd = node_todict(
         node, sort=sort, internal=internal, validate=validate,
         rich=not compact,
     )
@@ -365,39 +373,22 @@ def generate_jsonc(node: "Node", compact=False, sort=False, internal=False, vali
     # Generate the json string
     text = json.dumps(jd, separators=(',', ': '), indent=2)
 
-    # Convert the special __ fields to jasonc comments
-    out = re.sub(
+    # Convert the special __ fields to jsonc comments
+    text = re.sub(
         r'^(\s*)"__(\w+)": "(.*)",?$',
         r'\1// "\2": "\3"',
         text,
         flags=re.MULTILINE,
     )
 
-    # Annotate symbolic fields with comments of the value
-    def _index_repl(m: re.Match[str]) -> str:
-        p = m.group(1)
-        n = v = m.group(2)
-        if p == 'index':
-            n = str_to_int(v)
-        if p == 'type':
-            n = objtypes_s2i.get(v, v)
-        if n != v:
-            return m.group(0) + f'  // {n}'
-        return m.group(0)
-    out = re.sub(  # As object entries
-        r'"(index|type)": "([a-zA-Z0-9_]+)",?$',
-        _index_repl,
-        out,
+    # Convert the special @@ fields to jsonc comments
+    text = re.sub(
+        r'"@@(.*?)(\s*//.*?)?@@"(.*)$',
+        lambda m: m[1].replace('\\"', '"') + m[3] + m[2],
+        text,
         flags=re.MULTILINE,
     )
-    out = re.sub(  # As comments
-        r'// (index|type): "([a-zA-Z0-9_]+)"',
-        _index_repl,
-        out,
-        flags=re.MULTILINE,
-    )
-
-    return out
+    return text
 
 
 def generate_node(contents: str|TODJson) -> "Node":
@@ -440,7 +431,7 @@ def generate_node(contents: str|TODJson) -> "Node":
     return node_fromdict(jd, objtypes_s2i)
 
 
-def node_todict(node: "Node", sort=False, rich=True, internal=False, validate=True) -> tuple[TODJson, dict[str, int]]:
+def node_todict(node: "Node", sort=False, rich=True, internal=False, validate=True) -> TODJson:
     """
         Convert a node to dict representation for serialization.
 
@@ -500,7 +491,8 @@ def node_todict(node: "Node", sort=False, rich=True, internal=False, validate=Tr
         finally:
             # Add in a fancyer index (do it here after index is finished being used)
             if rich:
-                obj["index"] = f"0x{index:04X}"
+                index = obj["index"]
+                obj["index"] = f'@@"0x{index:04X}"  // {index}@@'
 
             dictionary.append(obj)
 
@@ -532,9 +524,9 @@ def node_todict(node: "Node", sort=False, rich=True, internal=False, validate=Tr
 
     # Cross check verification to see if we later can import the generated dict
     if validate and not internal:
-        validate_fromdict(remove_underscore(jd), objtypes_i2s, objtypes_s2i)
+       validate_fromdict(remove_underscore(jd), objtypes_i2s, objtypes_s2i)
 
-    return jd, objtypes_s2i
+    return jd
 
 
 def indexentry_to_jsondict(ientry: TIndexEntry) -> TODObjJson:
@@ -725,11 +717,26 @@ def rearrage_for_json(obj: TODObjJson, node: "Node", objtypes_i2s: dict[int, str
         # Replace numeric type with string value
         if rich and "type" in sub:
             # FIXME: The cast is to ensure mypy is able keep track
-            sub["type"] = objtypes_i2s.get(cast(int, sub["type"]), sub["type"])
+            n = objtypes_i2s.get(cast(int, sub["type"]), sub["type"])
+            sub["type"] = f'@@"{n}"  // {sub["type"]}@@'
 
-        # # Add __type when rich format
+        # Add __type when rich format
         if info and "type" not in sub:
             sub["__type"] = objtypes_i2s.get(info["type"], info["type"])
+
+        # Replace value
+        if rich and "value" in sub:
+            ir = maps.INDEX_RANGES.get_index_range(index)
+            if i > 0 and ir and ir.name in ('rpdom', 'tpdom'):
+                value = sub["value"]
+                value_h = f"{value:08X}"
+                try:
+                    idx, subidx, _ = node.GetMapIndex(value)
+                    pdo = node.GetSubentryInfos(idx, subidx)
+                    name = pdo["name"]
+                except ValueError:
+                    name = '???'
+                sub["value"] = f'@@{value}  // 0x{value_h[0:4]}_{value_h[4:6]}_{value_h[6:]}  {name}@@'
 
     if 'each' in obj:
         each = obj["each"]
@@ -1414,8 +1421,8 @@ def diff_nodes(node1: "Node", node2: "Node", asdict=True, validate=True) -> TDif
     diffs: dict[int|str, list] = {}
 
     if asdict:
-        jd1, _ = node_todict(node1, sort=True, validate=validate)
-        jd2, _ = node_todict(node2, sort=True, validate=validate)
+        jd1 = node_todict(node1, sort=True, validate=validate)
+        jd2 = node_todict(node2, sort=True, validate=validate)
 
         dt = datetime.isoformat(datetime.now())
         jd1['$date'] = jd2['$date'] = dt
