@@ -109,7 +109,7 @@ def test_nodemanager_setcurrententry(odpath):
                 continue
             assert d['value'] == inv
 
-        nd, _ = node_todict(node, rich=False)
+        nd = node_todict(node, rich=False)
         for jobj in nd['dictionary']:
             if jobj['index'] != index:
                 continue
