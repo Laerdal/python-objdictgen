@@ -28,8 +28,8 @@ To install into a virtual environment `venv`. Check out this repo and go to
 the top in a command-prompt (here assuming Windows and git bash):
 
     $ py -3 -mvenv venv
-    $ venv/Scripts/python -mpip install --upgrade pip wheel setuptools
-    $ venv/Scripts/pip install .[ui]    # [ui] will install GUI tools
+    $ venv/Scripts/python -mpip install --upgrade pip setuptools   # Optional
+    $ venv/Scripts/pip install objdictgen[ui]    # [ui] will install GUI tools
 
 After this `venv/Scripts/odg.exe` (on Windows) will exist and can be called
 from anywhere to run it.
