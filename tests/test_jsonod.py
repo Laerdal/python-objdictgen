@@ -130,3 +130,20 @@ def test_jsonod_timezone():
             if m:
                 print(m[1])
                 assert m[1] == cmp + "+" + tz
+
+
+def test_jsonod_comments(odpath):
+    """ Test that the json file exports comments correctly. """
+
+    fname = odpath / "jsonod-comments.json"
+    m1 = Node.LoadFile(fname)
+    with open(fname, "r") as f:
+        od = f.read()
+
+    out = generate_jsonc(m1, compact=False, sort=False, internal=False, validate=True)
+
+    for a, b in zip(od.splitlines(), out.splitlines()):
+        print(a)
+        if '"$date"' in a or '"$tool"' in a:
+            continue
+        assert a == b
