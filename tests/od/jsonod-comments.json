@@ -1,0 +1,54 @@
+{
+  "$id": "od data",
+  "$version": "1",
+  "$description": "Canfestival object dictionary data",
+  "$tool": "odg 3.5",
+  "$date": "2024-08-13T11:36:24.609168",
+  "name": "JSON comments",
+  "description": "Test for JSON comments",
+  "type": "slave",
+  "id": 0,
+  "profile": "None",
+  "default_string_size": 24,
+  "dictionary": [
+    {
+      "index": "0x1003",  // 4099
+      "name": "Pre-defined Error Field",
+      "struct": "array",
+      "group": "built-in",
+      "mandatory": false,
+      "profile_callback": true,
+      "each": {
+        "name": "Standard Error Field",
+        "type": "UNSIGNED32",  // 7
+        "access": "ro",
+        "pdo": false,
+        "nbmin": 1,
+        "nbmax": 254
+      },
+      "sub": [
+        {
+          "name": "Number of Errors",
+          "type": "UNSIGNED8",  // 5
+          "access": "rw",
+          "pdo": false
+        },
+        {
+          // "name": "Standard Error Field"
+          // "type": "UNSIGNED32"  // 7
+          "value": 0
+        },
+        {
+          // "name": "Standard Error Field"
+          // "type": "UNSIGNED32"  // 7
+          "value": 0
+        },
+        {
+          // "name": "Standard Error Field"
+          // "type": "UNSIGNED32"  // 7
+          "value": 0
+        }
+      ]
+    }
+  ]
+}

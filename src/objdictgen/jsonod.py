@@ -722,7 +722,7 @@ def rearrage_for_json(obj: TODObjJson, node: "Node", objtypes_i2s: dict[int, str
 
         # Add __type when rich format
         if info and "type" not in sub:
-            sub["__type"] = objtypes_i2s.get(info["type"], info["type"])
+            sub["__type"] = f'@@"{objtypes_i2s.get(info["type"], info["type"])}"  // {info["type"]}@@'
 
         # Replace value
         if rich and "value" in sub:
@@ -744,7 +744,8 @@ def rearrage_for_json(obj: TODObjJson, node: "Node", objtypes_i2s: dict[int, str
         # Replace numeric type with string value
         if rich and "type" in each:
             # FIXME: The cast is to ensure mypy is able keep track
-            each["type"] = objtypes_i2s.get(cast(int, each["type"]), each["type"])
+            n = objtypes_i2s.get(cast(int, each["type"]), each["type"])
+            each["type"] = f'@@"{n}"  // {each["type"]}@@'
 
     # Rearrage order of 'sub' and 'each'
     obj["sub"] = [
