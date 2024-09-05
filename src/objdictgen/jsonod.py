@@ -722,7 +722,7 @@ def rearrage_for_json(obj: TODObjJson, node: "Node", objtypes_i2s: dict[int, str
 
         # Add __type when rich format
         if info and "type" not in sub:
-            sub["__type"] = f'@@"{objtypes_i2s.get(info["type"], info["type"])}"  // {info['type']}@@'
+            sub["__type"] = f'@@"{objtypes_i2s.get(info["type"], info["type"])}"  // {info["type"]}@@'
 
         # Replace value
         if rich and "value" in sub:
