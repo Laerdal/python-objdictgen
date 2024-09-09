@@ -357,7 +357,8 @@ def compare_profile(profilename: TPath, params: ODMapping, menu: TProfileMenu|No
         return False, False
 
 
-def generate_jsonc(node: "Node", compact=False, sort=False, internal=False, validate=True) -> str:
+def generate_jsonc(node: "Node", compact=False, sort=False, internal=False,
+                   validate=True, jsonc=True) -> str:
     """ Export a JSONC string representation of the node """
 
     # Get the dict representation
@@ -374,20 +375,37 @@ def generate_jsonc(node: "Node", compact=False, sort=False, internal=False, vali
     text = json.dumps(jd, separators=(',', ': '), indent=2)
 
     # Convert the special __ fields to jsonc comments
+    # Syntax:  "__<field>: <value>"
     text = re.sub(
         r'^(\s*)"__(\w+)": "(.*)",?$',
-        r'\1// "\2": "\3"',
+        # In regular json files, __* fields are omitted from output
+        # In jsonc files, the __* entry is converted to a comment:
+        #     "// <field>: <value>"
+        r'\1// "\2": "\3"' if jsonc else '',
         text,
         flags=re.MULTILINE,
     )
 
+    if jsonc:
+        # In jsonc the field is converted to "<field>,  // <comment>"
+        repl = lambda m: m[1].replace('\\"', '"') + m[3] + m[2]
+    else:
+        # In json the field is converted to "<field>,"
+        repl = lambda m: m[1].replace('\\"', '"') + m[3]
+
     # Convert the special @@ fields to jsonc comments
+    # Syntax:  "@@<field>,  // <comment>@@"
     text = re.sub(
         r'"@@(.*?)(\s*//.*?)?@@"(.*)$',
-        lambda m: m[1].replace('\\"', '"') + m[3] + m[2],
+        repl,
         text,
         flags=re.MULTILINE,
     )
+
+    # In case the json contains empty lines, remove them
+    if not jsonc:
+        text = "\n".join(line for line in text.splitlines() if line.strip())
+
     return text
 
 

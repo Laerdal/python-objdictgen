@@ -135,15 +135,28 @@ def test_jsonod_timezone():
 def test_jsonod_comments(odpath):
     """ Test that the json file exports comments correctly. """
 
-    fname = odpath / "jsonod-comments.json"
-    m1 = Node.LoadFile(fname)
-    with open(fname, "r") as f:
-        od = f.read()
+    fname_jsonc = odpath / "jsonod-comments.jsonc"
+    fname_json = odpath / "jsonod-comments.json"
 
-    out = generate_jsonc(m1, compact=False, sort=False, internal=False, validate=True)
+    m1 = Node.LoadFile(fname_jsonc)
 
-    for a, b in zip(od.splitlines(), out.splitlines()):
-        print(a)
+    with open(fname_jsonc, "r") as f:
+        jsonc_data = f.read()
+    with open(fname_json, "r") as f:
+        json_data = f.read()
+
+    out = generate_jsonc(m1, compact=False, sort=False, internal=False, validate=True, jsonc=True)
+
+    # Compare the jsonc data with the generated data
+    for a, b in zip(jsonc_data.splitlines(), out.splitlines()):
+        if '"$date"' in a or '"$tool"' in a:
+            continue
+        assert a == b
+
+    out = generate_jsonc(m1, compact=False, sort=False, internal=False, validate=True, jsonc=False)
+
+    # Compare the json data with the generated data
+    for a, b in zip(json_data.splitlines(), out.splitlines()):
         if '"$date"' in a or '"$tool"' in a:
             continue
         assert a == b

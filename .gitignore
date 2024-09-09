@@ -21,6 +21,7 @@ _tmp*
 tests/od/extra-compare*
 /*.od
 /*.json
+/*.jsonc
 
 objdictgen.*
 fw-can-shared

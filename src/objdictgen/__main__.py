@@ -220,7 +220,7 @@ def main(debugopts: DebugOpts, args: Sequence[str]|None = None):
     subp.add_argument('-x', '--exclude', action="append", help="OD Index to exclude.")
     subp.add_argument('-f', '--fix', action="store_true",
                         help="Fix any inconsistency errors in OD before generate output")
-    subp.add_argument('-t', '--type', choices=['od', 'eds', 'json', 'c'],
+    subp.add_argument('-t', '--type', choices=['od', 'eds', 'json', 'jsonc', 'c'],
                         help="Select output file type")
     subp.add_argument('--drop-unused', action="store_true", help="Remove unused parameters")
     subp.add_argument('--internal', action="store_true",
@@ -351,8 +351,9 @@ def main(debugopts: DebugOpts, args: Sequence[str]|None = None):
 
         # Write the data
         od.DumpFile(opts.out,
-            filetype=opts.type, sort=not opts.no_sort,
-            internal=opts.internal, validate=not opts.novalidate
+            filetype=opts.type,
+            # These additional options are only used for JSON output
+            sort=not opts.no_sort, internal=opts.internal, validate=not opts.novalidate
         )
 
 

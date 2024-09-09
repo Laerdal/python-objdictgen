@@ -424,7 +424,7 @@ class ObjdictEdit(NodeEditorTemplate):
 
         with wx.FileDialog(
             self, "Choose a file", directory, "",
-            "OD files (*.json;*.od;*.eds)|*.json;*.od;*.eds|All files|*.*",
+            wildcard="OD JSON file (*.jsonc;*.json)|*.jsonc;*.json|Legacy OD file (*.od)|*.od|EDS file (*.eds)|*.eds|All files|*.*",
             style=wx.FD_OPEN | wx.FD_CHANGE_DIR,
         ) as dialog:
             if dialog.ShowModal() != wx.ID_OK:
@@ -475,7 +475,7 @@ class ObjdictEdit(NodeEditorTemplate):
 
         with wx.FileDialog(
             self, "Choose a file", directory, filename,
-            wildcard="OD JSON file (*.json)|*.json;|OD file (*.od)|*.od;|EDS file (*.eds)|*.eds",
+            wildcard="OD JSON file (*.jsonc;*.json)|*.jsonc;*.json|Legacy OD file (*.od)|*.od|EDS file (*.eds)|*.eds",
             style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT | wx.FD_CHANGE_DIR,
         ) as dialog:
             if dialog.ShowModal() != wx.ID_OK:
