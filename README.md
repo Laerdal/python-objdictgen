@@ -116,6 +116,17 @@ This tool is a fork from upstream canfestival-3-asc repo:
 > https://github.com/Laerdal/canfestival-3-asc
 
 
+## Making objdictedit excutable
+
+To be able build an executable that can be run from anywhere:
+
+    $ pip install pyinstaller
+    $ pyinstaller packaging/objdictedit.spec
+
+The file `dist/objdictedit.exe` can now be used anywhere. It does not need any
+pre-installed software.
+
+
 ## License
 
 Objdictgen has been based on the python tool included in CanFestival. This
