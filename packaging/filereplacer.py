@@ -40,11 +40,10 @@ def convert(infile, outfile):
                     out += os.environ[name]
 
                 else:
-                    raise Exception(f"The variable {name} is not defined")
+                    raise KeyError(f"The variable {name} is not defined")
 
-    if out:
-        with open(outfile, 'w', encoding="utf-8") as fout:
-            fout.write(out)
+    with open(outfile, 'w', encoding="utf-8") as fout:
+        fout.write(out)
 
 
 if __name__ == '__main__':
