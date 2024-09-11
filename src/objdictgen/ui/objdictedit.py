@@ -609,6 +609,12 @@ class ObjdictEdit(NodeEditorTemplate):
 
 
 def uimain(args):
+
+    # Set the application ID for Windows taskbar
+    if sys.platform == "win32":
+        myappid = 'objdictgen.objdictedit.' + objdictgen.__version__
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+
     app = wx.App()
 
     wx.InitAllImageHandlers()
@@ -634,10 +640,5 @@ def main():
         if opt in ("-h", "--help"):
             usage()
             sys.exit()
-
-    # Set the application ID for Windows taskbar
-    if sys.platform == "win32":
-        myappid = 'objdictgen.objdictedit.' + objdictgen.__version__
-        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
 
     uimain(args)

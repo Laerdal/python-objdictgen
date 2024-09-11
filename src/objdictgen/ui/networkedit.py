@@ -416,6 +416,12 @@ class NetworkEdit(NetworkEditorTemplate):
 
 
 def uimain(project):
+
+    # Set the application ID for Windows taskbar
+    if sys.platform == "win32":
+        myappid = 'objdictgen.objdictedit.' + objdictgen.__version__
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+
     app = wx.PySimpleApp()
 
     wx.InitAllImageHandlers()
@@ -449,10 +455,5 @@ def main():
     else:
         usage()
         sys.exit(2)
-
-    # Set the application ID for Windows taskbar
-    if sys.platform == "win32":
-        myappid = 'objdictgen.objdictedit.' + objdictgen.__version__
-        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
 
     uimain(project)
