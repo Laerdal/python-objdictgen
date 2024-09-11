@@ -24,6 +24,8 @@ from objdictgen.node import Node
 from objdictgen.nodemanager import NodeManager
 
 __version__ = "3.5.1a1"
+__version_tuple__ = (3, 5, 1, 1)
+__copyright__ = "(c) 2024 Svein Seldal, Laerdal Medical AS, and several. Licensed under GPLv2.1."
 
 # Shortcuts
 LoadFile = Node.LoadFile

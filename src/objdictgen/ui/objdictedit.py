@@ -197,9 +197,9 @@ class ObjdictEdit(NodeEditorTemplate):
 
     def _init_ctrls(self, parent):
         wx.Frame.__init__(
-            self, id=ID_OBJDICTEDIT, name='objdictedit',
+            self, id=ID_OBJDICTEDIT, name=self.title,
             parent=parent, pos=wx.Point(149, 178), size=wx.Size(1000, 700),
-            style=wx.DEFAULT_FRAME_STYLE, title='Objdictedit',
+            style=wx.DEFAULT_FRAME_STYLE, title=self.title,
         )
         self._init_utils()
         self.SetClientSize(wx.Size(1000, 700))
@@ -229,6 +229,8 @@ class ObjdictEdit(NodeEditorTemplate):
         self.SetStatusBar(self.HelpBar)
 
     def __init__(self, parent, manager: NodeManager|None = None, filesopen: list[TPath]|None = None):
+        self.title = f"Object dictionary editor v{objdictgen.__version__}"
+
         filesopen = filesopen or []
         if manager is None:
             NodeEditorTemplate.__init__(self, NodeManager(), True)
@@ -323,9 +325,9 @@ class ObjdictEdit(NodeEditorTemplate):
 
     def RefreshTitle(self):
         if self.FileOpened.GetPageCount() > 0:
-            self.SetTitle(f"Objdictedit - {self.Manager.GetCurrentFilename()}")
+            self.SetTitle(self.title + f" - {self.Manager.GetCurrentFilename()}")
         else:
-            self.SetTitle("Objdictedit")
+            self.SetTitle(self.title)
 
     def RefreshCurrentIndexList(self):
         selected = self.FileOpened.GetSelection()
