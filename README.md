@@ -18,8 +18,8 @@ Laerdal Medical fork for the canfestival library:
 objdictgen is a tool to parse, view and manipulate files containing object
 dictionary (OD). An object dictionary is entries with data and configuration
 in CANopen devices. The `odg` executable is installed. It supports
-reading and writing OD files in `.json` format, in legacy XML `.od` and `.eds`
-files. It can generate c code for use with the canfestival library.
+reading and writing OD files in `.json`/`.jsonc` format, in legacy XML `.od`
+and `.eds` files. It can generate c code for use with the canfestival library.
 
 
 ## Install
@@ -76,14 +76,11 @@ descriptions, help with values and validate the file.
     "json.schemas": [
       {
         "fileMatch": [
-          "**.json"
+          "**.jsonc"
         ],
         "url": "./src/objdictgen/schema/od.schema.json"
       }
     ],
-    "files.associations": {
-        "*.json": "jsonc"
-    }
 ```
 
 ## Conversion
@@ -91,7 +88,7 @@ descriptions, help with values and validate the file.
 The recommended way to convert existing/legacy `.od` files to the new JSON
 format is:
 
-    $ odg generate <file.od> <file.json> --fix --drop-unused [--nosort]
+    $ odg generate <file.od> <file.jsonc> --fix --drop-unused [--nosort]
 
 The `--fix` option might be necessary if the OD-file contains internal
 inconsistencies. It is safe to run this option as it will not delete any active
@@ -102,10 +99,10 @@ parameter that might be used in the file.
 ## Motivation
 
 The biggest improvement with the new tool over the original implementation is
-the introduction of a new `.json` based format to store the object dictionary.
-The JSON format is well-known and easy to read. The tool supports jsonc,
+the introduction of a new `.jsonc` based format to store the object dictionary.
+The JSON format is well-known and easy to read. The tool use jsonc,
 allowing comments in the json file. `odg` will process the file in a repeatable
-manner, making it possible support diffing of the `.json` file output. `odg`
+manner, making it possible support diffing of the `.jsonc` file output. `odg`
 remains 100% compatible with the legacy `.od` format on both input and output.
 
 The original objdictedit and objdictgen tool were written in legacy python 2 and

@@ -200,7 +200,7 @@ def pytest_generate_tests(metafunc):
     # Add "_suffix" fixture
     if "_suffix" in metafunc.fixturenames:
         metafunc.parametrize(
-            "_suffix", ['od', 'json', 'eds'], indirect=False, scope="session"
+            "_suffix", ['od', 'jsonc', 'json', 'eds'], indirect=False, scope="session"
         )
 
     # Make a list of all .od files in tests/od
@@ -211,6 +211,7 @@ def pytest_generate_tests(metafunc):
     jsonfiles = []
     for d in oddirs:
         jsonfiles += ODPath.nfactory(d.glob('*.json'))
+        jsonfiles += ODPath.nfactory(d.glob('*.jsonc'))
 
     edsfiles = []
     for d in oddirs:
@@ -228,7 +229,7 @@ def pytest_generate_tests(metafunc):
         )
 
     # Add "odjson" fixture
-    # Fixture for each of the .od and .json files in the test directory
+    # Fixture for each of the .od and .json[c] files in the test directory
     if "odjson" in metafunc.fixturenames:
         data = sorted(odfiles + jsonfiles)
         metafunc.parametrize(
@@ -236,7 +237,7 @@ def pytest_generate_tests(metafunc):
         )
 
     # Add "odjsoneds" fixture
-    # Fixture for each of the .od, .json, and .eds files in the test directory
+    # Fixture for each of the .od, .json[c], and .eds files in the test directory
     if "odjsoneds" in metafunc.fixturenames:
         data = sorted(odfiles + jsonfiles + edsfiles)
         metafunc.parametrize(

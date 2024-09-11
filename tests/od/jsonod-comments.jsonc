@@ -12,7 +12,7 @@
   "default_string_size": 24,
   "dictionary": [
     {
-      "index": "0x1003",
+      "index": "0x1003",  // 4099
       "name": "Pre-defined Error Field",
       "struct": "array",
       "group": "built-in",
@@ -20,7 +20,7 @@
       "profile_callback": true,
       "each": {
         "name": "Standard Error Field",
-        "type": "UNSIGNED32",
+        "type": "UNSIGNED32",  // 7
         "access": "ro",
         "pdo": false,
         "nbmin": 1,
@@ -29,17 +29,23 @@
       "sub": [
         {
           "name": "Number of Errors",
-          "type": "UNSIGNED8",
+          "type": "UNSIGNED8",  // 5
           "access": "rw",
           "pdo": false
         },
         {
+          // "name": "Standard Error Field"
+          // "type": "UNSIGNED32"  // 7
           "value": 0
         },
         {
+          // "name": "Standard Error Field"
+          // "type": "UNSIGNED32"  // 7
           "value": 0
         },
         {
+          // "name": "Standard Error Field"
+          // "type": "UNSIGNED32"  // 7
           "value": 0
         }
       ]

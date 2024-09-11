@@ -196,14 +196,14 @@ class Node(NodeProtocol):
         """ Import a new Node from a JSON string """
         return jsonod.generate_node(contents)
 
-    def DumpFile(self, filepath: TPath, filetype: str|None = "json", **kwargs):
+    def DumpFile(self, filepath: TPath, filetype: str|None = "jsonc", **kwargs):
         """ Save node into file """
 
         # Attempt to determine the filetype from the filepath
         if not filetype:
             filetype = Path(filepath).suffix[1:]
         if not filetype:
-            filetype = "json"
+            filetype = "jsonc"
 
         if filetype == 'od':
             log.debug("Writing XML OD '%s'", filepath)
@@ -219,9 +219,11 @@ class Node(NodeProtocol):
                 f.write(content)
             return
 
-        if filetype == 'json':
+        if filetype in ('json', 'jsonc'):
             log.debug("Writing JSON OD '%s'", filepath)
-            jdata = self.DumpJson(**kwargs)
+            kw = kwargs.copy()
+            kw['jsonc'] = filetype == 'jsonc'
+            jdata = self.DumpJson(**kw)
             with open(filepath, "w", encoding="utf-8") as f:
                 f.write(jdata)
             return
@@ -234,10 +236,10 @@ class Node(NodeProtocol):
 
         raise ValueError("Unknown file suffix, unable to write file")
 
-    def DumpJson(self, compact=False, sort=False, internal=False, validate=True) -> str:
+    def DumpJson(self, compact=False, sort=False, internal=False, validate=True, jsonc=True) -> str:
         """ Dump the node into a JSON string """
         return jsonod.generate_jsonc(
-            self, compact=compact, sort=sort, internal=internal, validate=validate
+            self, compact=compact, sort=sort, internal=internal, validate=validate, jsonc=jsonc
         )
 
     def asdict(self) -> dict[str, Any]:
