@@ -58,12 +58,13 @@ class ValidationError(Exception):
 # 1 - Default JSON format
 JSON_ID = "od data"
 JSON_DESCRIPTION = "Canfestival object dictionary data"
+JSON_SCHEMA = "https://raw.githubusercontent.com/Laerdal/python-objdictgen/main/src/objdictgen/schema/od.schema.json"
 JSON_INTERNAL_VERSION = "0"
 JSON_VERSION = "1"
 
 # Output order in JSON file
 JSON_TOP_ORDER = (
-    "$id", "$version", "$description", "$tool", "$date", "$schema",
+    "$id", "$version", "$description", "$schema", "$tool", "$date", "$schema",
     "name", "description", "type", "id", "profile",
     "default_string_size", "dictionary",
 )
@@ -117,6 +118,7 @@ FIELDS_DATA_MUST = {
 }
 FIELDS_DATA_OPT = {
     '$description',         # info only
+    '$schema',              # info only
     '$tool',                # info only
     '$date',                # info only
     'id',                   # default 0
@@ -519,6 +521,7 @@ def node_todict(node: "Node", sort=False, rich=True, internal=False, validate=Tr
         '$id': JSON_ID,
         '$version': JSON_INTERNAL_VERSION if internal else JSON_VERSION,
         '$description': JSON_DESCRIPTION,
+        '$schema': JSON_SCHEMA,
         '$tool': str(objdictgen.ODG_PROGRAM) + ' ' + str(objdictgen.__version__),
         '$date': datetime.now().astimezone().isoformat(),
         'name': node.Name,
@@ -1167,6 +1170,7 @@ def validate_fromdict(jsonobj: TODJson, objtypes_i2s: dict[int, str], objtypes_s
     #   "type" (must)
     # Y "dictionary" (must)
     #   "$description" (optional)
+    #   "$schema" (optional)
     #   "$tool" (optional)
     #   "$date" (optional)
     #   "id" (optional, default 0)
