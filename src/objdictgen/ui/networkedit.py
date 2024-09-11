@@ -18,6 +18,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 # USA
 
+import ctypes
 import getopt
 import logging
 import os
@@ -415,6 +416,12 @@ class NetworkEdit(NetworkEditorTemplate):
 
 
 def uimain(project):
+
+    # Set the application ID for Windows taskbar
+    if sys.platform == "win32":
+        myappid = 'objdictgen.objdictedit.' + objdictgen.__version__
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+
     app = wx.PySimpleApp()
 
     wx.InitAllImageHandlers()
