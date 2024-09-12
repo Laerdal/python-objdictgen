@@ -1,6 +1,6 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema",
-    "$id": "https://raw.githubusercontent.com/laerdal-svg/python-objdictgen/main/src/objdictgen/schema/od.schema.json",
+    "$id": "https://raw.githubusercontent.com/Laerdal/python-objdictgen/main/src/objdictgen/schema/od.schema.json",
     "title": "Object Dictionary",
     "description": "A Object Dictionary description for canfestival",
     "type": "object",
@@ -19,6 +19,10 @@
         },
         "$description": {
             "description": "Description about the file",
+            "type": "string"
+        },
+        "$schema": {
+            "description": "The schema that this file is based on",
             "type": "string"
         },
         "$tool": {
