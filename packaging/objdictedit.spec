@@ -27,7 +27,9 @@ a = Analysis(
     pathex=[],
     binaries=[],
     datas=[
-        (basepath + "/src/objdictgen/img/networkedit.ico", "objdictgen/img"),
+        (basepath + "/src/objdictgen/img/*", "objdictgen/img"),
+        (basepath + "/src/objdictgen/config/*.prf", "objdictgen/config"),
+        (basepath + "/src/objdictgen/schema/*.json", "objdictgen/schema"),
     ],
     hiddenimports=[],
     hookspath=[],

@@ -18,13 +18,14 @@
 # USA
 
 import os
+import sys
 from pathlib import Path
 
 from objdictgen.node import Node
 from objdictgen.nodemanager import NodeManager
 
-__version__ = "3.5.1"
-__version_tuple__ = (3, 5, 1, 0)
+__version__ = "3.5.2"
+__version_tuple__ = (3, 5, 2, 0)
 __copyright__ = "(c) 2024 Svein Seldal, Laerdal Medical AS, and several. Licensed under GPLv2.1."
 
 # Shortcuts
@@ -33,7 +34,10 @@ LoadJson = Node.LoadJson
 
 ODG_PROGRAM = "odg"
 
-SCRIPT_DIRECTORY = Path(__file__).parent
+if hasattr(sys, '_MEIPASS'):
+    SCRIPT_DIRECTORY = Path(sys._MEIPASS) / 'objdictgen'
+else:
+    SCRIPT_DIRECTORY = Path(__file__).resolve().parent
 
 PROFILE_DIRECTORIES: list[Path] = [
     SCRIPT_DIRECTORY / 'config'
