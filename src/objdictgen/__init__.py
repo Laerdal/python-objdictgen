@@ -24,8 +24,8 @@ from pathlib import Path
 from objdictgen.node import Node
 from objdictgen.nodemanager import NodeManager
 
-__version__ = "3.5.2"
-__version_tuple__ = (3, 5, 2, 0)
+__version__ = "3.5.3a1"
+__version_tuple__ = (3, 5, 3, 1)
 __copyright__ = "(c) 2024 Svein Seldal, Laerdal Medical AS, and several. Licensed under GPLv2.1."
 
 # Shortcuts
