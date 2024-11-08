@@ -31,6 +31,7 @@ ODTESTDIRS = [
 # Files to exclude from testing all ODs
 OD_EXCLUDE: list[Path] = [
     ODDIR / 'fail-validation.od',
+    ODDIR / 'schema-error.json',
 ]
 
 # Files to exclude from py2 legacy testing

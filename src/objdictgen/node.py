@@ -171,7 +171,7 @@ class Node(NodeProtocol):
             return header == "[FileInfo]"
 
     @staticmethod
-    def LoadFile(filepath: TPath) -> "Node":
+    def LoadFile(filepath: TPath, **kwargs) -> "Node":
         """ Open a file and create a new node """
         if Node.isXml(filepath):
             log.debug("Loading XML OD '%s'", filepath)
@@ -184,12 +184,12 @@ class Node(NodeProtocol):
 
         log.debug("Loading JSON OD '%s'", filepath)
         with open(filepath, "r", encoding="utf-8") as f:
-            return Node.LoadJson(f.read())
+            return Node.LoadJson(f.read(), **kwargs)
 
     @staticmethod
-    def LoadJson(contents: str) -> "Node":
+    def LoadJson(contents: str, validate=True) -> "Node":
         """ Import a new Node from a JSON string """
-        return jsonod.generate_node(contents)
+        return jsonod.generate_node(contents, validate=validate)
 
     def DumpFile(self, filepath: TPath, filetype: str|None = "jsonc", **kwargs):
         """ Save node into file """
