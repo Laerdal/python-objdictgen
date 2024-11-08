@@ -17,6 +17,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 # USA
 
+from __future__ import annotations
+
 import copy
 import json
 import logging
@@ -36,7 +38,7 @@ from objdictgen.maps import OD, ODMapping, ODMappingList
 from objdictgen.typing import (TDiffNodes, TIndexEntry, TODJson, TODObjJson,
                                TODObj, TODSubObj, TODSubObjJson, TODValue, TParamEntry, TPath, TProfileMenu)
 from objdictgen.utils import (copy_in_order, exc_amend, maybe_number,
-                              str_to_int)
+                              str_to_int, strip_brackets)
 
 T = TypeVar('T')
 M = TypeVar('M', bound=Mapping)
@@ -172,6 +174,10 @@ SUBINDEX0 = {
 # Remove jsonc annotations
 # Copied from https://github.com/NickolaiBeloguzov/jsonc-parser/blob/master/jsonc_parser/parser.py#L11-L39
 RE_JSONC = re.compile(r"(\".*?(?<!\\)\"|\'.*?\')|(\s*/\*.*?\*/\s*|\s*//[^\r\n]*$)", re.MULTILINE | re.DOTALL)
+
+# Regexs to handle parsing of diffing the JSON
+RE_DIFF_ROOT = re.compile(r"^(root(\[.*?\]))(.*)")
+RE_DIFF_INDEX = re.compile(r"\['dictionary'\]\[(\d+)\](.*)")
 
 
 def remove_jsonc(text: str) -> str:
@@ -1394,67 +1400,57 @@ def validate_fromdict(jsonobj: TODJson, objtypes_i2s: dict[int, str], objtypes_s
             raise
 
 
-def diff_nodes(node1: "Node", node2: "Node", asdict=True, validate=True) -> TDiffNodes:
+def diff(node1: Node, node2: Node, internal=False) -> TDiffNodes:
     """Compare two nodes and return the differences."""
 
     diffs: dict[int|str, list] = {}
 
-    if asdict:
-        jd1 = node_todict(node1, sort=True, validate=validate)
-        jd2 = node_todict(node2, sort=True, validate=validate)
+    if internal:
 
-        dt = datetime.isoformat(datetime.now())
-        jd1['$date'] = jd2['$date'] = dt
-
-        # DeepDiff does not have typing, but the diff object is a dict-like object
-        #   DeepDiff[str, deepdiff.model.PrettyOrderedSet].
-        # PrettyOrderedSet is a list-like object
-        #   PrettyOrderedSet[deepdiff.model.DiffLevel]
-
-        diff = deepdiff.DeepDiff(jd1, jd2, exclude_paths=[
-            "root['dictionary']"
-        ], view='tree')
-
-        chtype: str
-        for chtype, changes in diff.items():
-            change: deepdiff.model.DiffLevel
-            for change in changes:
-                path: str = change.path(force='fake')  # pyright: ignore[reportAssignmentType]
-                entries = diffs.setdefault('', [])
-                entries.append((chtype, change, path.replace('root', '')))
-
-        diff = deepdiff.DeepDiff(jd1['dictionary'], jd2['dictionary'], view='tree', group_by='index')
-
-        res = re.compile(r"root\[('0x[0-9a-fA-F]+'|\d+)\]")
-
-        for chtype, changes in diff.items():
-            for change in changes:
-                path = change.path(force='fake')  # pyright: ignore[reportAssignmentType]
-                m = res.search(path)
-                if m:
-                    num = str_to_int(m.group(1).strip("'"))
-                    entries = diffs.setdefault(num, [])
-                    entries.append((chtype, change, path.replace(m.group(0), '')))
-                else:
-                    entries = diffs.setdefault('', [])
-                    entries.append((chtype, change, path.replace('root', '')))
-
-    else:
+        # Simply diff the python data structure for the nodes
         diff = deepdiff.DeepDiff(node1.__dict__, node2.__dict__, exclude_paths=[
             "root.IndexOrder"
         ], view='tree')
 
-        res = re.compile(r"root\.(Profile|Dictionary|ParamsDictionary|UserMapping|DS302)\[(\d+)\]")
+    else:
 
-        for chtype, changes in diff.items():
-            for change in changes:
-                path = change.path(force='fake')  # pyright: ignore[reportAssignmentType]
-                m = res.search(path)
-                if m:
-                    entries = diffs.setdefault(int(m.group(2)), [])
-                    entries.append((chtype, change, path.replace(m.group(0), m.group(1))))
+        # Don't use rich format for diffing, as it will contain comments which confuse the output
+        jd1 = node_todict(node1, sort=True, rich=False, internal=True)
+        jd2 = node_todict(node2, sort=True, rich=False, internal=True)
+
+        # Convert the dictionary list to a dict to ensure the order of the objects
+        jd1["dictionary"] = {obj["index"]: obj for obj in jd1["dictionary"]}
+        jd2["dictionary"] = {obj["index"]: obj for obj in jd2["dictionary"]}
+
+        # Diff the two nodes in json object format
+        diff = deepdiff.DeepDiff(jd1, jd2, view='tree')
+
+    # Iterate over the changes
+    for chtype, changes in diff.items():
+        for change in changes:
+            path = change.path()
+
+            # Match the root[<obj>]... part of the path
+            m = RE_DIFF_ROOT.match(path)
+            if not m:
+                raise ValueError(f"Unexpected path '{path}' in compare")
+
+            # Path is the display path, root the categorization
+            path = m[2] + m[3]
+            root = m[2]
+
+            if not internal:
+                if m[1] == "root['dictionary']":
+                    # Extract the index from the path
+                    m = RE_DIFF_INDEX.match(path)
+                    root = f"Index {m[1]}"
+                    path = m[2]
+
                 else:
-                    entries = diffs.setdefault('', [])
-                    entries.append((chtype, change, path.replace('root.', '')))
+                    root = "Header fields"
+
+            # Append the change to the list of changes
+            entries = diffs.setdefault(strip_brackets(root), [])
+            entries.append((chtype, change, strip_brackets(path)))
 
     return diffs

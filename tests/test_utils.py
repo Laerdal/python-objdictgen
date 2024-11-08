@@ -1,5 +1,27 @@
 """Test utils module."""
+
+import colorama
 from objdictgen import utils
+
+
+def test_utils_remove_color():
+    """Test remove_color function."""
+    assert utils.remove_color("Hello, World!") == "Hello, World!"
+
+    assert utils.remove_color(colorama.Fore.RED + "Hello, World!") == "Hello, World!"
+
+    assert utils.remove_color(colorama.Fore.RED + "Hello, World!" + colorama.Style.RESET_ALL) == "Hello, World!"
+
+
+def test_utils_strip_brackets():
+    """Test strip_brackets function."""
+    assert utils.strip_brackets("['Hello']") == "Hello"
+
+    assert utils.strip_brackets("['Hello'] World") == "Hello World"
+
+    assert utils.strip_brackets("['Hello'] World") == "Hello World"
+
+    assert utils.strip_brackets("Hello") == "Hello"
 
 
 def test_utils_exc_amend():

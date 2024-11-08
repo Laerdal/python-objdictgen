@@ -10,8 +10,9 @@ from colorama import Fore, Style
 from objdictgen import jsonod, maps
 from objdictgen.maps import OD
 from objdictgen.node import Node
-from objdictgen.typing import TIndexEntry
-from objdictgen.utils import TERM_COLS, str_to_int
+from objdictgen.typing import TDiffNodes, TIndexEntry
+from objdictgen.utils import (TERM_COLS, diff_colored_lines, highlight_changes,
+                              remove_color, str_to_int)
 
 
 @dataclass
@@ -313,3 +314,112 @@ def format_od_object(
     if not compact and infos:
         yield ""
 
+
+def format_diff_nodes(
+        od1: Node, od2: Node, *, data=False, raw=False,
+        internal=False, show=False
+) -> Generator[str, None, None]:
+    """ Compare two object dictionaries and return the formatted differences. """
+
+    if internal or data:
+        diffs = jsonod.diff(od1, od2, internal=internal)
+    else:
+        diffs = text_diff(od1, od2, data_mode=raw)
+
+    rst = Style.RESET_ALL
+
+    def _pprint(text: str, prefix: str = '        '):
+        for line in pformat(text, width=TERM_COLS).splitlines():
+            yield prefix + line
+
+    for index in sorted(diffs):
+        yield f"{Fore.LIGHTYELLOW_EX}{index}{rst}"
+        entries = diffs[index]
+        for chtype, change, path in entries:
+
+            # Prepare the path for printing
+            ppath = path
+            if ppath:
+                if ppath[0] != "'":
+                    ppath = "'" + ppath + "'"
+                ppath = ppath + ' '
+            ppath = f"{Fore.CYAN}{ppath}{rst}"
+
+            if 'removed' in chtype:
+                yield f"<<      {ppath}only in {Fore.MAGENTA}LEFT{rst}"
+                if show:
+                    yield from _pprint(change.t1, "        <   ")
+            elif 'added' in chtype:
+                yield f"     >> {ppath}only in {Fore.BLUE}RIGHT{rst}"
+                if show:
+                    yield from _pprint(change.t2, "        >   ")
+            elif 'changed' in chtype:
+                yield f"<< - >> {ppath}changed value from '{Fore.GREEN}{change.t1}{rst}' to '{Fore.GREEN}{change.t2}{rst}'"
+                if show:
+                    yield from _pprint(change.t1, "        <   ")
+                    yield from _pprint(change.t2, "        >   ")
+            elif 'type_changes' in chtype:
+                yield f"<< - >> {ppath}changed type and value from '{Fore.GREEN}{change.t1}{rst}' to '{Fore.GREEN}{change.t2}{rst}'"
+                if show:
+                    yield from _pprint(change.t1, "        <   ")
+                    yield from _pprint(change.t2, "        >   ")
+            elif 'diff' in chtype:
+                start = path[0:2]
+                if start == '  ':
+                    ppath = '      ' + path
+                elif start == '+ ':
+                    ppath = path.replace('+ ', '     >> ')
+                    if ppath == '     >> ':
+                        ppath = ''
+                elif start == '- ':
+                    ppath = path.replace('- ', '<<      ')
+                    if ppath == '<<      ':
+                        ppath = ''
+                elif start == '? ':
+                    ppath = path.replace('? ', '        ')
+                    ppath = f"{Fore.RED}{ppath}{rst}"
+                else:
+                    ppath = f"{Fore.RED}{chtype} {ppath} {change}{rst}"
+                yield ppath
+            else:
+                yield f"{Fore.RED}{chtype} {ppath} {change}{rst}"
+
+
+def text_diff(od1: Node, od2: Node, data_mode: bool=False) -> TDiffNodes:
+    """ Compare two object dictionaries as text and return the differences. """
+
+    # Get all indices for the nodes
+    keys1 = set(od1.GetAllIndices())
+    keys2 = set(od2.GetAllIndices())
+
+    diffs: dict[int|str, list] = {}
+
+    for index in sorted(keys1 | keys2):
+        changes = []
+
+        # Get the object print entries
+        text1 = text2 = []
+        entry1: TIndexEntry = {}
+        entry2: TIndexEntry = {}
+        if index in keys1:
+            text1 = list(format_od_object(od1, index))
+            entry1 = od1.GetIndexEntry(index)
+        if index in keys2:
+            text2 = list(format_od_object(od2, index))
+            entry2 = od2.GetIndexEntry(index)
+
+        if data_mode:
+            text1 = text2 = []
+            if entry1:
+                text1 = pformat(entry1, width=TERM_COLS-10, indent=2).splitlines()
+            if entry2:
+                text2 = pformat(entry2, width=TERM_COLS-10, indent=2).splitlines()
+
+        if entry1 == entry2:
+            continue
+
+        for line in highlight_changes(diff_colored_lines(text1, text2)):
+            changes.append(('diff', '', line))
+        diffs[f"Index {index}"] = changes
+
+    return diffs
