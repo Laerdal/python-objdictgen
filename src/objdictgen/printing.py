@@ -349,24 +349,20 @@ def format_diff_nodes(
                 yield f"<<      {ppath}only in {Fore.MAGENTA}LEFT{rst}"
                 if show:
                     yield from _pprint(change.t1, "        <   ")
-
             elif 'added' in chtype:
                 yield f"     >> {ppath}only in {Fore.BLUE}RIGHT{rst}"
                 if show:
                     yield from _pprint(change.t2, "        >   ")
-
             elif 'changed' in chtype:
                 yield f"<< - >> {ppath}changed value from '{Fore.GREEN}{change.t1}{rst}' to '{Fore.GREEN}{change.t2}{rst}'"
                 if show:
                     yield from _pprint(change.t1, "        <   ")
                     yield from _pprint(change.t2, "        >   ")
-
             elif 'type_changes' in chtype:
                 yield f"<< - >> {ppath}changed type and value from '{Fore.GREEN}{change.t1}{rst}' to '{Fore.GREEN}{change.t2}{rst}'"
                 if show:
                     yield from _pprint(change.t1, "        <   ")
                     yield from _pprint(change.t2, "        >   ")
-
             elif 'diff' in chtype:
                 start = path[0:2]
                 if start == '  ':
