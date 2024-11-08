@@ -283,6 +283,9 @@ def main(debugopts: DebugOpts, args: Sequence[str]|None = None):
         lines = list(format_diff_nodes(od1, od2, data=opts.data, raw=opts.raw,
                              internal=opts.internal, show=opts.show))
 
+        for line in lines:
+            print(line)
+
         errcode = 1 if lines else 0
         if errcode:
             print(f"{objdictgen.ODG_PROGRAM}: '{opts.od1}' and '{opts.od2}' differ")

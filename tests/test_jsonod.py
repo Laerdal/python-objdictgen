@@ -1,9 +1,11 @@
+""" Test the jsonod module. """
 import re
 from pprint import pprint
 import datetime
 from freezegun import freeze_time
+import pytest
 from objdictgen import Node
-from objdictgen.jsonod import generate_jsonc, generate_node, remove_jsonc
+from objdictgen.jsonod import generate_jsonc, generate_node, remove_jsonc, diff
 from .test_odcompare import shave_equal
 
 
@@ -160,3 +162,21 @@ def test_jsonod_comments(odpath):
         if '"$date"' in a or '"$tool"' in a:
             continue
         assert a == b
+
+
+@pytest.mark.parametrize("filepair", [
+    ("slave-emcy.json", "slave-heartbeat.json"),
+])
+def test_jsonod_diff(odpath, filepair):
+    """ Test the diff function in the jsonod module. """
+
+    m1 = Node.LoadFile(odpath / filepair[0])
+    m2 = Node.LoadFile(odpath / filepair[1])
+
+    diffs = diff(m1, m2)
+
+    assert set(diffs.keys()) == {"Index 4116", "Index 4119", "Header fields"}
+
+    diffs = diff(m1, m2, internal=True)
+
+    assert set(diffs.keys()) == {"Dictionary", "Description"}

@@ -1409,7 +1409,7 @@ def diff(node1: Node, node2: Node, internal=False) -> TDiffNodes:
 
         # Simply diff the python data structure for the nodes
         diff = deepdiff.DeepDiff(node1.__dict__, node2.__dict__, exclude_paths=[
-            "root.IndexOrder"
+            "IndexOrder"
         ], view='tree')
 
     else:
