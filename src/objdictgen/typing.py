@@ -16,6 +16,7 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 # USA
+from __future__ import annotations
 
 import os
 from typing import TYPE_CHECKING, Iterator, Protocol, TypedDict
@@ -108,7 +109,7 @@ class NodeProtocol(Protocol):
     ProfileName: str
     """Name of any loaded profiles. "None" if no profile is loaded."""
 
-    Profile: "ODMapping"
+    Profile: ODMapping
     """Mapping containing the object definitions for the profile."""
 
     DefaultStringSize: int

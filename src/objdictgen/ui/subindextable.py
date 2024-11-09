@@ -17,6 +17,7 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 # USA
+from __future__ import annotations
 
 import codecs
 import os
@@ -115,7 +116,7 @@ class SubindexTable(wx.grid.GridTableBase):
     # Typing definitions
     CurrentIndex: int
 
-    def __init__(self, parent: "EditingPanel", data, editors, colnames):
+    def __init__(self, parent: EditingPanel, data, editors, colnames):
         # The base class must be initialized *first*
         wx.grid.GridTableBase.__init__(self)
         self.data = data

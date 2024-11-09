@@ -24,10 +24,10 @@ import json
 import logging
 import re
 from datetime import datetime
-from typing import (TYPE_CHECKING, Any, Iterable, Mapping, Sequence, TypeVar, cast)
+from typing import TYPE_CHECKING, Any, Iterable, Mapping, TypeVar, cast
 
 import deepdiff  # type: ignore[import]  # Due to missing typing stubs for deepdiff
-import deepdiff.model # type: ignore[import]  # Due to missing typing stubs for deepdiff
+import deepdiff.model  # type: ignore[import]  # Due to missing typing stubs for deepdiff
 import jsonschema
 
 import objdictgen
@@ -35,8 +35,9 @@ import objdictgen
 from objdictgen import maps
 from objdictgen import node as nodelib
 from objdictgen.maps import OD, ODMapping, ODMappingList
-from objdictgen.typing import (TDiffNodes, TIndexEntry, TODJson, TODObjJson,
-                               TODObj, TODSubObj, TODSubObjJson, TODValue, TParamEntry, TPath, TProfileMenu)
+from objdictgen.typing import (TDiffNodes, TIndexEntry, TODJson, TODObj,
+                               TODObjJson, TODSubObj, TODSubObjJson, TODValue,
+                               TParamEntry, TPath, TProfileMenu)
 from objdictgen.utils import (copy_in_order, exc_amend, maybe_number,
                               str_to_int, strip_brackets)
 
@@ -255,7 +256,7 @@ def member_compare(
 
 
 def get_object_types(
-        node: "Node|None" = None,
+        node: Node|None = None,
         dictionary: list[TODObjJson]|None = None
 ) -> tuple[dict[int, str], dict[str, int]]:
     """ Return two dicts with the object type mapping """
@@ -320,7 +321,7 @@ def compare_profile(profilename: TPath, params: ODMapping, menu: TProfileMenu|No
         return False, False
 
 
-def generate_jsonc(node: "Node", compact=False, sort=False, internal=False,
+def generate_jsonc(node: Node, compact=False, sort=False, internal=False,
                    validate=True, jsonc=True) -> str:
     """ Export a JSONC string representation of the node """
 
@@ -372,7 +373,7 @@ def generate_jsonc(node: "Node", compact=False, sort=False, internal=False,
     return text
 
 
-def generate_node(contents: str|TODJson, validate: bool = True) -> "Node":
+def generate_node(contents: str|TODJson, validate: bool = True) -> Node:
     """ Import from JSON string or objects """
 
     if isinstance(contents, str):
@@ -413,7 +414,7 @@ def generate_node(contents: str|TODJson, validate: bool = True) -> "Node":
     return node_fromdict(jd, objtypes_s2i)
 
 
-def node_todict(node: "Node", sort=False, rich=True, internal=False, validate=True) -> TODJson:
+def node_todict(node: Node, sort=False, rich=True, internal=False, validate=True) -> TODJson:
     """
         Convert a node to dict representation for serialization.
 
@@ -666,7 +667,7 @@ def indexentry_to_jsondict(ientry: TIndexEntry) -> TODObjJson:
     return obj
 
 
-def rearrage_for_json(obj: TODObjJson, node: "Node", objtypes_i2s: dict[int, str], rich=True) -> TODObjJson:
+def rearrage_for_json(obj: TODObjJson, node: Node, objtypes_i2s: dict[int, str], rich=True) -> TODObjJson:
     """ Rearrange the object to fit the wanted JSON format """
 
     # The struct describes what kind of object structure this object have
@@ -903,7 +904,7 @@ def validate_indexentry(ientry: TIndexEntry):
         raise ValidationError(f"Unexpexted count of subindexes in mapping object, found {len(nbmax)}")
 
 
-def node_fromdict(jd: TODJson, objtypes_s2i: dict[str, int]) -> "Node":
+def node_fromdict(jd: TODJson, objtypes_s2i: dict[str, int]) -> Node:
     """ Convert a dict jd into a Node """
 
     # Create the node and fill the most basic data

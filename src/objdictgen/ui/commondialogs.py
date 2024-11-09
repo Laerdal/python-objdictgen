@@ -17,6 +17,7 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 # USA
+from __future__ import annotations
 
 import logging
 import os
@@ -1411,7 +1412,7 @@ class DCFEntryValuesTable(wx.grid.GridTableBase):
     """
     A custom wxGrid Table using user supplied data
     """
-    def __init__(self, parent: "DCFEntryValuesDialog", data, colnames):
+    def __init__(self, parent: DCFEntryValuesDialog, data, colnames):
         # The base class must be initialized *first*
         wx.grid.GridTableBase.__init__(self)
         self.data = data
