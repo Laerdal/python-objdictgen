@@ -1453,4 +1453,11 @@ def diff(node1: Node, node2: Node, internal=False) -> TDiffNodes:
             entries = diffs.setdefault(strip_brackets(root), [])
             entries.append((chtype, change, strip_brackets(path)))
 
-    return diffs
+    # Ensure the Index entries are sorted correctly
+    def _sort(text):
+        if text.startswith("Index "):
+            return f"zz 0x{int(text[6:]):04x}"
+        return text
+
+    # Sort the entries
+    return {k: diffs[k] for k in sorted(diffs, key=_sort)}

@@ -332,10 +332,9 @@ def format_diff_nodes(
         for line in pformat(text, width=TERM_COLS).splitlines():
             yield prefix + line
 
-    for index in sorted(diffs):
+    for index, entries in diffs.items():
         if data or raw or internal:
             yield f"{Fore.LIGHTYELLOW_EX}{index}{rst}"
-        entries = diffs[index]
         for chtype, change, path in entries:
 
             # Prepare the path for printing
