@@ -174,12 +174,12 @@ def main(debugopts: DebugOpts, args: Sequence[str]|None = None):
     subp.add_argument('-i', '--index', action="append", help="Specify parameter index to show")
     subp.add_argument('--all', action="store_true",
                         help="Show all subindexes, including subindex 0")
-    subp.add_argument('--sort', action="store_true", help="Sort output")
     subp.add_argument('--compact', action="store_true", help="Compact listing")
     subp.add_argument('--raw', action="store_true", help="Show raw parameter values")
     subp.add_argument('--short', action="store_true", help="Do not list sub-index")
     subp.add_argument('--unused', action="store_true", help="Include unused profile parameters")
     subp.add_argument('--internal', action="store_true", help="Show internal data")
+    subp.add_argument('--minus', help="Show only parameters that are not in this OD")
     subp.add_argument('--no-color', **opt_nocolor)  # type: ignore[arg-type]
     subp.add_argument('--novalidate', **opt_novalidate)  # type: ignore[arg-type]
     subp.add_argument('-D', '--debug', **opt_debug)  # type: ignore[arg-type]
@@ -309,6 +309,10 @@ def main(debugopts: DebugOpts, args: Sequence[str]|None = None):
     # -- LIST command --
     elif opts.command in ("list", "cat"):
 
+        minus = None
+        if opts.minus:
+            minus = open_od(opts.minus, validate=not opts.novalidate)
+
         for n, name in enumerate(opts.od):
 
             if n > 0:
@@ -317,7 +321,7 @@ def main(debugopts: DebugOpts, args: Sequence[str]|None = None):
                 print(Fore.LIGHTBLUE_EX + name + '\n' + "=" * len(name) + Style.RESET_ALL)
 
             od = open_od(name, validate=not opts.novalidate)
-            for line in format_node(od, name, index=opts.index, opts=opts):
+            for line in format_node(od, name, index=opts.index, minus=minus, opts=opts):
                 print(line)
 
 
