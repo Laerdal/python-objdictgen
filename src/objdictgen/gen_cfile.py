@@ -17,6 +17,7 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 # USA
+from __future__ import annotations
 
 import re
 from collections import UserDict
@@ -67,20 +68,20 @@ class Text:
 
     # FIXME: Remove all %= entries, use f-strings instead, and delete this class
 
-    def __init__(self, context: "CFileContext", text: str):
+    def __init__(self, context: CFileContext, text: str):
         self.text: str = text
-        self.context: "CFileContext" = context
+        self.context: CFileContext = context
 
-    def __iadd__(self, other: "str|Text") -> "Text":
+    def __iadd__(self, other: str|Text) -> Text:
         """Add a string to the text without formatting."""
         self.text += str(other)
         return self
 
-    def __add__(self, other: "str|Text") -> "Text":
+    def __add__(self, other: str|Text) -> Text:
         """Add a string to the text without formatting."""
         return Text(self.context, self.text + str(other))
 
-    def __imod__(self, other: str) -> "Text":
+    def __imod__(self, other: str) -> Text:
         """Add a string to the text with formatting."""
         self.text += other.format(**self.context)
         return self
@@ -813,7 +814,7 @@ extern CO_Data {NodeName}_Data;
 #                             Main Function
 # ------------------------------------------------------------------------------
 
-def GenerateFile(filepath: TPath, node: "NodeProtocol", pointers_dict=None):
+def GenerateFile(filepath: TPath, node: NodeProtocol, pointers_dict=None):
     """Main function to generate the C file from a object dictionary node."""
     filepath = Path(filepath)
     headerpath = filepath.with_suffix(".h")

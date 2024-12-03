@@ -17,6 +17,7 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 # USA
+from __future__ import annotations
 
 import copy
 import logging
@@ -171,7 +172,7 @@ class Node(NodeProtocol):
             return header == "[FileInfo]"
 
     @staticmethod
-    def LoadFile(filepath: TPath, **kwargs) -> "Node":
+    def LoadFile(filepath: TPath, **kwargs) -> Node:
         """ Open a file and create a new node """
         if Node.isXml(filepath):
             log.debug("Loading XML OD '%s'", filepath)
@@ -187,7 +188,7 @@ class Node(NodeProtocol):
             return Node.LoadJson(f.read(), **kwargs)
 
     @staticmethod
-    def LoadJson(contents: str, validate=True) -> "Node":
+    def LoadJson(contents: str, validate=True) -> Node:
         """ Import a new Node from a JSON string """
         return jsonod.generate_node(contents, validate=validate)
 
@@ -241,7 +242,7 @@ class Node(NodeProtocol):
         """ Return the class data as a dict """
         return copy.deepcopy(self.__dict__)
 
-    def copy(self) -> "Node":
+    def copy(self) -> Node:
         """
         Return a copy of the node
         """

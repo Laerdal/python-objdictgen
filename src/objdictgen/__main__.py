@@ -16,10 +16,10 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 # USA
+from __future__ import annotations
 
 import argparse
 import functools
-import getopt
 import logging
 import sys
 from dataclasses import dataclass, field
@@ -27,11 +27,11 @@ from typing import Callable, Sequence, TypeVar
 
 from colorama import Fore, Style, init
 
-import objdictgen
-from objdictgen import jsonod
+from objdictgen import ODG_PROGRAM, __version__, jsonod
 from objdictgen.node import Node
 from objdictgen.printing import format_diff_nodes, format_node
 from objdictgen.typing import TPath
+from objdictgen.utils import exc_amend
 
 T = TypeVar('T')
 
@@ -66,13 +66,13 @@ def debug_wrapper() -> Callable[[Callable[..., T]], Callable[..., T]]:
             except Exception as exc:  # pylint: disable=broad-except
                 if opts.show_debug:
                     raise
-                print(f"{objdictgen.ODG_PROGRAM}: {exc.__class__.__name__}: {exc}")
+                print(f"{ODG_PROGRAM}: {exc.__class__.__name__}: {exc}")
                 sys.exit(1)
         return inner
     return decorator
 
 
-def open_od(fname: TPath|str, validate=True, fix=False) -> "Node":
+def open_od(fname: TPath|str, validate=True, fix=False) -> Node:
     """ Open and validate the OD file"""
 
     try:
@@ -83,7 +83,7 @@ def open_od(fname: TPath|str, validate=True, fix=False) -> "Node":
 
         return od
     except Exception as exc:
-        jsonod.exc_amend(exc, f"{fname}: ")
+        exc_amend(exc, f"{fname}: ")
         raise
 
 
@@ -92,7 +92,7 @@ def main(debugopts: DebugOpts, args: Sequence[str]|None = None):
     """ Main command dispatcher """
 
     parser = argparse.ArgumentParser(
-        prog=objdictgen.ODG_PROGRAM,
+        prog=ODG_PROGRAM,
         description="""
             A tool to read and convert object dictionary files for the
             CAN festival library
@@ -113,7 +113,7 @@ def main(debugopts: DebugOpts, args: Sequence[str]|None = None):
     opt_novalidate = dict(action='store_true', help="Don't validate input files")
     opt_nocolor = dict(action='store_true', help="Disable colored output")
 
-    parser.add_argument('--version', action='version', version='%(prog)s ' + objdictgen.__version__)
+    parser.add_argument('--version', action='version', version='%(prog)s ' + __version__)
     parser.add_argument('--no-color', action='store_true', help="Disable colored output")
     parser.add_argument('-D', '--debug', **opt_debug)  # type: ignore[arg-type]
 
@@ -214,6 +214,7 @@ def main(debugopts: DebugOpts, args: Sequence[str]|None = None):
     else:
         init()
 
+
     # -- HELP command --
     if opts.command == "help":
         if opts.subcommand:
@@ -288,9 +289,9 @@ def main(debugopts: DebugOpts, args: Sequence[str]|None = None):
 
         errcode = 1 if lines else 0
         if errcode:
-            print(f"{objdictgen.ODG_PROGRAM}: '{opts.od1}' and '{opts.od2}' differ")
+            print(f"{ODG_PROGRAM}: '{opts.od1}' and '{opts.od2}' differ")
         else:
-            print(f"{objdictgen.ODG_PROGRAM}: '{opts.od1}' and '{opts.od2}' are equal")
+            print(f"{ODG_PROGRAM}: '{opts.od1}' and '{opts.od2}' are equal")
 
         if errcode:
             parser.exit(errcode)

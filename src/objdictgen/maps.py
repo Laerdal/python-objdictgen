@@ -17,6 +17,7 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 # USA
+from __future__ import annotations
 
 import ast
 import itertools
@@ -500,7 +501,7 @@ class ODMapping(UserDict[int, TODObj]):
             return infos
         raise ValueError(f"Index 0x{index:04x} does not have subentries")
 
-    def FindMapVariableList(self, node: "Node", compute=True) -> Generator[tuple[int, int, int, str], None, None]:
+    def FindMapVariableList(self, node: Node, compute=True) -> Generator[tuple[int, int, int, str], None, None]:
         """
         Generator of all variables that can be mapped to in pdos.
         It yields tuple of (index, subindex, size, name)
@@ -615,7 +616,7 @@ class ODMappingList(UserList[ODMapping]):
         except StopIteration:
             raise ValueError(f"Subindex 0x{index:04x}.{subindex:x} does not exist") from None
 
-    def FindMapVariableList(self, node: "Node", compute=True) -> Generator[tuple[int, int, int, str], None, None]:
+    def FindMapVariableList(self, node: Node, compute=True) -> Generator[tuple[int, int, int, str], None, None]:
         """
         Generator of all variables that can be mapped to in pdos.
         It yields tuple of (index, subindex, size, name)

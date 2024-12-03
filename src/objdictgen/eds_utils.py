@@ -17,6 +17,7 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 # USA
+from __future__ import annotations
 
 import logging
 import re
@@ -98,7 +99,7 @@ ENTRY_TYPES: dict[int, TEntry] = {
 }
 
 
-def get_default_value(node: "Node", index: int, subindex: int = -1):
+def get_default_value(node: Node, index: int, subindex: int = -1):
     """Function that search into Node Mappings the informations about an index
     or a subindex and return the default value."""
     infos = node.GetEntryInfos(index)
@@ -484,7 +485,7 @@ def verify_value(values: dict[str, Any], section_name: str, param: str):
             raise ValueError(f"Error on section '[{section_name}]': '{param}' incompatible with DataType") from None
 
 
-def generate_eds_content(node: "Node", filepath: TPath):
+def generate_eds_content(node: Node, filepath: TPath):
     """Generate the EDS file content for the current node in the manager."""
 
     filepath = Path(filepath)
@@ -683,7 +684,7 @@ def generate_eds_content(node: "Node", filepath: TPath):
     return fileContent
 
 
-def generate_cpj_content(nodelist: "NodeList"):
+def generate_cpj_content(nodelist: NodeList):
     """Generate the CPJ file content for the nodelist."""
     nodes = nodelist.SlaveNodes
 
@@ -700,7 +701,7 @@ def generate_cpj_content(nodelist: "NodeList"):
     return filecontent
 
 
-def generate_node(filepath: TPath, nodeid: int = 0) -> "Node":
+def generate_node(filepath: TPath, nodeid: int = 0) -> Node:
     """Generate a Node from an EDS file."""
     # Create a new node
     node = nodelib.Node(id=nodeid)

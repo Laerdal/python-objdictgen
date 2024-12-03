@@ -22,6 +22,7 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 # USA
+from __future__ import annotations
 
 import ast
 import io
@@ -306,10 +307,10 @@ def xmldump(filehandle: io.TextIOWrapper|None, py_obj: object,
     return None
 
 
-def xmlload(filehandle: "SupportsRead[str|bytes]|bytes|str") -> Any:
+def xmlload(filehandle: SupportsRead[str|bytes]|bytes|str) -> Any:
     """Load pickled object from file fh."""
 
-    fh: "SupportsRead[str|bytes]" = filehandle  # type: ignore[assignment]
+    fh: SupportsRead[str|bytes] = filehandle  # type: ignore[assignment]
     if isinstance(filehandle, str):
         fh = io.StringIO(filehandle)
     elif isinstance(filehandle, bytes):
