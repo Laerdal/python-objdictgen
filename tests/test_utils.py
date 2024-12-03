@@ -1,5 +1,27 @@
 """Test utils module."""
+
+from colorama import Fore, Style
 from objdictgen import utils
+
+
+def test_utils_remove_color():
+    """Test remove_color function."""
+    assert utils.remove_color("Hello, World!") == "Hello, World!"
+
+    assert utils.remove_color(Fore.RED + "Hello, World!") == "Hello, World!"
+
+    assert utils.remove_color(Fore.RED + "Hello, World!" + Style.RESET_ALL) == "Hello, World!"
+
+
+def test_utils_strip_brackets():
+    """Test strip_brackets function."""
+    assert utils.strip_brackets("['Hello']") == "Hello"
+
+    assert utils.strip_brackets("['Hello'] World") == "Hello World"
+
+    assert utils.strip_brackets("['Hello'] World") == "Hello World"
+
+    assert utils.strip_brackets("Hello") == "Hello"
 
 
 def test_utils_exc_amend():
@@ -55,3 +77,40 @@ def test_utils_copy_in_order():
     assert utils.copy_in_order(d, ["b", "d"]) == {"b": 2, "a": 1, "c": 3}
 
     assert utils.copy_in_order(d, []) == d
+
+
+def test_utils_diff_colored_lines():
+    """Test diff_colored_lines function."""
+
+    lines1 = ["Hello", "World"]
+    lines2 = ["Hello", "World!"]
+
+    out = list(utils.diff_colored_lines(lines1, lines2))
+
+    assert out == ["  Hello", "- World", "+ World!" ]
+
+
+    lines1 = [f"{Fore.RED}Hello", f"{Fore.GREEN}World"]
+    lines2 = ["Hello", "World!"]
+
+    out = list(utils.diff_colored_lines(lines1, lines2))
+
+    assert out == [f"  {Fore.RED}Hello", f"- {Fore.GREEN}World", "+ World!" ]
+
+
+    lines1 = ["Hello", "World!"]
+    lines2 = [f"{Fore.RED}Hello", f"{Fore.GREEN}World"]
+
+    out = list(utils.diff_colored_lines(lines1, lines2))
+
+    assert out == [f"  {Fore.RED}Hello", "- World!", f"+ {Fore.GREEN}World" ]
+
+
+def test_utils_diff_highlight_changes():
+    """Test highlight_changes function."""
+
+    lines = ["  Hello", "- World", "+ Friend"]
+
+    out = list(utils.highlight_changes(lines))
+
+    assert out == ["  Hello", "- World", "? ^^ ^", "+ Friend", "? ^ ^^^"]

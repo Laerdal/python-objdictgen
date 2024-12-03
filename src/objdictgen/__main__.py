@@ -23,16 +23,15 @@ import getopt
 import logging
 import sys
 from dataclasses import dataclass, field
-from pprint import pformat
-from typing import TYPE_CHECKING, Callable, Generator, Sequence, TypeVar
+from typing import Callable, Sequence, TypeVar
 
 from colorama import Fore, Style, init
 
 import objdictgen
 from objdictgen import jsonod
 from objdictgen.node import Node
-from objdictgen.printing import format_node
-from objdictgen.typing import TDiffEntries, TDiffNodes, TPath
+from objdictgen.printing import format_diff_nodes, format_node
+from objdictgen.typing import TPath
 
 T = TypeVar('T')
 
@@ -88,38 +87,6 @@ def open_od(fname: TPath|str, validate=True, fix=False) -> "Node":
         raise
 
 
-def print_diffs(diffs: TDiffNodes, show=False):
-    """ Print the differences between two object dictionaries"""
-
-    def _pprint(text: str):
-        for line in pformat(text).splitlines():
-            print("       ", line)
-
-    def _printlines(entries: TDiffEntries):
-        for chtype, change, path in entries:
-            if 'removed' in chtype:
-                print(f"<<<     {path} only in LEFT")
-                if show:
-                    _pprint(change.t1)
-            elif 'added' in chtype:
-                print(f"    >>> {path} only in RIGHT")
-                if show:
-                    _pprint(change.t2)
-            elif 'changed' in chtype:
-                print(f"<< - >> {path} value changed from '{change.t1}' to '{change.t2}'")
-            else:
-                print(f"{Fore.RED}{chtype} {path} {change}{Style.RESET_ALL}")
-
-    rest = diffs.pop('', None)
-    if rest:
-        print(f"{Fore.GREEN}Changes:{Style.RESET_ALL}")
-        _printlines(rest)
-
-    for index in sorted(diffs):
-        print(f"{Fore.GREEN}Index 0x{index:04x} ({index}){Style.RESET_ALL}")
-        _printlines(diffs[index])
-
-
 @debug_wrapper()
 def main(debugopts: DebugOpts, args: Sequence[str]|None = None):
     """ Main command dispatcher """
@@ -144,6 +111,7 @@ def main(debugopts: DebugOpts, args: Sequence[str]|None = None):
     opt_debug = dict(action='store_true', help="Debug: enable tracebacks on errors")
     opt_od = dict(metavar='od', default=None, help="Object dictionary")
     opt_novalidate = dict(action='store_true', help="Don't validate input files")
+    opt_nocolor = dict(action='store_true', help="Disable colored output")
 
     parser.add_argument('--version', action='version', version='%(prog)s ' + objdictgen.__version__)
     parser.add_argument('--no-color', action='store_true', help="Disable colored output")
@@ -183,11 +151,13 @@ def main(debugopts: DebugOpts, args: Sequence[str]|None = None):
     """, aliases=['compare'])
     subp.add_argument('od1', **opt_od)  # type: ignore[arg-type]
     subp.add_argument('od2', **opt_od)  # type: ignore[arg-type]
-    subp.add_argument('--internal', action="store_true", help="Diff internal object")
-    subp.add_argument('--novalidate', **opt_novalidate)  # type: ignore[arg-type]
     subp.add_argument('--show', action="store_true", help="Show difference data")
+    subp.add_argument('--internal', action="store_true", help="Diff internal object")
+    subp.add_argument('--data', action="store_true", help="Show difference as data")
+    subp.add_argument('--raw', action="store_true", help="Show raw difference")
+    subp.add_argument('--no-color', **opt_nocolor)  # type: ignore[arg-type]
+    subp.add_argument('--novalidate', **opt_novalidate)  # type: ignore[arg-type]
     subp.add_argument('-D', '--debug', **opt_debug)  # type: ignore[arg-type]
-    subp.add_argument('--no-color', action='store_true', help="Disable colored output")
 
     # -- EDIT --
     subp = subparser.add_parser('edit', help="""
@@ -210,9 +180,9 @@ def main(debugopts: DebugOpts, args: Sequence[str]|None = None):
     subp.add_argument('--short', action="store_true", help="Do not list sub-index")
     subp.add_argument('--unused', action="store_true", help="Include unused profile parameters")
     subp.add_argument('--internal', action="store_true", help="Show internal data")
-    subp.add_argument('-D', '--debug', **opt_debug)  # type: ignore[arg-type]
+    subp.add_argument('--no-color', **opt_nocolor)  # type: ignore[arg-type]
     subp.add_argument('--novalidate', **opt_novalidate)  # type: ignore[arg-type]
-    subp.add_argument('--no-color', action='store_true', help="Disable colored output")
+    subp.add_argument('-D', '--debug', **opt_debug)  # type: ignore[arg-type]
 
     # -- NETWORK --
     subp = subparser.add_parser('network', help="""
@@ -306,22 +276,22 @@ def main(debugopts: DebugOpts, args: Sequence[str]|None = None):
 
     # -- DIFF command --
     elif opts.command in ("diff", "compare"):
+
         od1 = open_od(opts.od1, validate=not opts.novalidate)
         od2 = open_od(opts.od2, validate=not opts.novalidate)
 
-        diffs = jsonod.diff_nodes(
-            od1, od2, asdict=not opts.internal,
-            validate=not opts.novalidate,
-        )
+        lines = list(format_diff_nodes(od1, od2, data=opts.data, raw=opts.raw,
+                             internal=opts.internal, show=opts.show))
 
-        if diffs:
-            errcode = 1
+        for line in lines:
+            print(line)
+
+        errcode = 1 if lines else 0
+        if errcode:
             print(f"{objdictgen.ODG_PROGRAM}: '{opts.od1}' and '{opts.od2}' differ")
         else:
-            errcode = 0
             print(f"{objdictgen.ODG_PROGRAM}: '{opts.od1}' and '{opts.od2}' are equal")
 
-        print_diffs(diffs, show=opts.show)
         if errcode:
             parser.exit(errcode)
 
