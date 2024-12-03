@@ -27,6 +27,7 @@ from dataclasses import dataclass
 from objdictgen import eds_utils
 from objdictgen.node import Node
 from objdictgen.nodemanager import NodeManager
+from objdictgen.printing import GetPrintEntry
 from objdictgen.typing import TODObj, TODSubObj, TPath
 
 # ------------------------------------------------------------------------------
@@ -269,11 +270,11 @@ def main(projectdir):
     print("MasterNode :")
     node = manager.CurrentNode
     if node:
-        for line in node.GetPrintEntry(raw=True):
+        for line in GetPrintEntry(node, raw=True):
             print(line)
     print()
     for nodeid, nodeinfo in nodelist.SlaveNodes.items():
         print(f"SlaveNode name={nodeinfo.Name} id=0x{nodeid:02X} :")
-        for line in nodeinfo.Node.GetPrintEntry():
+        for line in GetPrintEntry(nodeinfo.Node):
             print(line)
         print()

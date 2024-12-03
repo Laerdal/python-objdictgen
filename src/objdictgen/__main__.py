@@ -30,6 +30,7 @@ from colorama import Fore, Style, init
 
 import objdictgen
 from objdictgen import jsonod
+from objdictgen.printing import GetPrintEntry
 from objdictgen.typing import TDiffEntries, TDiffNodes, TPath
 
 T = TypeVar('T')
@@ -168,8 +169,8 @@ def list_od(
         yield ""
 
     # Print the parameters
-    yield from od.GetPrintEntry(
-        keys=keys, short=opts.short, compact=opts.compact, unused=opts.unused,
+    yield from GetPrintEntry(
+        od, keys=keys, short=opts.short, compact=opts.compact, unused=opts.unused,
         verbose=opts.all, raw=opts.raw
     )
 
