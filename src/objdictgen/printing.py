@@ -1,20 +1,146 @@
 """ Functions for printing the object dictionary. """
 from __future__ import annotations
 
+from dataclasses import dataclass
+from pprint import pformat
 from typing import Generator
 
 from colorama import Fore, Style
 
-from objdictgen import maps
+from objdictgen import jsonod, maps
 from objdictgen.maps import OD
 from objdictgen.node import Node
 from objdictgen.typing import TIndexEntry
+from objdictgen.utils import TERM_COLS, str_to_int
 
 
-def GetPrintEntryHeader(
-        node: Node, index: int, unused=False, compact=False, raw=False,
+@dataclass
+class FormatNodeOpts:
+    """ Options for formatting the node """
+    compact: bool = False
+    short: bool = False
+    unused: bool = False
+    all: bool = False
+    raw: bool = False
+    internal: bool = False
+
+    @classmethod
+    def from_args(cls, opts: FormatNodeOpts|None, kwargs) -> FormatNodeOpts:
+        """ Create a FormatNodeOpts object from the arguments or kwargs. """
+        obj = opts or cls()
+        for key, value in kwargs.items():
+            setattr(obj, key, value)
+        return obj
+
+
+def format_node(
+        node: Node,
+        name: str, *,
+        index: list[str]|None = None,
+        minus: Node|None = None,
+        opts: FormatNodeOpts|None = None,
+        **kwargs: FormatNodeOpts,
+) -> Generator[str, None, None]:
+    """Generator for producing the print formatting of a node."""
+
+    # Get the options for the function
+    opts = FormatNodeOpts.from_args(opts, kwargs)
+
+    # Get the indexes to print and determine the order
+    keys = node.GetAllIndices(sort=True)
+    if index:
+        indexp = [str_to_int(i) for i in index]
+        keys = [k for k in keys if k in indexp]
+        missing = ", ".join((str(k) for k in indexp if k not in keys))
+        if missing:
+            raise ValueError(f"Unknown index {missing}")
+
+    profiles = []
+    if node.DS302:
+        loaded, equal = jsonod.compare_profile("DS-302", node.DS302)
+        if equal:
+            extra = "DS-302 (equal)"
+        elif loaded:
+            extra = "DS-302 (not equal)"
+        else:
+            extra = "DS-302 (not loaded)"
+        profiles.append(extra)
+
+    pname = node.ProfileName
+    if pname and pname != 'None':
+        loaded, equal = jsonod.compare_profile(pname, node.Profile, node.SpecificMenu)
+        if equal:
+            extra = f"{pname} (equal)"
+        elif loaded:
+            extra = f"{pname} (not equal)"
+        else:
+            extra = f"{pname} (not loaded)"
+        profiles.append(extra)
+
+    if not kwargs.get("compact"):
+        yield f"{Fore.CYAN}File:{Style.RESET_ALL}      {name}"
+        yield f"{Fore.CYAN}Name:{Style.RESET_ALL}      {node.Name}  [{node.Type.upper()}]  {node.Description}"
+        tp = ", ".join(profiles) or None
+        yield f"{Fore.CYAN}Profiles:{Style.RESET_ALL}  {tp}"
+        if node.ID:
+            yield f"{Fore.CYAN}ID:{Style.RESET_ALL}        {node.ID}"
+        yield ""
+
+    index_range = None
+    header = ''
+
+    for k in keys:
+
+        # Get the index range title
+        ir = maps.INDEX_RANGES.get_index_range(k)
+        if index_range != ir:
+            index_range = ir
+            if not opts.compact:
+                header = Fore.YELLOW + ir.description + Style.RESET_ALL
+
+        obj = node.GetIndexEntry(k)
+
+        if minus and k in minus:
+            minusobj = minus.GetIndexEntry(k)
+
+            if obj == minusobj:
+                linegen = format_od_object(node, k, short=True)
+                lines = [remove_color(line) for line in linegen]
+                lines[0] = Fore.LIGHTBLACK_EX + lines[0] + f"   {Fore.LIGHTRED_EX}<EQUAL>{Style.RESET_ALL}"
+                yield from lines
+                continue
+
+        # Yield the text for the index
+        lines = list(format_od_object(
+            node, k, short=opts.short, compact=opts.compact, unused=opts.unused,
+            verbose=opts.all, raw=opts.raw
+        ))
+
+        if opts.internal and lines[-1] == "":
+            lines.pop()
+
+        for line in lines:
+            # Print the header if it exists
+            if header:
+                yield header
+                header = ''
+
+            # Output the line
+            yield line
+
+        if opts.internal:
+            obj = node.GetIndexEntry(k)
+            lines = pformat(obj, width=TERM_COLS).splitlines()
+            yield from lines
+            if not opts.compact:
+                yield ""
+
+
+def format_od_header(
+        node: Node, index: int, *, unused=False, compact=False, raw=False,
         entry: TIndexEntry|None = None
 ) -> tuple[str, dict[str, str]]:
+    """Get the print output for a dictionary entry header"""
 
     # Get the information about the index if it wasn't passed along
     if not entry:
@@ -61,6 +187,7 @@ def GetPrintEntryHeader(
     t_string = maps.ODStructTypes.to_string(obj['struct']) or '???'
 
     # ** PRINT PARAMETER **
+    # Returned as a tuple to allow for futher usage
     return "{pre}{key}  {name}   {struct}{flags}", {
         'key': f"{Fore.LIGHTGREEN_EX}0x{index:04x} ({index}){Style.RESET_ALL}",
         'name': f"{Fore.LIGHTWHITE_EX}{t_name}{Style.RESET_ALL}",
@@ -70,133 +197,119 @@ def GetPrintEntryHeader(
     }
 
 
-def GetPrintEntry(
-        node: Node, keys: list[int]|None = None, short=False, compact=False,
+def format_od_object(
+        node: Node, index: int, *, short=False, compact=False,
         unused=False, verbose=False, raw=False,
 ) -> Generator[str, None, None]:
-    """
-    Generator for printing the dictionary values
-    """
+    """Return the print formatting for an object dictionary entry."""
 
-    # Get the indexes to print and determine the order
-    keys = keys or node.GetAllIndices(sort=True)
+    # Get the index entry information
+    param = node.GetIndexEntry(index, withbase=True)
+    obj = param["object"]
 
-    index_range = None
-    for k in keys:
+    # Get the header for the entry and output it unless it is empty
+    line, fmt = format_od_header(
+        node, index, unused=unused, compact=compact, entry=param, raw=raw
+    )
+    if not line:
+        return
+    yield line.format(**fmt)
 
-        # Get the index entry information
-        param = node.GetIndexEntry(k, withbase=True)
-        obj = param["object"]
+    # Get the index range title
+    index_range = maps.INDEX_RANGES.get_index_range(index)
 
-        # Get the header for the entry
-        line, fmt = GetPrintEntryHeader(
-            node, k, unused=unused, compact=compact, entry=param, raw=raw
-        )
-        if not line:
-            continue
+    # Omit printing sub index data if short is requested
+    if short:
+        return
 
-        # Print the parameter range header
-        ir = maps.INDEX_RANGES.get_index_range(k)
-        if index_range != ir:
-            index_range = ir
-            if not compact:
-                yield Fore.YELLOW + ir.description + Style.RESET_ALL
+    # Fetch the dictionary values and the parameters, if present
+    if index in node.Dictionary:
+        values = node.GetEntry(index, aslist=True, compute=not raw)
+    else:
+        values = ['__N/A__'] * len(obj["values"])
+    if index in node.ParamsDictionary:
+        params = node.GetParamsEntry(index, aslist=True)
+    else:
+        params = [maps.DEFAULT_PARAMS] * len(obj["values"])
+    # For mypy to ensure that values and entries are lists
+    assert isinstance(values, list) and isinstance(params, list)
 
-        # Yield the parameter header
-        yield line.format(**fmt)
+    infos = []
+    for i, (value, param) in enumerate(zip(values, params)):
 
-        # Omit printing sub index data if:
-        if short:
-            continue
+        # Prepare data for printing
+        info = node.GetSubentryInfos(index, i)
+        typename = node.GetTypeName(info['type'])
 
-        # Fetch the dictionary values and the parameters, if present
-        if k in node.Dictionary:
-            values = node.GetEntry(k, aslist=True, compute=not raw)
+        # Type specific formatting of the value
+        if value == "__N/A__":
+            t_value = f'{Fore.LIGHTBLACK_EX}N/A{Style.RESET_ALL}'
+        elif isinstance(value, str):
+            length = len(value)
+            if typename == 'DOMAIN':
+                value = value.encode('unicode_escape').decode()
+            t_value = '"' + value + f'"  ({length})'
+        elif i and index_range and index_range.name in ('rpdom', 'tpdom'):
+            # FIXME: In PDO mappings, the value is ints
+            assert isinstance(value, int)
+            mapindex, submapindex, _ = node.GetMapIndex(value)
+            try:
+                pdo = node.GetSubentryInfos(mapindex, submapindex)
+                t_v = f"{value:x}"
+                t_value = f"0x{t_v[0:4]}_{t_v[4:6]}_{t_v[6:]}  {Fore.LIGHTCYAN_EX}{pdo['name']}{Style.RESET_ALL}"
+            except ValueError:
+                suffix = '   ???' if value else ''
+                t_value = f"0x{value:x}{suffix}"
+        elif i and value and (index in (4120, ) or 'COB ID' in info["name"]):
+            t_value = f"0x{value:x}"
         else:
-            values = ['__N/A__'] * len(obj["values"])
-        if k in node.ParamsDictionary:
-            params = node.GetParamsEntry(k, aslist=True)
-        else:
-            params = [maps.DEFAULT_PARAMS] * len(obj["values"])
-        # For mypy to ensure that values and entries are lists
-        assert isinstance(values, list) and isinstance(params, list)
+            t_value = str(value)
 
-        infos = []
-        for i, (value, param) in enumerate(zip(values, params)):
+        # Add comment if present
+        t_comment = param['comment'] or ''
+        if t_comment:
+            t_comment = f"{Fore.LIGHTBLACK_EX}/* {t_comment} */{Style.RESET_ALL}"
 
-            # Prepare data for printing
-            info = node.GetSubentryInfos(k, i)
-            typename = node.GetTypeName(info['type'])
-
-            # Type specific formatting of the value
-            if value == "__N/A__":
-                t_value = f'{Fore.LIGHTBLACK_EX}N/A{Style.RESET_ALL}'
-            elif isinstance(value, str):
-                length = len(value)
-                if typename == 'DOMAIN':
-                    value = value.encode('unicode_escape').decode()
-                t_value = '"' + value + f'"  ({length})'
-            elif i and index_range and index_range.name in ('rpdom', 'tpdom'):
-                # FIXME: In PDO mappings, the value is ints
-                assert isinstance(value, int)
-                index, subindex, _ = node.GetMapIndex(value)
-                try:
-                    pdo = node.GetSubentryInfos(index, subindex)
-                    t_v = f"{value:x}"
-                    t_value = f"0x{t_v[0:4]}_{t_v[4:6]}_{t_v[6:]}  {Fore.LIGHTCYAN_EX}{pdo['name']}{Style.RESET_ALL}"
-                except ValueError:
-                    suffix = '   ???' if value else ''
-                    t_value = f"0x{value:x}{suffix}"
-            elif i and value and (k in (4120, ) or 'COB ID' in info["name"]):
-                t_value = f"0x{value:x}"
-            else:
-                t_value = str(value)
-
-            # Add comment if present
-            t_comment = param['comment'] or ''
-            if t_comment:
-                t_comment = f"{Fore.LIGHTBLACK_EX}/* {t_comment} */{Style.RESET_ALL}"
-
-            # Omit printing the first element unless specifically requested
-            if (not verbose and i == 0
-                and obj['struct'] & OD.MultipleSubindexes
-                and not t_comment
-            ):
-                continue
-
-            # Print formatting
-            infos.append({
-                'i': f"{Fore.GREEN}{i:02d}{Style.RESET_ALL}",
-                'access': info['access'],
-                'pdo': 'P' if info['pdo'] else ' ',
-                'name': info['name'],
-                'type': f"{Fore.LIGHTBLUE_EX}{typename}{Style.RESET_ALL}",
-                'value': t_value,
-                'comment': t_comment,
-                'pre': fmt['pre'],
-            })
-
-        # Must skip the next step if list is empty, as the first element is
-        # used for the header
-        if not infos:
+        # Omit printing the first element unless specifically requested
+        if (not verbose and i == 0
+            and obj['struct'] & OD.MultipleSubindexes
+            and not t_comment
+        ):
             continue
 
-        # Calculate the max width for each of the columns
-        w = {
-            col: max(len(str(row[col])) for row in infos) or ''
-            for col in infos[0]
-        }
+        # Print formatting
+        infos.append({
+            'i': f"{Fore.GREEN}{i:02d}{Style.RESET_ALL}",
+            'access': info['access'],
+            'pdo': 'P' if info['pdo'] else ' ',
+            'name': info['name'],
+            'type': f"{Fore.LIGHTBLUE_EX}{typename}{Style.RESET_ALL}",
+            'value': t_value,
+            'comment': t_comment,
+            'pre': fmt['pre'],
+        })
 
-        # Generate a format string based on the calculcated column widths
-        # Legitimate use of % as this is making a string containing format specifiers
-        fmt = "{pre}    {i:%ss}  {access:%ss}  {pdo:%ss}  {name:%ss}  {type:%ss}  {value:%ss}  {comment}" % (
-            w["i"],  w["access"],  w["pdo"],  w["name"],  w["type"],  w["value"]
-        )
+    # Must skip the next step if list is empty, as the first element is
+    # used for the header
+    if not infos:
+        return
 
-        # Print each line using the generated format string
-        for infoentry in infos:
-            yield fmt.format(**infoentry)
+    # Calculate the max width for each of the columns
+    w = {
+        col: max(len(str(row[col])) for row in infos) or ''
+        for col in infos[0]
+    }
 
-        if not compact and infos:
-            yield ""
+    # Generate a format string based on the calculcated column widths
+    # Legitimate use of % as this is making a string containing format specifiers
+    fmt = "{pre}    {i:%ss}  {access:%ss}  {pdo:%ss}  {name:%ss}  {type:%ss}  {value:%ss}  {comment}" % (
+        w["i"],  w["access"],  w["pdo"],  w["name"],  w["type"],  w["value"]
+    )
+
+    # Print each line using the generated format string
+    for infoentry in infos:
+        yield fmt.format(**infoentry)
+
+    if not compact and infos:
+        yield ""
 

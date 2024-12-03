@@ -30,7 +30,7 @@ from colorama import Fore, Style, init
 
 import objdictgen
 from objdictgen import jsonod
-from objdictgen.printing import GetPrintEntry
+from objdictgen.printing import format_node
 from objdictgen.typing import TDiffEntries, TDiffNodes, TPath
 
 T = TypeVar('T')
@@ -120,59 +120,6 @@ def print_diffs(diffs: TDiffNodes, show=False):
     for index in sorted(diffs):
         print(f"{Fore.GREEN}Index 0x{index:04x} ({index}){Style.RESET_ALL}")
         _printlines(diffs[index])
-
-
-def list_od(
-        od: "Node",
-        name: str,
-        opts: argparse.Namespace) -> Generator[str, None, None]:
-    """Generator for producing the output for odg list"""
-
-    # Get the indexes to print and determine the order
-    keys = od.GetAllIndices(sort=opts.sort)
-    if opts.index:
-        indexp = [jsonod.str_to_int(i) for i in opts.index]
-        keys = [k for k in keys if k in indexp]
-        missing = ", ".join((str(k) for k in indexp if k not in keys))
-        if missing:
-            raise ValueError(f"Unknown index {missing}")
-
-    profiles = []
-    if od.DS302:
-        loaded, equal = jsonod.compare_profile("DS-302", od.DS302)
-        if equal:
-            extra = "DS-302 (equal)"
-        elif loaded:
-            extra = "DS-302 (not equal)"
-        else:
-            extra = "DS-302 (not loaded)"
-        profiles.append(extra)
-
-    pname = od.ProfileName
-    if pname and pname != 'None':
-        loaded, equal = jsonod.compare_profile(pname, od.Profile, od.SpecificMenu)
-        if equal:
-            extra = f"{pname} (equal)"
-        elif loaded:
-            extra = f"{pname} (not equal)"
-        else:
-            extra = f"{pname} (not loaded)"
-        profiles.append(extra)
-
-    if not opts.compact:
-        yield f"{Fore.CYAN}File:{Style.RESET_ALL}      {name}"
-        yield f"{Fore.CYAN}Name:{Style.RESET_ALL}      {od.Name}  [{od.Type.upper()}]  {od.Description}"
-        tp = ", ".join(profiles) or None
-        yield f"{Fore.CYAN}Profiles:{Style.RESET_ALL}  {tp}"
-        if od.ID:
-            yield f"{Fore.CYAN}ID:{Style.RESET_ALL}        {od.ID}"
-        yield ""
-
-    # Print the parameters
-    yield from GetPrintEntry(
-        od, keys=keys, short=opts.short, compact=opts.compact, unused=opts.unused,
-        verbose=opts.all, raw=opts.raw
-    )
 
 
 @debug_wrapper()
@@ -265,6 +212,7 @@ def main(debugopts: DebugOpts, args: Sequence[str]|None = None):
     subp.add_argument('--raw', action="store_true", help="Show raw parameter values")
     subp.add_argument('--short', action="store_true", help="Do not list sub-index")
     subp.add_argument('--unused', action="store_true", help="Include unused profile parameters")
+    subp.add_argument('--internal', action="store_true", help="Show internal data")
     subp.add_argument('-D', '--debug', **opt_debug)  # type: ignore[arg-type]
     subp.add_argument('--no-color', action='store_true', help="Disable colored output")
 
@@ -400,7 +348,7 @@ def main(debugopts: DebugOpts, args: Sequence[str]|None = None):
                 print(Fore.LIGHTBLUE_EX + name + '\n' + "=" * len(name) + Style.RESET_ALL)
 
             od = open_od(name)
-            for line in list_od(od, name, opts):
+            for line in format_node(od, name, index=opts.index, opts=opts):
                 print(line)
 
 

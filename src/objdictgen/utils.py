@@ -1,8 +1,17 @@
 """ Utility functions for objdictgen """
+import os
 from typing import Mapping, Sequence, TypeVar, cast
+
+from colorama import Fore, Style
 
 T = TypeVar('T')
 M = TypeVar('M', bound=Mapping)
+
+try:
+    TERMINAL = os.get_terminal_size()
+    TERM_COLS = TERMINAL.columns
+except OSError:
+    TERM_COLS = 80
 
 
 def exc_amend(exc: Exception, text: str) -> Exception:

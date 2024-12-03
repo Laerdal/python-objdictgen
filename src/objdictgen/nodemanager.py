@@ -24,8 +24,6 @@ import re
 from pathlib import Path
 from typing import Container, Generic, TypeVar, cast
 
-import colorama
-
 from objdictgen import maps
 from objdictgen.maps import OD, ODMapping
 from objdictgen.node import Node
@@ -34,9 +32,6 @@ from objdictgen.typing import TODSubObj, TPath
 T = TypeVar("T")
 
 log = logging.getLogger('objdictgen')
-
-Fore = colorama.Fore
-Style = colorama.Style
 
 UNDO_BUFFER_LENGTH = 20
 
