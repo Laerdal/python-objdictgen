@@ -30,13 +30,11 @@ from colorama import Fore, Style, init
 
 import objdictgen
 from objdictgen import jsonod
+from objdictgen.node import Node
 from objdictgen.printing import format_node
 from objdictgen.typing import TDiffEntries, TDiffNodes, TPath
 
 T = TypeVar('T')
-
-if TYPE_CHECKING:
-    from objdictgen.node import Node
 
 # Initalize the python logger to simply output to stdout
 log = logging.getLogger()
@@ -79,7 +77,7 @@ def open_od(fname: TPath|str, validate=True, fix=False) -> "Node":
     """ Open and validate the OD file"""
 
     try:
-        od = objdictgen.LoadFile(fname)
+        od = Node.LoadFile(fname, validate=validate)
 
         if validate:
             od.Validate(fix=fix)
@@ -145,6 +143,7 @@ def main(debugopts: DebugOpts, args: Sequence[str]|None = None):
     # -- COMMON --
     opt_debug = dict(action='store_true', help="Debug: enable tracebacks on errors")
     opt_od = dict(metavar='od', default=None, help="Object dictionary")
+    opt_novalidate = dict(action='store_true', help="Don't validate input files")
 
     parser.add_argument('--version', action='version', version='%(prog)s ' + objdictgen.__version__)
     parser.add_argument('--no-color', action='store_true', help="Disable colored output")
@@ -175,8 +174,7 @@ def main(debugopts: DebugOpts, args: Sequence[str]|None = None):
                         help="Store in internal format (json only)")
     subp.add_argument('--no-sort', action="store_true",
                         help="Don't order of parameters in output OD")
-    subp.add_argument('--novalidate', action="store_true",
-                        help="Don't validate files before conversion")
+    subp.add_argument('--novalidate', **opt_novalidate)  # type: ignore[arg-type]
     subp.add_argument('-D', '--debug', **opt_debug)  # type: ignore[arg-type]
 
     # -- DIFF --
@@ -186,8 +184,7 @@ def main(debugopts: DebugOpts, args: Sequence[str]|None = None):
     subp.add_argument('od1', **opt_od)  # type: ignore[arg-type]
     subp.add_argument('od2', **opt_od)  # type: ignore[arg-type]
     subp.add_argument('--internal', action="store_true", help="Diff internal object")
-    subp.add_argument('--novalidate', action="store_true",
-                        help="Don't validate input files before diff")
+    subp.add_argument('--novalidate', **opt_novalidate)  # type: ignore[arg-type]
     subp.add_argument('--show', action="store_true", help="Show difference data")
     subp.add_argument('-D', '--debug', **opt_debug)  # type: ignore[arg-type]
     subp.add_argument('--no-color', action='store_true', help="Disable colored output")
@@ -214,6 +211,7 @@ def main(debugopts: DebugOpts, args: Sequence[str]|None = None):
     subp.add_argument('--unused', action="store_true", help="Include unused profile parameters")
     subp.add_argument('--internal', action="store_true", help="Show internal data")
     subp.add_argument('-D', '--debug', **opt_debug)  # type: ignore[arg-type]
+    subp.add_argument('--novalidate', **opt_novalidate)  # type: ignore[arg-type]
     subp.add_argument('--no-color', action='store_true', help="Disable colored output")
 
     # -- NETWORK --
@@ -270,7 +268,7 @@ def main(debugopts: DebugOpts, args: Sequence[str]|None = None):
     # -- CONVERT command --
     elif opts.command in ("convert", "conv", "gen"):
 
-        od = open_od(opts.od, fix=opts.fix)
+        od = open_od(opts.od, fix=opts.fix, validate=not opts.novalidate)
 
         to_remove: set[int] = set()
 
@@ -347,7 +345,7 @@ def main(debugopts: DebugOpts, args: Sequence[str]|None = None):
             if len(opts.od) > 1:
                 print(Fore.LIGHTBLUE_EX + name + '\n' + "=" * len(name) + Style.RESET_ALL)
 
-            od = open_od(name)
+            od = open_od(name, validate=not opts.novalidate)
             for line in format_node(od, name, index=opts.index, opts=opts):
                 print(line)
 

@@ -366,7 +366,7 @@ def generate_jsonc(node: "Node", compact=False, sort=False, internal=False,
     return text
 
 
-def generate_node(contents: str|TODJson) -> "Node":
+def generate_node(contents: str|TODJson, validate: bool = True) -> "Node":
     """ Import from JSON string or objects """
 
     if isinstance(contents, str):
@@ -394,14 +394,15 @@ def generate_node(contents: str|TODJson) -> "Node":
         with open(objdictgen.JSON_SCHEMA, 'r', encoding="utf-8") as f:
             SCHEMA = json.loads(remove_jsonc(f.read()))
 
-    if SCHEMA and jd.get('$version') == JSON_VERSION:
+    if validate and SCHEMA and jd.get('$version') == JSON_VERSION:
         jsonschema.validate(jd, schema=SCHEMA)
 
     # Get the object type mappings forwards (int to str) and backwards (str to int)
     objtypes_i2s, objtypes_s2i = get_object_types(dictionary=jd.get("dictionary", []))
 
     # Validate the input json against for the OD format specifics
-    validate_fromdict(jd, objtypes_i2s, objtypes_s2i)
+    if validate:
+        validate_fromdict(jd, objtypes_i2s, objtypes_s2i)
 
     return node_fromdict(jd, objtypes_s2i)
 
