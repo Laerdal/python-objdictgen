@@ -3,7 +3,12 @@
 
 name: Python package
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+    types: [opened, synchronize, reopened]
 
 jobs:
   build:
@@ -41,6 +46,6 @@ jobs:
     #     token: ${{ secrets.CODECOV_TOKEN }}
     #     slug: Laerdal/python-objdictgen
     - name: SonarCloud Scan
-      uses: SonarSource/sonarqube-scan-action@5.1.0
+      uses: SonarSource/sonarqube-scan-action@v5.1.0
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
