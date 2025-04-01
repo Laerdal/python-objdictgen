@@ -227,16 +227,22 @@ def format_od_object(
     if index in node.Dictionary:
         values = node.GetEntry(index, aslist=True, compute=not raw)
     else:
+        # Fill the values with N/A if the entry is not present
         values = ['__N/A__'] * len(obj["values"])
+
     if index in node.ParamsDictionary:
+        # FIXME: Is there a risk that this return less than the length of
+        #        dictionary values?
         params = node.GetParamsEntry(index, aslist=True)
     else:
-        params = [maps.DEFAULT_PARAMS] * len(obj["values"])
+        params = [maps.DEFAULT_PARAMS] * len(values)
+
     # For mypy to ensure that values and entries are lists
     assert isinstance(values, list) and isinstance(params, list)
 
     infos = []
-    for i, (value, param) in enumerate(zip(values, params)):
+    # The strict=True will capture if the values and params are not the same
+    for i, (value, param) in enumerate(zip(values, params, strict=True)):
 
         # Prepare data for printing
         info = node.GetSubentryInfos(index, i)
