@@ -91,6 +91,16 @@ def open_od(fname: TPath|str, validate=True, fix=False) -> Node:
 def main(debugopts: DebugOpts, args: Sequence[str]|None = None):
     """ Main command dispatcher """
 
+    # -- COMMON OPTIONS --
+    common_opts = argparse.ArgumentParser(add_help=False)
+    common_opts.add_argument('-D', '--debug', action='store_true',
+                               help="Debug: enable tracebacks on errors")
+    common_opts.add_argument('--no-color', action='store_true',
+                               help="Disable colored output")
+    common_opts.add_argument('--novalidate', action='store_true',
+                               help="Don't validate input files")
+
+    # -- MAIN PARSER --
     parser = argparse.ArgumentParser(
         prog=ODG_PROGRAM,
         description="""
@@ -98,38 +108,27 @@ def main(debugopts: DebugOpts, args: Sequence[str]|None = None):
             CAN festival library
         """,
         add_help=True,
+        parents=[common_opts],
     )
-
-    # FIXME: New options: new file, add parameter, delete parameter, copy parameter
-
+    parser.add_argument('--version', action='version', version='%(prog)s ' + __version__)
     subparser = parser.add_subparsers(title="command", dest="command", metavar="command", help="""
         Commands
     """, required=True)
 
-
-    # -- COMMON --
-    opt_debug = dict(action='store_true', help="Debug: enable tracebacks on errors")
-    opt_od = dict(metavar='od', default=None, help="Object dictionary")
-    opt_novalidate = dict(action='store_true', help="Don't validate input files")
-    opt_nocolor = dict(action='store_true', help="Disable colored output")
-
-    parser.add_argument('--version', action='version', version='%(prog)s ' + __version__)
-    parser.add_argument('--no-color', action='store_true', help="Disable colored output")
-    parser.add_argument('-D', '--debug', **opt_debug)  # type: ignore[arg-type]
+    # FIXME: New options: new file, add parameter, delete parameter, copy parameter
 
     # -- HELP --
-    subp = subparser.add_parser('help', help="""
+    subp = subparser.add_parser('help', parents=[common_opts], help="""
         Show help of all commands
     """)
     subp.add_argument('subcommand', nargs='?', help="Show help of specific command")
-    subp.add_argument('-D', '--debug', **opt_debug)  # type: ignore[arg-type]
 
     # -- CONVERT --
-    subp = subparser.add_parser('convert', help="""
+    subp = subparser.add_parser('convert', parents=[common_opts], help="""
         Generate
     """, aliases=['gen', 'conv'])
-    subp.add_argument('od', **opt_od)  # type: ignore[arg-type]
-    subp.add_argument('out', default=None, help="Output file")
+    subp.add_argument('od', help="Object dictionary")
+    subp.add_argument('out', help="Output file")
     subp.add_argument('-i', '--index', action="append",
                         help="OD Index to include. Filter out the rest.")
     subp.add_argument('-x', '--exclude', action="append", help="OD Index to exclude.")
@@ -142,32 +141,26 @@ def main(debugopts: DebugOpts, args: Sequence[str]|None = None):
                         help="Store in internal format (json only)")
     subp.add_argument('--no-sort', action="store_true",
                         help="Don't order of parameters in output OD")
-    subp.add_argument('--novalidate', **opt_novalidate)  # type: ignore[arg-type]
-    subp.add_argument('-D', '--debug', **opt_debug)  # type: ignore[arg-type]
 
     # -- DIFF --
-    subp = subparser.add_parser('diff', help="""
+    subp = subparser.add_parser('diff', parents=[common_opts], help="""
         Compare OD files
     """, aliases=['compare'])
-    subp.add_argument('od1', **opt_od)  # type: ignore[arg-type]
-    subp.add_argument('od2', **opt_od)  # type: ignore[arg-type]
+    subp.add_argument('od1', help="Object dictionary")
+    subp.add_argument('od2', help="Object dictionary")
     subp.add_argument('--show', action="store_true", help="Show difference data")
     subp.add_argument('--internal', action="store_true", help="Diff internal object")
     subp.add_argument('--data', action="store_true", help="Show difference as data")
     subp.add_argument('--raw', action="store_true", help="Show raw difference")
-    subp.add_argument('--no-color', **opt_nocolor)  # type: ignore[arg-type]
-    subp.add_argument('--novalidate', **opt_novalidate)  # type: ignore[arg-type]
-    subp.add_argument('-D', '--debug', **opt_debug)  # type: ignore[arg-type]
 
     # -- EDIT --
-    subp = subparser.add_parser('edit', help="""
+    subp = subparser.add_parser('edit', parents=[common_opts], help="""
         Edit OD (UI)
     """)
     subp.add_argument('od', nargs="*", help="Object dictionary")
-    subp.add_argument('-D', '--debug', **opt_debug)  # type: ignore[arg-type]
 
     # -- LIST --
-    subp = subparser.add_parser('list', help="""
+    subp = subparser.add_parser('list', parents=[common_opts], help="""
         List
     """, aliases=['cat'])
     subp.add_argument('od', nargs="+", help="Object dictionary")
@@ -180,29 +173,28 @@ def main(debugopts: DebugOpts, args: Sequence[str]|None = None):
     subp.add_argument('--unused', action="store_true", help="Include unused profile parameters")
     subp.add_argument('--internal', action="store_true", help="Show internal data")
     subp.add_argument('--minus', help="Show only parameters that are not in this OD")
-    subp.add_argument('--no-color', **opt_nocolor)  # type: ignore[arg-type]
-    subp.add_argument('--novalidate', **opt_novalidate)  # type: ignore[arg-type]
-    subp.add_argument('-D', '--debug', **opt_debug)  # type: ignore[arg-type]
 
     # -- NETWORK --
-    subp = subparser.add_parser('network', help="""
+    subp = subparser.add_parser('network', parents=[common_opts], help="""
         Edit network (UI)
     """)
     subp.add_argument('dir', nargs="?", help="Project directory")
-    subp.add_argument('-D', '--debug', **opt_debug)  # type: ignore[arg-type]
 
     # -- NODELIST --
-    subp = subparser.add_parser('nodelist', help="""
+    subp = subparser.add_parser('nodelist', parents=[common_opts], help="""
         List project nodes
     """)
     subp.add_argument('dir', nargs="?", help="Project directory")
-    subp.add_argument('-D', '--debug', **opt_debug)  # type: ignore[arg-type]
 
 
     # -- COMMON --
 
     # Parse command-line arguments
+    common = common_opts.parse_known_args(args)[0]
     opts = parser.parse_args(args)
+    # Copy any options prior to the command into the final opts
+    for k, v in vars(common).items():
+        setattr(opts, k, v)
 
     # Enable debug mode
     if opts.debug:
