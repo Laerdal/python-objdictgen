@@ -22,20 +22,12 @@ reading and writing OD files in `.json`/`.jsonc` format, in legacy XML `.od`
 and `.eds` files. It can generate c code for use with the canfestival library.
 
 
-## Install
+## Install 
+see confluence [page](https://laerdal.atlassian.net/wiki/spaces/LEVO/pages/1163330546/Setting+up+and+using+Python) on setting up python. The instructions below expect that you have set up the package repos.
 
-To install into a virtual environment `venv`. Check out this repo and go to
-the top in a command-prompt (here assuming Windows and git bash):
-
-    $ py -3 -mvenv venv
-    $ venv/Scripts/python -mpip install --upgrade pip setuptools   # Optional
-    $ venv/Scripts/pip install objdictgen[ui]    # [ui] will install GUI tools
-
-After this `venv/Scripts/odg.exe` (on Windows) will exist and can be called
-from anywhere to run it.
-
-The `[ui]` suffix to `pip install` will install the wx dependency needed
-for the UI `odg edit`. If no UI is needed, this suffix can be omitted.
+```
+uv tool install --python 3.11 objdictgen --with wxPython
+```
 
 ## `odg` command-line tool
 
@@ -60,6 +52,9 @@ The most useful commands are:
 
 The legacy commands `objdictgen` and `objdictedit` are no longer available. The
 commands are available under `odg gen` and `odg edit` respectively.
+
+
+
 
 
 ## JSON schema
