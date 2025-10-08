@@ -25,7 +25,7 @@ from pathlib import Path
 from typing import Any, Generator, Iterable, Iterator
 
 # The following import needs care when importing node
-from objdictgen import eds_utils, gen_cfile, jsonod, maps, nosis
+from objdictgen import eds_utils, gen_cfile, gen_cppfile, jsonod, maps, nosis
 from objdictgen.maps import OD, ODMapping, ODMappingList
 from objdictgen.typing import (NodeProtocol, TIndexEntry, TODObj, TODSubObj,
                                TODValue, TParamEntry, TPath, TProfileMenu)
@@ -228,6 +228,11 @@ class Node(NodeProtocol):
             log.debug("Writing C files '%s'", filepath)
             # Convert filepath to str because it might be used with legacy code
             gen_cfile.GenerateFile(str(filepath), self, no_can_festival)
+            return
+        
+        if filetype == 'cpp':
+            log.debug("Writing C++ files '%s'", filepath)
+            gen_cppfile.GenerateFile(str(filepath), self, no_can_festival)
             return
 
         raise ValueError("Unknown file suffix, unable to write file")
