@@ -141,6 +141,7 @@ def main(debugopts: DebugOpts, args: Sequence[str]|None = None):
                         help="Store in internal format (json only)")
     subp.add_argument('--no-sort', action="store_true",
                         help="Don't order of parameters in output OD")
+    subp.add_argument('--no-can-festival', action='store_true', help="Generate a second set of files, modified to not include from canfestival")
 
     # -- DIFF --
     subp = subparser.add_parser('diff', parents=[common_opts], help="""
@@ -263,7 +264,7 @@ def main(debugopts: DebugOpts, args: Sequence[str]|None = None):
         od.DumpFile(opts.out,
             filetype=opts.type,
             # These additional options are only used for JSON output
-            sort=not opts.no_sort, internal=opts.internal, validate=not opts.novalidate
+            sort=not opts.no_sort, internal=opts.internal, validate=not opts.novalidate, no_can_festival=opts.no_can_festival
         )
 
 

@@ -192,7 +192,7 @@ class Node(NodeProtocol):
         """ Import a new Node from a JSON string """
         return jsonod.generate_node(contents, validate=validate)
 
-    def DumpFile(self, filepath: TPath, filetype: str|None = "jsonc", **kwargs):
+    def DumpFile(self, filepath: TPath, filetype: str|None = "jsonc", no_can_festival=False, **kwargs):
         """ Save node into file """
 
         # Attempt to determine the filetype from the filepath
@@ -227,7 +227,7 @@ class Node(NodeProtocol):
         if filetype == 'c':
             log.debug("Writing C files '%s'", filepath)
             # Convert filepath to str because it might be used with legacy code
-            gen_cfile.GenerateFile(str(filepath), self)
+            gen_cfile.GenerateFile(str(filepath), self, no_can_festival)
             return
 
         raise ValueError("Unknown file suffix, unable to write file")

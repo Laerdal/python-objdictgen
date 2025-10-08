@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import re
 from collections import UserDict
+import copy
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -105,6 +106,11 @@ class CFileContext(UserDict):
     def __getattr__(self, name: str) -> Any:
         """Look up unknown attributes in the data dictionary."""
         return self.data[name]
+    
+    def __copy__(self):
+        newInstance = CFileContext(self.data.copy())
+        newInstance.internal_types = self.internal_types.copy()
+        return newInstance
 
     # FIXME: Delete this method when everything is converted to f-strings
     def text(self, s: str = "") -> Text:
@@ -131,9 +137,9 @@ class CFileContext(UserDict):
             raise ValueError(f"!!! '{typename}' isn't a valid type for CanFestival.")
 
         if result[1] == "UNSIGNED" and int(result[2]) in [i * 8 for i in range(1, 9)]:
-            typeinfos = TypeInfos(f"UNS{result[2]}", None, f"uint{result[2]}", True)
+            typeinfos = TypeInfos(f"UNS{result[2]}", None, f"uint{result[2]}_t", True)
         elif result[1] == "INTEGER" and int(result[2]) in [i * 8 for i in range(1, 9)]:
-            typeinfos = TypeInfos(f"INTEGER{result[2]}", None, f"int{result[2]}", False)
+            typeinfos = TypeInfos(f"INTEGER{result[2]}", None, f"int{result[2]}_t", False)
         elif result[1] == "REAL" and int(result[2]) in (32, 64):
             typeinfos = TypeInfos(f"{result[1]}{result[2]}", None, f"real{result[2]}", False)
         elif result[1] in ["VISIBLE_STRING", "OCTET_STRING"]:
@@ -149,7 +155,7 @@ class CFileContext(UserDict):
                 size = max(size, len(item))
             typeinfos = TypeInfos("UNS8", size, "domain", False)
         elif result[1] == "BOOLEAN":
-            typeinfos = TypeInfos("UNS8", None, "boolean", False)
+            typeinfos = TypeInfos("UNS8", None, "bool", False)
         else:
             # FIXME: The !!! is for special UI handling
             raise ValueError(f"!!! '{typename}' isn't a valid type for CanFestival.")
@@ -184,8 +190,19 @@ def compute_value(value: TODValue, ctype: str) -> tuple[str, str]:
         return f"-0x{-value:X}", f"\t/* {value} */"
     return f"0x{value:X}", f"\t/* {value} */"
 
+def convert_from_canopen_to_c_type(type):
+    # Used to convert types when ctype is an illegal value (e.g. valueRange_X)
+    type_map = {}
+    type_map["UNS8"] = "uint8_t"
 
-def generate_file_content(node: NodeProtocol, headerfile: str, pointers_dict=None) -> tuple[str, str, str]:
+    try:
+        value = type_map[type]
+        return value
+    except KeyError:
+        print("KeyError:", type, "does not exist in the dictionary.")
+
+
+def generate_file_content(node: NodeProtocol, headerfile: str, no_can_festival: bool, pointers_dict=None) -> tuple[str, str, str, str, str]:
     """
     pointers_dict = {(Idx,Sidx):"VariableName",...}
     """
@@ -277,6 +294,8 @@ def generate_file_content(node: NodeProtocol, headerfile: str, pointers_dict=Non
     mappedVariableContent = ctx.text()
     pointedVariableContent = ctx.text()
     strDeclareHeader = ctx.text()
+    noCanFestivalDeclarations = ctx.text()
+    noCanFestivalDefinitions = ctx.text()
     indexContents: dict[int, str|Text] = {}
     headerObjDefinitionContent = ctx.text()
     for index in listindex:
@@ -322,6 +341,20 @@ def generate_file_content(node: NodeProtocol, headerfile: str, pointers_dict=Non
                     "{subIndexType} {name}{suffix} = {value};"
                     "\t\t/* Mapped at index 0x{index:04X}, subindex 0x00 */\n"
                 )
+                if "valueRange_" in typeinfos.ctype:
+                    ctx["subIndexType"] = convert_from_canopen_to_c_type(typeinfos.type)
+                elif typeinfos.ctype == "visible_string":
+                    ctx["subIndexType"] = "const char*"
+                else:
+                    ctx["subIndexType"] = typeinfos.ctype
+                noCanFestivalDeclarations %= (
+                    "extern {subIndexType} {name}{suffix};"
+                    "\t\t/* Mapped at index 0x{index:04X}, subindex 0x00*/\n"
+                )
+                noCanFestivalDefinitions %= (
+                    "{subIndexType} {name}{suffix} = {value};"
+                    "\t\t/* Mapped at index 0x{index:04X}, subindex 0x00 */\n"
+                )
             else:
                 strindex %= (
                     "                    "
@@ -364,6 +397,22 @@ def generate_file_content(node: NodeProtocol, headerfile: str, pointers_dict=Non
                         "{subIndexType} {name}[]{suffix} =\t\t"
                         "/* Mapped at index 0x{index:04X}, subindex 0x01 - 0x{length:02X} */\n  {{\n"
                     )
+                    if "valueRange_" in typeinfos.ctype:
+                        ctx["subIndexType"] = convert_from_canopen_to_c_type(typeinfos.type)
+                    elif typeinfos.ctype == "visible_string":
+                        ctx["subIndexType"] = "const char*"
+                    else:
+                        ctx["subIndexType"] = typeinfos.ctype
+                    noCanFestivalDeclarations %= (
+                        "extern {subIndexType} {name}{suffix};"
+                        "\t\t/* Mapped at index 0x{index:04X}, subindex 0x00*/\n"
+                    )
+                    noCanFestivalDefinitions %= (
+                        "{subIndexType} {name}{suffix} = {value};"
+                        "\t\t/* Mapped at index 0x{index:04X}, subindex 0x00 */\n"
+                    )
+                    ctx["subIndexType"] = typeinfos.type
+
                     for subindex, value in enumerate(values):
                         sep = ","
                         if subindex > 0:
@@ -421,6 +470,20 @@ def generate_file_content(node: NodeProtocol, headerfile: str, pointers_dict=Non
                                 "/* Mapped at index 0x{index:04X}, subindex 0x{subindex:02X} */\n"
                             )
                             mappedVariableContent %= (
+                                "{subIndexType} {parent}_{name}{suffix} = {value};\t\t"
+                                "/* Mapped at index 0x{index:04X}, subindex 0x{subindex:02X} */\n"
+                            )
+                            if "valueRange_" in typeinfos.ctype:
+                                ctx["subIndexType"] = convert_from_canopen_to_c_type(typeinfos.type)
+                            elif typeinfos.ctype == "visible_string":
+                                ctx["subIndexType"] = "const char*"
+                            else:
+                                ctx["subIndexType"] = typeinfos.ctype
+                            noCanFestivalDeclarations %= (
+                                "extern {subIndexType} {name}{suffix};"
+                                "\t\t/* Mapped at index 0x{index:04X}, subindex 0x00*/\n"
+                            )
+                            noCanFestivalDefinitions %= (
                                 "{subIndexType} {parent}_{name}{suffix} = {value};\t\t"
                                 "/* Mapped at index 0x{index:04X}, subindex 0x{subindex:02X} */\n"
                             )
@@ -667,6 +730,17 @@ def generate_file_content(node: NodeProtocol, headerfile: str, pointers_dict=Non
     #                        Write File Content
     # --------------------------------------------------------------------------
 
+    noCanFestivalFileContent = ctx.text(FILE_HEADER)
+    noCanFestivalFileContent += f"""
+#include "{headerfile.replace(".", "_no_can_festival.")}"
+"""
+    noCanFestivalFileContent += """
+/**************************************************************************/
+/* Declaration of mapped variables                                        */
+/**************************************************************************/
+"""
+    noCanFestivalFileContent += noCanFestivalDefinitions
+
     fileContent = ctx.text(FILE_HEADER)
     fileContent += f"""
 #include "{headerfile}"
@@ -766,6 +840,19 @@ CO_Data {NodeName}_Data = CANOPEN_NODE_DATA_INITIALIZER({NodeName});
     #                      Write Header File Content
     # --------------------------------------------------------------------------
 
+    ctx["file_include_name"] = headerfile.replace(".", "_no_can_festival.").replace(".", "_").upper()
+    noCanFestivalHeaderContent = ctx.text(FILE_HEADER)
+    noCanFestivalHeaderContent %= """
+#ifndef {file_include_name}
+#define {file_include_name}
+
+#include <cstdint>
+
+"""
+
+    noCanFestivalHeaderContent += noCanFestivalDeclarations
+    noCanFestivalHeaderContent %= "\n#endif // {file_include_name}\n"
+
     ctx["file_include_name"] = headerfile.replace(".", "_").upper()
     headerFileContent = ctx.text(FILE_HEADER)
     headerFileContent %= """
@@ -807,29 +894,41 @@ extern CO_Data {NodeName}_Data;
 #endif /* {file_include_objdef_name} */
 """
 
-    return str(fileContent), str(headerFileContent), str(headerObjectDefinitionContent)
+    return str(fileContent), str(headerFileContent), str(headerObjectDefinitionContent), str(noCanFestivalFileContent), str(noCanFestivalHeaderContent)
 
 
 # ------------------------------------------------------------------------------
 #                             Main Function
 # ------------------------------------------------------------------------------
 
-def GenerateFile(filepath: TPath, node: NodeProtocol, pointers_dict=None):
+def GenerateFile(filepath: TPath, node: NodeProtocol, no_can_festival, pointers_dict=None):
     """Main function to generate the C file from a object dictionary node."""
     filepath = Path(filepath)
     headerpath = filepath.with_suffix(".h")
     headerdefspath = Path(headerpath.parent / (headerpath.stem + "_objectdefines.h"))
-    content, header, header_defs = generate_file_content(
-        node, headerpath.name, pointers_dict,
+    content, header, header_defs, noCanFestivalContent, noCanFestivalHeader = generate_file_content(
+        node, headerpath.name, no_can_festival, pointers_dict,
     )
 
     # Write main .c contents
     with open(filepath, "w", encoding="utf-8") as f:
         f.write(content)
 
+    # Write main .c contents with canfestival types and includes omitted
+    if no_can_festival:
+        filepath = filepath.with_name(f"{filepath.stem}_no_can_festival{filepath.suffix}")
+        with open(filepath, "w", encoding="utf-8") as f:
+            f.write(noCanFestivalContent)
+
     # Write header file
     with open(headerpath, "w", encoding="utf-8") as f:
         f.write(header)
+
+    # Write header file with canfestival types and includes omitted
+    if no_can_festival:
+        headerpath = headerpath.with_name(f"{headerpath.stem}_no_can_festival{headerpath.suffix}")
+        with open(headerpath, "w", encoding="utf-8") as f:
+            f.write(noCanFestivalHeader)
 
     # Write object definitions header
     with open(headerdefspath, "w", encoding="utf-8") as f:
