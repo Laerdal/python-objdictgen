@@ -441,7 +441,9 @@ def generate_file_content(node: NodeProtocol, headerfile: str, no_can_festival: 
                                     f"index: 0x{index:04X}, subindex: 0x{subindex:02X}"
                                 )
                             mappedVariableContent += f"    {value}{sep}{comment}\n"
+                            noCanFestivalDefinitions += f"    {value}{sep}{comment}\n"
                     mappedVariableContent += "  };\n"
+                    noCanFestivalDefinitions += "  };\n"
                 else:
                     strindex %= (
                         "                    "
