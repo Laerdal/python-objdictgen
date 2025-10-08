@@ -52,8 +52,7 @@ class TypeInfos:
     """Type infos for a type."""
     type: str
     size: int|None
-    ctype: str # holds raw c type (e.g. uint8_t, bool, const char*)
-    cftype: str # hols canfestival type (e.g. uint8, boolean, visible_string)
+    ctype: str
     is_unsigned: bool
 
 
@@ -138,31 +137,31 @@ class CFileContext(UserDict):
             raise ValueError(f"!!! '{typename}' isn't a valid type for CanFestival.")
 
         if result[1] == "UNSIGNED" and int(result[2]) in [i * 8 for i in range(1, 9)]:
-            typeinfos = TypeInfos(f"UNS{result[2]}", None, f"uint{result[2]}_t", f"uint{result[2]}", True)
+            typeinfos = TypeInfos(f"UNS{result[2]}", None, f"uint{result[2]}_t", True)
         elif result[1] == "INTEGER" and int(result[2]) in [i * 8 for i in range(1, 9)]:
-            typeinfos = TypeInfos(f"INTEGER{result[2]}", None, f"int{result[2]}_t", f"int{result[2]}", False)
+            typeinfos = TypeInfos(f"INTEGER{result[2]}", None, f"int{result[2]}_t", False)
         elif result[1] == "REAL" and int(result[2]) in (32, 64):
-            typeinfos = TypeInfos(f"{result[1]}{result[2]}", None, "float" if result[2] == 32 else "double", f"real{result[2]}", False)
+            typeinfos = TypeInfos(f"{result[1]}{result[2]}", None, f"real{result[2]}", False)
         elif result[1] in ["VISIBLE_STRING", "OCTET_STRING"]:
             size = self.default_string_size
             for item in items:
                 size = max(size, len(item))
             if result[2]:
                 size = max(size, int(result[2]))
-            typeinfos = TypeInfos("UNS8", size, "const char*", "visible_string", False)
+            typeinfos = TypeInfos("UNS8", size, "visible_string", False)
         elif result[1] == "DOMAIN":
             size = 0
             for item in items:
                 size = max(size, len(item))
-            typeinfos = TypeInfos("UNS8", size, "domain", "domain", False)
+            typeinfos = TypeInfos("UNS8", size, "domain", False)
         elif result[1] == "BOOLEAN":
-            typeinfos = TypeInfos("UNS8", None, "bool", "boolean", False)
+            typeinfos = TypeInfos("UNS8", None, "bool", False)
         else:
             # FIXME: The !!! is for special UI handling
             raise ValueError(f"!!! '{typename}' isn't a valid type for CanFestival.")
 
         # Cache the typeinfos
-        if typeinfos.cftype not in ["visible_string", "domain"]:
+        if typeinfos.ctype not in ["visible_string", "domain"]:
             self.internal_types[typename] = typeinfos
         return typeinfos
 
@@ -185,9 +184,7 @@ def compute_value(value: TODValue, ctype: str) -> tuple[str, str]:
     if ctype.startswith("real"):
         return str(value), ""
     # FIXME: Assume value is an integer
-    if isinstance(value, str):
-        print(value)
-    assert not isinstance(value, str), "value is a str"
+    assert not isinstance(value, str)
     # Make sure to handle negative numbers correctly
     if value < 0:
         return f"-0x{-value:X}", f"\t/* {value} */"
@@ -247,7 +244,7 @@ def generate_file_content(node: NodeProtocol, headerfile: str, no_can_festival: 
       if (*(UNS8*)value != (UNS8)0) return OD_VALUE_RANGE_EXCEEDED;
       break;
 """)
-    ctx.internal_types["valueRange_EMC"] = TypeInfos("UNS8", 0, "valueRange_EMC", "valueRange_EMC", True)
+    ctx.internal_types["valueRange_EMC"] = TypeInfos("UNS8", 0, "valueRange_EMC", True)
     num = 0
     for index in rangelist:
         rangename = node.GetEntryName(index)
@@ -261,7 +258,7 @@ def generate_file_content(node: NodeProtocol, headerfile: str, no_can_festival: 
             typename = node.GetTypeName(typeindex)
             typeinfos = ctx.get_valid_type_infos(typename)
             ctx.internal_types[rangename] = TypeInfos(
-                typeinfos.type, typeinfos.size, typeinfos.ctype, f"valueRange_{num}", typeinfos.is_unsigned
+                typeinfos.type, typeinfos.size, f"valueRange_{num}", typeinfos.is_unsigned
             )
             minvalue = node.GetEntry(index, 2)
             maxvalue = node.GetEntry(index, 3)
@@ -333,7 +330,7 @@ def generate_file_content(node: NodeProtocol, headerfile: str, no_can_festival: 
                     ctx["suffix"] = f"[{typeinfos.size}]"
             else:
                 ctx["suffix"] = ""
-            ctx["value"], ctx["comment"] = compute_value(values, typeinfos.cftype)
+            ctx["value"], ctx["comment"] = compute_value(values, typeinfos.ctype)
             if index in variablelist:
                 ctx["name"] = RE_STARTS_WITH_DIGIT.sub(r'_\1', format_name(subentry_infos["name"]))
                 strDeclareHeader %= (
@@ -344,7 +341,12 @@ def generate_file_content(node: NodeProtocol, headerfile: str, no_can_festival: 
                     "{subIndexType} {name}{suffix} = {value};"
                     "\t\t/* Mapped at index 0x{index:04X}, subindex 0x00 */\n"
                 )
-                ctx["subIndexType"] = typeinfos.ctype
+                if "valueRange_" in typeinfos.ctype:
+                    ctx["subIndexType"] = convert_from_canopen_to_c_type(typeinfos.type)
+                elif typeinfos.ctype == "visible_string":
+                    ctx["subIndexType"] = "const char*"
+                else:
+                    ctx["subIndexType"] = typeinfos.ctype
                 noCanFestivalDeclarations %= (
                     "extern {subIndexType} {name}{suffix};"
                     "\t\t/* Mapped at index 0x{index:04X}, subindex 0x00*/\n"
@@ -395,7 +397,12 @@ def generate_file_content(node: NodeProtocol, headerfile: str, no_can_festival: 
                         "{subIndexType} {name}[]{suffix} =\t\t"
                         "/* Mapped at index 0x{index:04X}, subindex 0x01 - 0x{length:02X} */\n  {{\n"
                     )
-                    ctx["subIndexType"] = typeinfos.ctype
+                    if "valueRange_" in typeinfos.ctype:
+                        ctx["subIndexType"] = convert_from_canopen_to_c_type(typeinfos.type)
+                    elif typeinfos.ctype == "visible_string":
+                        ctx["subIndexType"] = "const char*"
+                    else:
+                        ctx["subIndexType"] = typeinfos.ctype
                     noCanFestivalDeclarations %= (
                         "extern {subIndexType} {name}{suffix};"
                         "\t\t/* Mapped at index 0x{index:04X}, subindex 0x00*/\n"
@@ -411,7 +418,7 @@ def generate_file_content(node: NodeProtocol, headerfile: str, no_can_festival: 
                         if subindex > 0:
                             if subindex == len(values) - 1:
                                 sep = ""
-                            value, comment = compute_value(value, typeinfos.cftype)
+                            value, comment = compute_value(value, typeinfos.ctype)
                             if len(value) == 2 and typename == "DOMAIN":
                                 raise ValueError(
                                     "Domain variable not initialized, "
@@ -430,7 +437,7 @@ def generate_file_content(node: NodeProtocol, headerfile: str, no_can_festival: 
                         if subindex > 0:
                             if subindex == len(values) - 1:
                                 sep = ""
-                            value, comment = compute_value(value, typeinfos.cftype)
+                            value, comment = compute_value(value, typeinfos.ctype)
                             strindex += f"                      {value}{sep}{comment}\n"
                     strindex += "                    };\n"
             else:
@@ -438,8 +445,6 @@ def generate_file_content(node: NodeProtocol, headerfile: str, no_can_festival: 
                 ctx["parent"] = RE_STARTS_WITH_DIGIT.sub(r'_\1', format_name(entry_infos["name"]))
                 # Entry type is RECORD
                 for subindex, value in enumerate(values):
-                    if value == "":
-                        continue
                     ctx["subindex"] = subindex
                     # FIXME: Are there any point in calling this for subindex 0?
                     params_infos = node.GetParamsEntry(index, subindex)
@@ -457,7 +462,7 @@ def generate_file_content(node: NodeProtocol, headerfile: str, no_can_festival: 
                                 ctx["suffix"] = f"[{typeinfos.size}]"
                         else:
                             ctx["suffix"] = ""
-                        ctx["value"], ctx["comment"] = compute_value(value, typeinfos.cftype)
+                        ctx["value"], ctx["comment"] = compute_value(value, typeinfos.ctype)
                         ctx["name"] = format_name(subentry_infos["name"])
                         if index in variablelist:
                             strDeclareHeader %= (
@@ -468,7 +473,12 @@ def generate_file_content(node: NodeProtocol, headerfile: str, no_can_festival: 
                                 "{subIndexType} {parent}_{name}{suffix} = {value};\t\t"
                                 "/* Mapped at index 0x{index:04X}, subindex 0x{subindex:02X} */\n"
                             )
-                            ctx["subIndexType"] = typeinfos.ctype
+                            if "valueRange_" in typeinfos.ctype:
+                                ctx["subIndexType"] = convert_from_canopen_to_c_type(typeinfos.type)
+                            elif typeinfos.ctype == "visible_string":
+                                ctx["subIndexType"] = "const char*"
+                            else:
+                                ctx["subIndexType"] = typeinfos.ctype
                             noCanFestivalDeclarations %= (
                                 "extern {subIndexType} {name}{suffix};"
                                 "\t\t/* Mapped at index 0x{index:04X}, subindex 0x00*/\n"
@@ -533,7 +543,7 @@ def generate_file_content(node: NodeProtocol, headerfile: str, no_can_festival: 
                         f"{ctx['NodeName']}_obj{ctx['index']:04X}_"
                         f"{format_name(subentry_infos['name'])}"
                     )
-            if typeinfos.cftype == "visible_string":
+            if typeinfos.ctype == "visible_string":
                 if params_infos["buffer_size"]:
                     sizeof = str(params_infos["buffer_size"])
                 else:
@@ -541,7 +551,7 @@ def generate_file_content(node: NodeProtocol, headerfile: str, no_can_festival: 
                     # FIXME: It should be a str type with visible_string
                     assert isinstance(value, str)
                     sizeof = str(max(len(value), ctx.default_string_size))
-            elif typeinfos.cftype == "domain":
+            elif typeinfos.ctype == "domain":
                 value = values[subindex]
                 # FIXME: Value should be string
                 assert isinstance(value, str)
@@ -559,7 +569,7 @@ def generate_file_content(node: NodeProtocol, headerfile: str, no_can_festival: 
             strindex += (
                 f"                       {{ "
                 f"{subentry_infos['access'].upper()}{save}, "
-                f"{typeinfos.cftype}, {sizeof}, (void*)&{start_digit}, NULL "
+                f"{typeinfos.ctype}, {sizeof}, (void*)&{start_digit}, NULL "
                 f"}}{sep}\n"
             )
             pointer_name = pointers_dict.get((index, subindex), None)
