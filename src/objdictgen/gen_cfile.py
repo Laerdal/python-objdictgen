@@ -137,9 +137,9 @@ class CFileContext(UserDict):
             raise ValueError(f"!!! '{typename}' isn't a valid type for CanFestival.")
 
         if result[1] == "UNSIGNED" and int(result[2]) in [i * 8 for i in range(1, 9)]:
-            typeinfos = TypeInfos(f"UNS{result[2]}", None, f"uint{result[2]}_t", True)
+            typeinfos = TypeInfos(f"UNS{result[2]}", None, f"uint{result[2]}", True)
         elif result[1] == "INTEGER" and int(result[2]) in [i * 8 for i in range(1, 9)]:
-            typeinfos = TypeInfos(f"INTEGER{result[2]}", None, f"int{result[2]}_t", False)
+            typeinfos = TypeInfos(f"INTEGER{result[2]}", None, f"int{result[2]}", False)
         elif result[1] == "REAL" and int(result[2]) in (32, 64):
             typeinfos = TypeInfos(f"{result[1]}{result[2]}", None, f"real{result[2]}", False)
         elif result[1] in ["VISIBLE_STRING", "OCTET_STRING"]:
@@ -155,7 +155,7 @@ class CFileContext(UserDict):
                 size = max(size, len(item))
             typeinfos = TypeInfos("UNS8", size, "domain", False)
         elif result[1] == "BOOLEAN":
-            typeinfos = TypeInfos("UNS8", None, "bool", False)
+            typeinfos = TypeInfos("UNS8", None, "boolean", False)
         else:
             # FIXME: The !!! is for special UI handling
             raise ValueError(f"!!! '{typename}' isn't a valid type for CanFestival.")
@@ -193,7 +193,23 @@ def compute_value(value: TODValue, ctype: str) -> tuple[str, str]:
 def convert_from_canopen_to_c_type(type):
     # Used to convert types when ctype is an illegal value (e.g. valueRange_X)
     type_map = {}
-    type_map["UNS8"] = "uint8_t"
+    type_map["boolean"] = "bool"
+    type_map["int8"] = "int8_t"
+    type_map["int16"] = "int16_t"
+    type_map["int32"] = "int32_t"
+    type_map["int40"] = "int64_t"
+    type_map["int48"] = "int64_t"
+    type_map["int56"] = "int64_t"
+    type_map["int64"] = "int64_t"
+    type_map["uint8"] = "uint8_t"
+    type_map["uint16"] = "uint16_t"
+    type_map["uint32"] = "uint32_t"
+    type_map["uint40"] = "uint64_t"
+    type_map["uint48"] = "uint64_t"
+    type_map["uint56"] = "uint64_t"
+    type_map["uint64"] = "uint64_t"
+    type_map["real32"] = "float"
+    type_map["real64"] = "double"
 
     try:
         value = type_map[type]
@@ -342,11 +358,11 @@ def generate_file_content(node: NodeProtocol, headerfile: str, no_can_festival: 
                     "\t\t/* Mapped at index 0x{index:04X}, subindex 0x00 */\n"
                 )
                 if "valueRange_" in typeinfos.ctype:
-                    ctx["subIndexType"] = convert_from_canopen_to_c_type(typeinfos.type)
+                    ctx["subIndexType"] = "uint8_t"
                 elif typeinfos.ctype == "visible_string":
                     ctx["subIndexType"] = "const char*"
                 else:
-                    ctx["subIndexType"] = typeinfos.ctype
+                    ctx["subIndexType"] = convert_from_canopen_to_c_type(typeinfos.ctype)
                 noCanFestivalDeclarations %= (
                     "extern {subIndexType} {name}{suffix};"
                     "\t\t/* Mapped at index 0x{index:04X}, subindex 0x00*/\n"
@@ -398,11 +414,11 @@ def generate_file_content(node: NodeProtocol, headerfile: str, no_can_festival: 
                         "/* Mapped at index 0x{index:04X}, subindex 0x01 - 0x{length:02X} */\n  {{\n"
                     )
                     if "valueRange_" in typeinfos.ctype:
-                        ctx["subIndexType"] = convert_from_canopen_to_c_type(typeinfos.type)
+                        ctx["subIndexType"] = "uint8_t"
                     elif typeinfos.ctype == "visible_string":
                         ctx["subIndexType"] = "const char*"
                     else:
-                        ctx["subIndexType"] = typeinfos.ctype
+                        ctx["subIndexType"] = convert_from_canopen_to_c_type(typeinfos.ctype)
                     noCanFestivalDeclarations %= (
                         "extern {subIndexType} {name}{suffix};"
                         "\t\t/* Mapped at index 0x{index:04X}, subindex 0x00*/\n"
@@ -474,13 +490,13 @@ def generate_file_content(node: NodeProtocol, headerfile: str, no_can_festival: 
                                 "/* Mapped at index 0x{index:04X}, subindex 0x{subindex:02X} */\n"
                             )
                             if "valueRange_" in typeinfos.ctype:
-                                ctx["subIndexType"] = convert_from_canopen_to_c_type(typeinfos.type)
+                                ctx["subIndexType"] = "uint8_t"
                             elif typeinfos.ctype == "visible_string":
                                 ctx["subIndexType"] = "const char*"
                             else:
-                                ctx["subIndexType"] = typeinfos.ctype
+                                ctx["subIndexType"] = convert_from_canopen_to_c_type(typeinfos.ctype)
                             noCanFestivalDeclarations %= (
-                                "extern {subIndexType} {name}{suffix};"
+                                "extern {subIndexType} {parent}_{name}{suffix};"
                                 "\t\t/* Mapped at index 0x{index:04X}, subindex 0x00*/\n"
                             )
                             noCanFestivalDefinitions %= (
