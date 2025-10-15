@@ -81,6 +81,8 @@ def generate_file_content(node: NodeProtocol, headerfile: str, no_can_festival: 
     pointedVariableContent = ctx.text()
     strDeclareHeader = ctx.text()
     headerObjDefinitionContent = ctx.text()
+    headerObjDefinitionContent += "\n#include <cstdint>\n"
+    headerObjDefinitionContent += "#include <tuple>\n"
     headerObjDefinitionContent %= """
 struct {NodeName} \n{{
 """
@@ -221,15 +223,13 @@ struct {NodeName} \n{{
                                 ctx["subIndexType"] = convert_from_canopen_to_c_type(typeinfos.ctype)
 
         # write index define
-        print(ctx['EntryName'].replace(' ', ''))
-        #headerObjDefinitionContent += (
-        #    f"\n#define {RE_NOTW.sub('_', ctx['NodeName'])}"
-        #    f"_{RE_NOTW.sub('_', ctx['EntryName'])}_Idx {ctx['index']:#04x}\n"
-        #)
+        entryName = f"{RE_NOTW.sub('', ctx['EntryName']).strip()}"
+        shortEntryName = entryName.replace(ctx['EntryName'], '')
         headerObjDefinitionContent += (
-            f"\t struct {ctx['EntryName'].replace(' ', '')}_Idx {ctx['index']:#04x}\n"
+            f"\tstruct {entryName}\n\t{{\n"
+            f"\t\tstatic constexpr uint32_t {'' if shortEntryName == entryName else shortEntryName}Index {{{ctx['index']:#04x}}};\n"
+            f"\t\tstatic constexpr char* Name = \"{entryName}Index\";\n\n"
         )
-
 
         # write subindex defines
         generateSubIndexArrayComment = True
@@ -238,27 +238,49 @@ struct {NodeName} \n{{
             params_infos = node.GetParamsEntry(index, subindex)
             if not entry_infos["struct"] & OD.IdenticalSubindexes:
                 generateSubIndexArrayComment = True
+                #headerObjDefinitionContent += (
+                #    f"#define {RE_NOTW.sub('_', ctx['NodeName'])}"
+                #    f"_{RE_NOTW.sub('_', ctx['EntryName'])}"
+                #    f"_{RE_NOTW.sub('_', subentry_infos['name'])}"
+                #    f"_sIdx {subindex:#04x}"
+                #)
+                subindexName = RE_NOTW.sub('', subentry_infos['name'])
                 headerObjDefinitionContent += (
-                    f"#define {RE_NOTW.sub('_', ctx['NodeName'])}"
-                    f"_{RE_NOTW.sub('_', ctx['EntryName'])}"
-                    f"_{RE_NOTW.sub('_', subentry_infos['name'])}"
-                    f"_sIdx {subindex:#04x}"
+                    f"\t\tstruct {subindexName}Subindex\n"
+                    f"\t\t{{\n"
+                    f"\t\t\tstatic constexpr auto get()\n\t\t\t{{\n"
+                    f"\t\t\t\treturn std::make_tuple(Index, Value, OdName, Name, sIdxName);\n\t\t\t}}\n"
+                    f"\t\t\tstatic constexpr uint32_t Value {{{subindex:#04x}}};\n"
+                    f"\t\t\tstatic constexpr char* sIdxName = \"{subindexName}Subindex\";"
+                    f"\n\t\t}};"
                 )
                 if params_infos["comment"]:
-                    headerObjDefinitionContent += "    /* " + params_infos["comment"] + " */\n"
+                    headerObjDefinitionContent += " /*" + params_infos["comment"] + "*/\n"
                 else:
                     headerObjDefinitionContent += "\n"
             elif generateSubIndexArrayComment:
                 generateSubIndexArrayComment = False
                 # Generate Number_of_Entries_sIdx define and write comment
                 # about not generating defines for the rest of the array objects
+                #headerObjDefinitionContent += (
+                #    f"#define {RE_NOTW.sub('_', ctx['NodeName'])}"
+                #    f"_{RE_NOTW.sub('_', ctx['EntryName'])}"
+                #    f"_{RE_NOTW.sub('_', subentry_infos['name'])}"
+                #    f"_sIdx {subindex:#04x}\n"
+                #)
+
                 headerObjDefinitionContent += (
-                    f"#define {RE_NOTW.sub('_', ctx['NodeName'])}"
-                    f"_{RE_NOTW.sub('_', ctx['EntryName'])}"
-                    f"_{RE_NOTW.sub('_', subentry_infos['name'])}"
-                    f"_sIdx {subindex:#04x}\n"
+                    f"\t\tstruct {subindexName}Subindex\n"
+                    f"\t\t{{\n"
+                    f"\t\t\tstatic constexpr uint32_t Value {{{subindex:#04x}}};\n"
+                    f"\t\t\tstatic constexpr char* Name = \"{subindexName}Subindex\";"
+                    f"\n\t\t}};"
                 )
-                headerObjDefinitionContent += "/* subindex define not generated for array objects */\n"
+
+                headerObjDefinitionContent += " /*subindex struct not generated for array objects*/\n\n"
+        headerObjDefinitionContent += "\t};\n\n"
+    headerObjDefinitionContent += f"\tstatic constexpr char* OdName = \"{ctx["NodeName"]}\";\n"
+    headerObjDefinitionContent += "};\n"
 
 
     # --------------------------------------------------------------------------
