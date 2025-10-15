@@ -238,12 +238,6 @@ struct {NodeName} \n{{
             params_infos = node.GetParamsEntry(index, subindex)
             if not entry_infos["struct"] & OD.IdenticalSubindexes:
                 generateSubIndexArrayComment = True
-                #headerObjDefinitionContent += (
-                #    f"#define {RE_NOTW.sub('_', ctx['NodeName'])}"
-                #    f"_{RE_NOTW.sub('_', ctx['EntryName'])}"
-                #    f"_{RE_NOTW.sub('_', subentry_infos['name'])}"
-                #    f"_sIdx {subindex:#04x}"
-                #)
                 subindexName = RE_NOTW.sub('', subentry_infos['name'])
                 headerObjDefinitionContent += (
                     f"\t\tstruct {subindexName}Subindex\n"
@@ -262,13 +256,6 @@ struct {NodeName} \n{{
                 generateSubIndexArrayComment = False
                 # Generate Number_of_Entries_sIdx define and write comment
                 # about not generating defines for the rest of the array objects
-                #headerObjDefinitionContent += (
-                #    f"#define {RE_NOTW.sub('_', ctx['NodeName'])}"
-                #    f"_{RE_NOTW.sub('_', ctx['EntryName'])}"
-                #    f"_{RE_NOTW.sub('_', subentry_infos['name'])}"
-                #    f"_sIdx {subindex:#04x}\n"
-                #)
-
                 headerObjDefinitionContent += (
                     f"\t\tstruct {subindexName}Subindex\n"
                     f"\t\t{{\n"
