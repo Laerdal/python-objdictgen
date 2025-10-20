@@ -210,12 +210,7 @@ def convert_from_canopen_to_c_type(type):
     type_map["uint64"] = "uint64_t"
     type_map["real32"] = "float"
     type_map["real64"] = "double"
-
-    try:
-        value = type_map[type]
-        return value
-    except KeyError:
-        print("KeyError:", type, "does not exist in the dictionary.")
+    return type_map.get(type, "char")
 
 
 def generate_file_content(node: NodeProtocol, headerfile: str, no_can_festival: bool, pointers_dict=None) -> tuple[str, str, str, str, str]:
@@ -314,6 +309,27 @@ def generate_file_content(node: NodeProtocol, headerfile: str, no_can_festival: 
     noCanFestivalDefinitions = ctx.text()
     indexContents: dict[int, str|Text] = {}
     headerObjDefinitionContent = ctx.text()
+
+    def add_file_content(header_content, c_content):
+        nonlocal strDeclareHeader
+        nonlocal mappedVariableContent
+        nonlocal noCanFestivalDeclarations
+        nonlocal noCanFestivalDefinitions
+        
+        strDeclareHeader %= header_content
+        mappedVariableContent %= c_content
+
+        if "valueRange_" in typeinfos.ctype:
+            ctx["subIndexType"] = "uint8_t"
+        elif typeinfos.ctype == "visible_string":
+            ctx["subIndexType"] = "char"
+        else:
+            ctx["subIndexType"] = convert_from_canopen_to_c_type(typeinfos.ctype)
+
+        noCanFestivalDeclarations %= header_content
+        noCanFestivalDefinitions %= c_content
+        ctx["subIndexType"] = typeinfos.type
+
     for index in listindex:
         ctx["index"] = index
         entry_infos = node.GetEntryInfos(index)
@@ -349,7 +365,16 @@ def generate_file_content(node: NodeProtocol, headerfile: str, no_can_festival: 
             ctx["value"], ctx["comment"] = compute_value(values, typeinfos.ctype)
             if index in variablelist:
                 ctx["name"] = RE_STARTS_WITH_DIGIT.sub(r'_\1', format_name(subentry_infos["name"]))
-                strDeclareHeader %= (
+                add_file_content(
+                (
+                    "extern {subIndexType} {name}{suffix};"
+                    "\t\t/* Mapped at index 0x{index:04X}, subindex 0x00*/\n"
+                ),
+                (
+                    "{subIndexType} {name}{suffix} = {value};"
+                    "\t\t/* Mapped at index 0x{index:04X}, subindex 0x00 */\n"
+                ))
+                """strDeclareHeader %= (
                     "extern {subIndexType} {name}{suffix};"
                     "\t\t/* Mapped at index 0x{index:04X}, subindex 0x00*/\n"
                 )
@@ -370,7 +395,7 @@ def generate_file_content(node: NodeProtocol, headerfile: str, no_can_festival: 
                 noCanFestivalDefinitions %= (
                     "{subIndexType} {name}{suffix} = {value};"
                     "\t\t/* Mapped at index 0x{index:04X}, subindex 0x00 */\n"
-                )
+                )"""
             else:
                 strindex %= (
                     "                    "
@@ -405,7 +430,16 @@ def generate_file_content(node: NodeProtocol, headerfile: str, no_can_festival: 
                 if index in variablelist:
                     ctx["name"] = RE_STARTS_WITH_DIGIT.sub(r'_\1', format_name(entry_infos["name"]))
                     ctx["values_count"] = str(len(values) - 1)
-                    strDeclareHeader %= (
+                    add_file_content(
+                    (
+                        "extern {subIndexType} {name}[{values_count}]{suffix};\t\t"
+                        "/* Mapped at index 0x{index:04X}, subindex 0x01 - 0x{length:02X} */\n"
+                    ),
+                    (
+                        "{subIndexType} {name}[]{suffix} =\t\t"
+                        "/* Mapped at index 0x{index:04X}, subindex 0x01 - 0x{length:02X} */\n  {{\n"
+                    ))
+                    """strDeclareHeader %= (
                         "extern {subIndexType} {name}[{values_count}]{suffix};\t\t"
                         "/* Mapped at index 0x{index:04X}, subindex 0x01 - 0x{length:02X} */\n"
                     )
@@ -427,7 +461,7 @@ def generate_file_content(node: NodeProtocol, headerfile: str, no_can_festival: 
                         "{subIndexType} {name}[]{suffix} =\t\t"
                         "/* Mapped at index 0x{index:04X}, subindex 0x01 - 0x{length:02X} */\n  {{\n"
                     )
-                    ctx["subIndexType"] = typeinfos.type
+                    ctx["subIndexType"] = typeinfos.type"""
 
                     for subindex, value in enumerate(values):
                         sep = ","
@@ -483,7 +517,16 @@ def generate_file_content(node: NodeProtocol, headerfile: str, no_can_festival: 
                         ctx["value"], ctx["comment"] = compute_value(value, typeinfos.ctype)
                         ctx["name"] = format_name(subentry_infos["name"])
                         if index in variablelist:
-                            strDeclareHeader %= (
+                            add_file_content(
+                            (
+                                "extern {subIndexType} {parent}_{name}{suffix};\t\t"
+                                "/* Mapped at index 0x{index:04X}, subindex 0x{subindex:02X} */\n"
+                            ),
+                            (
+                                "{subIndexType} {parent}_{name}{suffix} = {value};\t\t"
+                                "/* Mapped at index 0x{index:04X}, subindex 0x{subindex:02X} */\n"
+                            ))
+                            """strDeclareHeader %= (
                                 "extern {subIndexType} {parent}_{name}{suffix};\t\t"
                                 "/* Mapped at index 0x{index:04X}, subindex 0x{subindex:02X} */\n"
                             )
@@ -504,7 +547,7 @@ def generate_file_content(node: NodeProtocol, headerfile: str, no_can_festival: 
                             noCanFestivalDefinitions %= (
                                 "{subIndexType} {parent}_{name}{suffix} = {value};\t\t"
                                 "/* Mapped at index 0x{index:04X}, subindex 0x{subindex:02X} */\n"
-                            )
+                            )"""
                         else:
                             strindex %= (
                                 "                    "
