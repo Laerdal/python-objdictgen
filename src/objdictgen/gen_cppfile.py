@@ -80,9 +80,11 @@ def generate_file_content(node: NodeProtocol, headerfile: str, no_can_festival: 
     mappedVariableContent = ctx.text()
     pointedVariableContent = ctx.text()
     strDeclareHeader = ctx.text()
+    oldHeaderObjDefinitionContent = ctx.text()
     headerObjDefinitionContent = ctx.text()
     headerObjDefinitionContent += "\n#include <cstdint>\n"
     headerObjDefinitionContent += "#include <tuple>\n"
+    headerObjDefinitionContent += "#include <string>\n"
     headerObjDefinitionContent %= """
 struct {NodeName} \n{{
 """
@@ -115,20 +117,6 @@ struct {NodeName} \n{{
             ctx["value"], ctx["comment"] = compute_value(values, typeinfos.ctype)
             if index in variablelist:
                 ctx["name"] = RE_STARTS_WITH_DIGIT.sub(r'_\1', format_name(subentry_infos["name"]))
-                if "valueRange_" in typeinfos.ctype:
-                    ctx["subIndexType"] = "uint8_t"
-                elif typeinfos.ctype == "visible_string":
-                    ctx["subIndexType"] = "char"
-                else:
-                    ctx["subIndexType"] = convert_from_canopen_to_c_type(typeinfos.ctype)
-                strDeclareHeader %= (
-                    "extern {subIndexType} {name}{suffix};"
-                    "\t\t/* Mapped at index 0x{index:04X}, subindex 0x00*/\n"
-                )
-                mappedVariableContent %= (
-                    "{subIndexType} {name}{suffix} = {value};"
-                    "\t\t/* Mapped at index 0x{index:04X}, subindex 0x00 */\n"
-                )
             values = [values]
         else:
             subentry_infos = node.GetSubentryInfos(index, 0)
@@ -153,36 +141,6 @@ struct {NodeName} \n{{
                 if index in variablelist:
                     ctx["name"] = RE_STARTS_WITH_DIGIT.sub(r'_\1', format_name(entry_infos["name"]))
                     ctx["values_count"] = str(len(values) - 1)
-                    if "valueRange_" in typeinfos.ctype:
-                        ctx["subIndexType"] = "uint8_t"
-                    elif typeinfos.ctype == "visible_string":
-                        ctx["subIndexType"] = "char"
-                    else:
-                        ctx["subIndexType"] = convert_from_canopen_to_c_type(typeinfos.ctype)
-                    ctx["subIndexType"] = typeinfos.type
-                    strDeclareHeader %= (
-                        "extern {subIndexType} {name}[{values_count}]{suffix};\t\t"
-                        "/* Mapped at index 0x{index:04X}, subindex 0x01 - 0x{length:02X} */\n"
-                    )
-                    mappedVariableContent %= (
-                        "{subIndexType} {name}[]{suffix} =\t\t"
-                        "/* Mapped at index 0x{index:04X}, subindex 0x01 - 0x{length:02X} */\n  {{\n"
-                    )
-
-                    for subindex, value in enumerate(values):
-                        sep = ","
-                        if subindex > 0:
-                            if subindex == len(values) - 1:
-                                sep = ""
-                            value, comment = compute_value(value, typeinfos.ctype)
-                            if len(value) == 2 and typename == "DOMAIN":
-                                raise ValueError(
-                                    "Domain variable not initialized, "
-                                    f"index: 0x{index:04X}, subindex: 0x{subindex:02X}"
-                                )
-                            mappedVariableContent += f"    {value}{sep}{comment}\n"
-                    mappedVariableContent += "  };\n"
-            else:
 
                 ctx["parent"] = RE_STARTS_WITH_DIGIT.sub(r'_\1', format_name(entry_infos["name"]))
                 # Entry type is RECORD
@@ -206,21 +164,6 @@ struct {NodeName} \n{{
                             ctx["suffix"] = ""
                         ctx["value"], ctx["comment"] = compute_value(value, typeinfos.ctype)
                         ctx["name"] = format_name(subentry_infos["name"])
-                        if index in variablelist:
-                            strDeclareHeader %= (
-                                "extern {subIndexType} {parent}_{name}{suffix};\t\t"
-                                "/* Mapped at index 0x{index:04X}, subindex 0x{subindex:02X} */\n"
-                            )
-                            mappedVariableContent %= (
-                                "{subIndexType} {parent}_{name}{suffix} = {value};\t\t"
-                                "/* Mapped at index 0x{index:04X}, subindex 0x{subindex:02X} */\n"
-                            )
-                            if "valueRange_" in typeinfos.ctype:
-                                ctx["subIndexType"] = "uint8_t"
-                            elif typeinfos.ctype == "visible_string":
-                                ctx["subIndexType"] = "char"
-                            else:
-                                ctx["subIndexType"] = convert_from_canopen_to_c_type(typeinfos.ctype)
 
         # write index define
         entryName = f"{RE_NOTW.sub('', ctx['EntryName']).strip()}"
@@ -228,7 +171,12 @@ struct {NodeName} \n{{
         headerObjDefinitionContent += (
             f"\tstruct {entryName}\n\t{{\n"
             f"\t\tstatic constexpr uint32_t {'' if shortEntryName == entryName else shortEntryName}Index {{{ctx['index']:#04x}}};\n"
-            f"\t\tstatic constexpr char* Name = \"{entryName}Index\";\n\n"
+            f"\t\tstatic constexpr std::string_view Name = \"{entryName}Index\";\n\n"
+        )
+
+        oldHeaderObjDefinitionContent += (
+            f"\n#define {RE_NOTW.sub('_', ctx['NodeName'])}"
+            f"_{RE_NOTW.sub('_', ctx['EntryName'])}_Idx {ctx['index']:#04x}\n"
         )
 
         # write subindex defines
@@ -236,37 +184,68 @@ struct {NodeName} \n{{
         for subindex, _ in enumerate(values):
             subentry_infos = node.GetSubentryInfos(index, subindex)
             params_infos = node.GetParamsEntry(index, subindex)
+            typeinfos = ctx.get_valid_type_infos(typename, [values])
+            subindex_type = convert_from_canopen_to_c_type(typeinfos.ctype) if typeinfos.ctype != "visible_string" else "std::string"
             if not entry_infos["struct"] & OD.IdenticalSubindexes:
                 generateSubIndexArrayComment = True
-                subindexName = RE_NOTW.sub('', subentry_infos['name'])
-                headerObjDefinitionContent += (
-                    f"\t\tstruct {subindexName}Subindex\n"
-                    f"\t\t{{\n"
-                    f"\t\t\tstatic constexpr auto get()\n\t\t\t{{\n"
-                    f"\t\t\t\treturn std::make_tuple(Index, Value, OdName, Name, sIdxName);\n\t\t\t}}\n"
-                    f"\t\t\tstatic constexpr uint32_t Value {{{subindex:#04x}}};\n"
-                    f"\t\t\tstatic constexpr char* sIdxName = \"{subindexName}Subindex\";"
-                    f"\n\t\t}};"
+                oldHeaderObjDefinitionContent += (
+                    f"#define {RE_NOTW.sub('_', ctx['NodeName'])}"
+                    f"_{RE_NOTW.sub('_', ctx['EntryName'])}"
+                    f"_{RE_NOTW.sub('_', subentry_infos['name'])}"
+                    f"_sIdx {subindex:#04x}"
                 )
+            
+                subindexName = RE_NOTW.sub('', subentry_infos['name'])
+                if len(values) > 1:
+                    headerObjDefinitionContent += (
+                        f"\t\tstruct {subindexName}{"Subindex" if subindexName == entryName else ""}\n"
+                        f"\t\t{{\n"
+                        f"\t\t\tusing DataType = {subindex_type};\n"
+                        f"\t\t\tDataType m_Value;\n\n"
+                        f"\t\t\tstatic constexpr auto get()\n\t\t\t{{\n"
+                        f"\t\t\t\treturn std::make_tuple(Index, Subindex, OdName, Name, sIdxName);\n\t\t\t}}\n\n"
+                        f"\t\t\tstatic constexpr uint32_t Subindex {{{subindex:#04x}}};\n"
+                        f"\t\t\tstatic constexpr std::string_view sIdxName = \"{subindexName}Subindex\";"
+                        f"\n\t\t}};"
+                    )
+                else:
+                    headerObjDefinitionContent += (
+                        f"\t\tusing DataType = {subindex_type};\n"
+                        f"\t\tDataType m_Value;\n\n"
+                        f"\t\tstatic constexpr auto get()\n\t\t{{\n"
+                        f"\t\t\treturn std::make_tuple(Index, Subindex, OdName, Name, sIdxName);\n\t\t}}\n\n"
+                        f"\t\tstatic constexpr uint32_t Subindex {{{subindex:#04x}}};\n"
+                        f"\t\tstatic constexpr std::string_view sIdxName = \"{subindexName}Subindex\";"
+                    )
                 if params_infos["comment"]:
                     headerObjDefinitionContent += " /*" + params_infos["comment"] + "*/\n"
+                    oldHeaderObjDefinitionContent += " /*" + params_infos["comment"] + "*/\n"
                 else:
                     headerObjDefinitionContent += "\n"
+                    oldHeaderObjDefinitionContent += "\n"
             elif generateSubIndexArrayComment:
                 generateSubIndexArrayComment = False
                 # Generate Number_of_Entries_sIdx define and write comment
                 # about not generating defines for the rest of the array objects
+                oldHeaderObjDefinitionContent += (
+                    f"#define {RE_NOTW.sub('_', ctx['NodeName'])}"
+                    f"_{RE_NOTW.sub('_', ctx['EntryName'])}"
+                    f"_{RE_NOTW.sub('_', subentry_infos['name'])}"
+                    f"_sIdx {subindex:#04x}\n"
+                )
                 headerObjDefinitionContent += (
-                    f"\t\tstruct {subindexName}Subindex\n"
-                    f"\t\t{{\n"
-                    f"\t\t\tstatic constexpr uint32_t Value {{{subindex:#04x}}};\n"
-                    f"\t\t\tstatic constexpr char* Name = \"{subindexName}Subindex\";"
-                    f"\n\t\t}};"
+                    f"\t\tusing DataType = {subindex_type};\n"
+                    f"\t\tDataType m_Value;\n\n"
+                    f"\t\tstatic constexpr auto get()\n\t\t{{\n"
+                    f"\t\t\treturn std::make_tuple(Index, Subindex, OdName, Name, sIdxName);\n\t\t}}\n\n"
+                    f"\t\tstatic constexpr uint32_t Subindex {{{subindex:#04x}}};\n"
+                    f"\t\tstatic constexpr std::string_view sIdxName = \"{subindexName}Subindex\";"
                 )
 
                 headerObjDefinitionContent += " /*subindex struct not generated for array objects*/\n\n"
+                oldHeaderObjDefinitionContent += " /*subindex struct not generated for array objects*/\n\n"
         headerObjDefinitionContent += "\t};\n\n"
-    headerObjDefinitionContent += f"\tstatic constexpr char* OdName = \"{ctx["NodeName"]}\";\n"
+    headerObjDefinitionContent += f"\tstatic constexpr std::string_view OdName = \"{ctx["NodeName"]}\";\n"
     headerObjDefinitionContent += "};\n"
 
 
@@ -318,6 +297,8 @@ struct {NodeName} \n{{
 */
 """
     headerObjectDefinitionContent += headerObjDefinitionContent
+    headerObjectDefinitionContent += f"\n //---- OLD DEFINES ---- \n\n"
+    headerObjectDefinitionContent += oldHeaderObjDefinitionContent
     headerObjectDefinitionContent += f"""
 #endif /* {file_include_objdef_name} */
 """
@@ -337,6 +318,12 @@ def GenerateFile(filepath: TPath, node: NodeProtocol, no_can_festival, pointers_
     content, header, header_defs = generate_file_content(
         node, headerpath.name, no_can_festival, pointers_dict,
     )
+
+    # Write object definitions header
+    with open(headerdefspath, "w", encoding="utf-8") as f:
+        f.write(header_defs)
+
+    return
 
     # Write main .c contents
     with open(filepath, "w", encoding="utf-8") as f:
@@ -358,6 +345,4 @@ def GenerateFile(filepath: TPath, node: NodeProtocol, no_can_festival, pointers_
         with open(headerpath, "w", encoding="utf-8") as f:
             f.write(noCanFestivalHeader)
 
-    # Write object definitions header
-    with open(headerdefspath, "w", encoding="utf-8") as f:
-        f.write(header_defs)
+
