@@ -36,7 +36,8 @@ from objdictgen.typing import (NodeProtocol, TIndexEntry, TODObj, TODSubObj,
 log = logging.getLogger('objdictgen')
 
 
-def executeCustomGenerator(filename, filepath: TPath, node: NodeProtocol):
+def executeCustomGenerator(filename: str, filepath: TPath, node: NodeProtocol):
+    """Execute custom python file for code generation"""
     spec = importlib.util.spec_from_file_location("CustomGenerator", filename)
     customModule = importlib.util.module_from_spec(spec)
     sys.modules["CustomGenerator"] = customModule
@@ -207,7 +208,7 @@ class Node(NodeProtocol):
         """ Import a new Node from a JSON string """
         return jsonod.generate_node(contents, validate=validate)
 
-    def DumpFile(self, filepath: TPath, filetype: str|None = "jsonc", custom_genfile = None, **kwargs):
+    def DumpFile(self, filepath: TPath, filetype: str|None = "jsonc", custom_genfile = TPath|None, **kwargs):
         """ Save node into file """
 
         # Attempt to determine the filetype from the filepath
@@ -241,7 +242,7 @@ class Node(NodeProtocol):
         
         if custom_genfile != None:
             log.debug("Invoking custom generator: %s", custom_genfile)
-            return executeCustomGenerator(custom_genfile, str(filepath), self)
+            return executeCustomGenerator(custom_genfile, filepath, self)
 
         if filetype == 'c':
             log.debug("Writing C files '%s'", filepath)
