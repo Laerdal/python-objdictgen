@@ -36,14 +36,14 @@ from objdictgen.typing import (NodeProtocol, TIndexEntry, TODObj, TODSubObj,
 log = logging.getLogger('objdictgen')
 
 
-def executeCustomGenerator(filename, *args):
+def executeCustomGenerator(filename, filepath: TPath, node: NodeProtocol):
     spec = importlib.util.spec_from_file_location("CustomGenerator", filename)
     customModule = importlib.util.module_from_spec(spec)
     sys.modules["CustomGenerator"] = customModule
     spec.loader.exec_module(customModule)
 
     if hasattr(customModule, 'GenerateFile'):
-        return customModule.GenerateFile(*args)
+        return customModule.GenerateFile(filepath, node)
     else:
         raise AttributeError(f"{filename} does not have a 'GenerateFile' function.")
 
