@@ -21,6 +21,9 @@ from __future__ import annotations
 
 import copy
 import logging
+import importlib.util
+import sys
+
 from pathlib import Path
 from typing import Any, Generator, Iterable, Iterator
 
@@ -31,6 +34,18 @@ from objdictgen.typing import (NodeProtocol, TIndexEntry, TODObj, TODSubObj,
                                TODValue, TParamEntry, TPath, TProfileMenu)
 
 log = logging.getLogger('objdictgen')
+
+
+def executeCustomGenerator(filename, *args):
+    spec = importlib.util.spec_from_file_location("CustomGenerator", filename)
+    customModule = importlib.util.module_from_spec(spec)
+    sys.modules["CustomGenerator"] = customModule
+    spec.loader.exec_module(customModule)
+
+    if hasattr(customModule, 'GenerateFile'):
+        return customModule.GenerateFile(*args)
+    else:
+        raise AttributeError(f"{filename} does not have a 'GenerateFile' function.")
 
 
 # ------------------------------------------------------------------------------
@@ -192,7 +207,7 @@ class Node(NodeProtocol):
         """ Import a new Node from a JSON string """
         return jsonod.generate_node(contents, validate=validate)
 
-    def DumpFile(self, filepath: TPath, filetype: str|None = "jsonc", **kwargs):
+    def DumpFile(self, filepath: TPath, filetype: str|None = "jsonc", custom_genfile = None, **kwargs):
         """ Save node into file """
 
         # Attempt to determine the filetype from the filepath
@@ -223,6 +238,10 @@ class Node(NodeProtocol):
             with open(filepath, "w", encoding="utf-8") as f:
                 f.write(jdata)
             return
+        
+        if custom_genfile != None:
+            log.debug("Invoking custom generator: %s", custom_genfile)
+            return executeCustomGenerator(custom_genfile, str(filepath), self)
 
         if filetype == 'c':
             log.debug("Writing C files '%s'", filepath)
