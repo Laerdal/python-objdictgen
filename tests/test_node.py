@@ -1,6 +1,5 @@
 """Tests for node.py"""
 import pytest
-import os
 
 from objdictgen.node import Node, NodeProtocol, executeCustomGenerator
 
@@ -12,13 +11,13 @@ def test_node_LoadFile(odpath, file):
     assert od.Name == 'master' if file == 'master' else 'slave'
 
 @pytest.mark.parametrize("filename", ["this_file_does_not_exist.py", "bad_generator.py", "generator.py"])
-def test_node_execute_custom_generator(filename: str):
-    full_path = "tests/test_generators/"
+def test_node_execute_custom_generator(filename: str, testspath):
+    full_path = testspath.joinpath("test_generators").joinpath(filename)
     mock_path = "/mock"
     if filename == "bad_generator.py":
         with pytest.raises(AttributeError):
-            executeCustomGenerator(full_path + filename, mock_path, NodeProtocol)
+            executeCustomGenerator(full_path, mock_path, NodeProtocol)
     elif filename == "this_file_does_not_exist.py":
-        executeCustomGenerator(full_path + filename, mock_path, NodeProtocol)
+        executeCustomGenerator(full_path, mock_path, NodeProtocol)
     elif filename == "generator.py":
-        assert executeCustomGenerator(full_path + filename, mock_path, NodeProtocol) == "success"
+        assert executeCustomGenerator(full_path, mock_path, NodeProtocol) == "success"

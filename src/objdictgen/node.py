@@ -252,8 +252,9 @@ class Node(NodeProtocol):
             log.debug("Invoking custom generator: %s", custom_genfile)
             try:
                 return executeCustomGenerator(custom_genfile, filepath, self)
-            except (ImportError, ModuleNotFoundError):
+            except (ImportError, ModuleNotFoundError) as e:
                 log.debug("Failed to load custom generator: %s", custom_genfile)
+                raise e
 
         if filetype == 'c':
             log.debug("Writing C files '%s'", filepath)

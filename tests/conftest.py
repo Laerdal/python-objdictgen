@@ -282,6 +282,11 @@ def basepath():
     """ Fixture returning the base of the project """
     return (HERE / '..').resolve()
 
+@pytest.fixture
+def testspath():
+    """ Fixture returning the path to the tests directory """
+    return (HERE).resolve()
+
 
 @pytest.fixture
 def fn():
