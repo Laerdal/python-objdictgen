@@ -41,7 +41,12 @@ def executeCustomGenerator(filename: str, filepath: TPath, node: NodeProtocol):
     spec = importlib.util.spec_from_file_location("CustomGenerator", filename)
     customModule = importlib.util.module_from_spec(spec)
     sys.modules["CustomGenerator"] = customModule
-    spec.loader.exec_module(customModule)
+    # Handle errors coming from custom code
+    try:
+        spec.loader.exec_module(customModule)
+    except Exception as e:
+        print(f"error executing {filename}: {e}")
+        return
 
     if hasattr(customModule, 'GenerateFile'):
         return customModule.GenerateFile(filepath, node)
