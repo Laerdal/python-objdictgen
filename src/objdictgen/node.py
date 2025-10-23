@@ -23,6 +23,7 @@ import copy
 import logging
 import importlib.util
 import sys
+import os
 
 from pathlib import Path
 from typing import Any, Generator, Iterable, Iterator
@@ -38,6 +39,8 @@ log = logging.getLogger('objdictgen')
 
 def executeCustomGenerator(filename: str, filepath: TPath, node: NodeProtocol):
     """Execute custom python file for code generation"""
+    parent_dir = os.path.dirname(os.path.abspath(filename))
+    sys.path.append(parent_dir)
     spec = importlib.util.spec_from_file_location("CustomGenerator", filename)
     customModule = importlib.util.module_from_spec(spec)
     sys.modules["CustomGenerator"] = customModule
