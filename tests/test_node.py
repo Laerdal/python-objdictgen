@@ -13,7 +13,6 @@ def test_node_LoadFile(odpath, file):
 
 @pytest.mark.parametrize("filename", ["this_file_does_not_exist.py", "bad_generator.py", "generator.py"])
 def test_node_execute_custom_generator(filename: str):
-    print(os.getcwd())
     full_path = "tests/test_generators/"
     mock_path = "/mock"
     if filename == "bad_generator.py":
