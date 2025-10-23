@@ -216,7 +216,7 @@ class Node(NodeProtocol):
         """ Import a new Node from a JSON string """
         return jsonod.generate_node(contents, validate=validate)
 
-    def DumpFile(self, filepath: TPath, filetype: str|None = "jsonc", custom_genfile = TPath|None, **kwargs):
+    def DumpFile(self, filepath: TPath, filetype: str|None = "jsonc", custom_genfile: TPath|None = None, **kwargs):
         """ Save node into file """
 
         # Attempt to determine the filetype from the filepath
