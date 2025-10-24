@@ -37,7 +37,7 @@ from objdictgen.typing import (NodeProtocol, TIndexEntry, TODObj, TODSubObj,
 log = logging.getLogger('objdictgen')
 
 
-def executeCustomGenerator(filename: str, filepath: TPath, node: NodeProtocol):
+def executeCustomGenerator(filename: str, filepath: TPath, node: NodeProtocol) -> None:
     """Execute custom python file for code generation"""
     parent_dir = os.path.dirname(os.path.abspath(filename))
     sys.path.append(parent_dir)
@@ -52,7 +52,7 @@ def executeCustomGenerator(filename: str, filepath: TPath, node: NodeProtocol):
         return
 
     if hasattr(customModule, 'GenerateFile'):
-        return customModule.GenerateFile(filepath, node)
+        customModule.GenerateFile(filepath, node)
     else:
         raise AttributeError(f"{filename} does not have a 'GenerateFile' function.")
 
@@ -251,10 +251,11 @@ class Node(NodeProtocol):
         if custom_genfile != None:
             log.debug("Invoking custom generator: %s", custom_genfile)
             try:
-                return executeCustomGenerator(custom_genfile, filepath, self)
-            except (ImportError, ModuleNotFoundError) as e:
+                executeCustomGenerator(custom_genfile, filepath, self)
+                return
+            except (ImportError, ModuleNotFoundError):
                 log.debug("Failed to load custom generator: %s", custom_genfile)
-                raise e
+                raise
 
         if filetype == 'c':
             log.debug("Writing C files '%s'", filepath)
