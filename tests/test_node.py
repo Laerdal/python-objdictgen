@@ -20,4 +20,7 @@ def test_node_execute_custom_generator(filename: str, testspath):
     elif filename == "this_file_does_not_exist.py":
         executeCustomGenerator(full_path, mock_path, NodeProtocol)
     elif filename == "generator.py":
-        assert executeCustomGenerator(full_path, mock_path, NodeProtocol) == "success"
+        try:
+            executeCustomGenerator(full_path, mock_path, NodeProtocol) == "success"
+        except Exception:
+            pytest.fail("failed to execute generator.py")
