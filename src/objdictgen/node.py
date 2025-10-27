@@ -248,7 +248,7 @@ class Node(NodeProtocol):
                 f.write(jdata)
             return
         
-        if custom_genfile != None:
+        if custom_genfile is not None:
             log.debug("Invoking custom generator: %s", custom_genfile)
             try:
                 executeCustomGenerator(custom_genfile, filepath, self)
