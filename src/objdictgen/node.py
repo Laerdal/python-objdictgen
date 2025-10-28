@@ -21,6 +21,10 @@ from __future__ import annotations
 
 import copy
 import logging
+import importlib.util
+import sys
+import os
+
 from pathlib import Path
 from typing import Any, Generator, Iterable, Iterator
 
@@ -31,6 +35,26 @@ from objdictgen.typing import (NodeProtocol, TIndexEntry, TODObj, TODSubObj,
                                TODValue, TParamEntry, TPath, TProfileMenu)
 
 log = logging.getLogger('objdictgen')
+
+
+def executeCustomGenerator(filename: str, filepath: TPath, node: NodeProtocol) -> None:
+    """Execute custom python file for code generation"""
+    parent_dir = os.path.dirname(os.path.abspath(filename))
+    sys.path.append(parent_dir)
+    spec = importlib.util.spec_from_file_location("CustomGenerator", filename)
+    customModule = importlib.util.module_from_spec(spec)
+    sys.modules["CustomGenerator"] = customModule
+    # Handle errors coming from custom code
+    try:
+        spec.loader.exec_module(customModule)
+    except Exception as e:
+        print(f"error executing {filename}: {e}")
+        return
+
+    if hasattr(customModule, 'GenerateFile'):
+        customModule.GenerateFile(filepath, node)
+    else:
+        raise AttributeError(f"{filename} does not have a 'GenerateFile' function.")
 
 
 # ------------------------------------------------------------------------------
@@ -192,7 +216,7 @@ class Node(NodeProtocol):
         """ Import a new Node from a JSON string """
         return jsonod.generate_node(contents, validate=validate)
 
-    def DumpFile(self, filepath: TPath, filetype: str|None = "jsonc", **kwargs):
+    def DumpFile(self, filepath: TPath, filetype: str|None = "jsonc", custom_genfile: TPath|None = None, **kwargs):
         """ Save node into file """
 
         # Attempt to determine the filetype from the filepath
@@ -223,6 +247,15 @@ class Node(NodeProtocol):
             with open(filepath, "w", encoding="utf-8") as f:
                 f.write(jdata)
             return
+        
+        if custom_genfile is not None:
+            log.debug("Invoking custom generator: %s", custom_genfile)
+            try:
+                executeCustomGenerator(custom_genfile, filepath, self)
+                return
+            except (ImportError, ModuleNotFoundError):
+                log.debug("Failed to load custom generator: %s", custom_genfile)
+                raise
 
         if filetype == 'c':
             log.debug("Writing C files '%s'", filepath)
