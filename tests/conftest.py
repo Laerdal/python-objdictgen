@@ -1,18 +1,17 @@
 """ Pytest configuration file for the objdictgen package """
-import shutil
-from typing import Generator
-import os
-import sys
 import difflib
-from dataclasses import dataclass
-import subprocess
-from pathlib import Path
+import os
 import pickle
+import shutil
+import subprocess
+import sys
+from dataclasses import dataclass
+from pathlib import Path
+
 import pytest
 
 import objdictgen
 import objdictgen.node
-
 
 # The path to this directory
 HERE = Path(__file__).parent
@@ -101,7 +100,7 @@ class Fn:
     def diff(a, b, predicate=None, postprocess=None, **kw):
         """ Diff two files """
         if predicate is None:
-            predicate = lambda x: True
+            predicate = lambda x: True  # noqa: E731
         with open(a, 'r', encoding="utf-8") as f:
             da = [n.rstrip() for n in f if predicate(n)]
         with open(b, 'r', encoding="utf-8") as f:

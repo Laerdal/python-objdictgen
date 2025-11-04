@@ -1,9 +1,9 @@
-import pytest
 from pprint import pprint
 
-from objdictgen.nodemanager import NodeManager
-from objdictgen.maps import OD
 from objdictgen.jsonod import node_todict
+from objdictgen.maps import OD
+from objdictgen.nodemanager import NodeManager
+
 
 def test_nodemanager_createnewnode():
 

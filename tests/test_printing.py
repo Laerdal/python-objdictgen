@@ -1,11 +1,10 @@
 """Test functions for printing.py"""
 import types
+
 import pytest
 
-from objdictgen import __main__
-from objdictgen.printing import (FormatNodeOpts, format_node, format_od_header,
-                                 format_od_object, format_diff_nodes)
 from objdictgen.node import Node
+from objdictgen.printing import FormatNodeOpts, format_diff_nodes, format_node, format_od_header, format_od_object
 
 
 @pytest.mark.parametrize("file", [

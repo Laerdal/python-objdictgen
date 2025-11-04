@@ -24,8 +24,7 @@ from objdictgen.maps import OD
 from objdictgen.node import Node
 from objdictgen.nodemanager import NodeManager
 from objdictgen.ui import commondialogs as common
-from objdictgen.ui.exception import (display_error_dialog,
-                                     display_exception_dialog)
+from objdictgen.ui.exception import display_error_dialog, display_exception_dialog
 
 
 class NodeEditorTemplate(wx.Frame):
@@ -45,33 +44,33 @@ class NodeEditorTemplate(wx.Frame):
         self.BusId = None  # FIXME: Is this used? EditingPanel.OnSubindexGridCellLeftClick can seem to indicate it is iterable
         self.Closing = False
 
-    def OnAddSDOServerMenu(self, event):  # pylint: disable=unused-argument
+    def OnAddSDOServerMenu(self, event):
         self.Manager.AddSDOServerToCurrent()
         self.RefreshBufferState()
         self.RefreshCurrentIndexList()
 
-    def OnAddSDOClientMenu(self, event):  # pylint: disable=unused-argument
+    def OnAddSDOClientMenu(self, event):
         self.Manager.AddSDOClientToCurrent()
         self.RefreshBufferState()
         self.RefreshCurrentIndexList()
 
-    def OnAddPDOTransmitMenu(self, event):  # pylint: disable=unused-argument
+    def OnAddPDOTransmitMenu(self, event):
         self.Manager.AddPDOTransmitToCurrent()
         self.RefreshBufferState()
         self.RefreshCurrentIndexList()
 
-    def OnAddPDOReceiveMenu(self, event):  # pylint: disable=unused-argument
+    def OnAddPDOReceiveMenu(self, event):
         self.Manager.AddPDOReceiveToCurrent()
         self.RefreshBufferState()
         self.RefreshCurrentIndexList()
 
-    def OnAddMapVariableMenu(self, event):  # pylint: disable=unused-argument
+    def OnAddMapVariableMenu(self, event):
         self.AddMapVariable()
 
-    def OnAddUserTypeMenu(self, event):  # pylint: disable=unused-argument
+    def OnAddUserTypeMenu(self, event):
         self.AddUserType()
 
-    def OnRefreshMenu(self, event):  # pylint: disable=unused-argument
+    def OnRefreshMenu(self, event):
         self.RefreshCurrentIndexList()
 
     def RefreshCurrentIndexList(self):
@@ -139,12 +138,12 @@ class NodeEditorTemplate(wx.Frame):
     def RefreshBufferState(self):
         pass
 
-    def OnUndoMenu(self, event):  # pylint: disable=unused-argument
+    def OnUndoMenu(self, event):
         self.Manager.LoadCurrentPrevious()
         self.RefreshCurrentIndexList()
         self.RefreshBufferState()
 
-    def OnRedoMenu(self, event):  # pylint: disable=unused-argument
+    def OnRedoMenu(self, event):
         self.Manager.LoadCurrentNext()
         self.RefreshCurrentIndexList()
         self.RefreshBufferState()
@@ -153,15 +152,15 @@ class NodeEditorTemplate(wx.Frame):
     #                      Editing Profiles functions
     # --------------------------------------------------------------------------
 
-    def OnCommunicationMenu(self, event):  # pylint: disable=unused-argument
+    def OnCommunicationMenu(self, event):
         dictionary, current = self.Manager.GetCurrentCommunicationLists()
         self.EditProfile("Edit DS-301 Profile", dictionary, current)
 
-    def OnOtherCommunicationMenu(self, event):  # pylint: disable=unused-argument
+    def OnOtherCommunicationMenu(self, event):
         dictionary, current = self.Manager.GetCurrentDS302Lists()
         self.EditProfile("Edit DS-302 Profile", dictionary, current)
 
-    def OnEditProfileMenu(self, event):  # pylint: disable=unused-argument
+    def OnEditProfileMenu(self, event):
         title = f"Edit {self.Manager.current.ProfileName} Profile"
         dictionary, current = self.Manager.GetCurrentProfileLists()
         self.EditProfile(title, dictionary, current)
@@ -187,7 +186,7 @@ class NodeEditorTemplate(wx.Frame):
                 self.RefreshBufferState()
 
     def GetProfileCallBack(self, text):
-        def profile_cb(event):  # pylint: disable=unused-argument
+        def profile_cb(event):
             self.Manager.AddSpecificEntryToCurrent(text)
             self.RefreshBufferState()
             self.RefreshCurrentIndexList()
@@ -197,7 +196,7 @@ class NodeEditorTemplate(wx.Frame):
     #                     Edit Node informations function
     # --------------------------------------------------------------------------
 
-    def OnNodeInfosMenu(self, event):  # pylint: disable=unused-argument
+    def OnNodeInfosMenu(self, event):
         dialog = common.NodeInfosDialog(self.Frame)
         name, nodeid, nodetype, description = self.Manager.GetCurrentNodeInfos()
         defaultstringsize = self.Manager.current.DefaultStringSize
@@ -224,7 +223,7 @@ class NodeEditorTemplate(wx.Frame):
                         self.Manager.AddMapVariableToCurrent(*dialog.GetValues())
                         self.RefreshBufferState()
                         self.RefreshCurrentIndexList()
-                    except Exception:  # pylint: disable=broad-except
+                    except Exception:
                         display_exception_dialog(self.Frame)
         else:
             display_error_dialog(self.Frame, "No map variable index left!")
@@ -237,5 +236,5 @@ class NodeEditorTemplate(wx.Frame):
                     self.Manager.AddUserTypeToCurrent(*dialog.GetValues())
                     self.RefreshBufferState()
                     self.RefreshCurrentIndexList()
-                except Exception:  # pylint: disable=broad-except
+                except Exception:
                     display_exception_dialog(self.Frame)

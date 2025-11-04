@@ -114,7 +114,7 @@ class CFileContext(UserDict):
     # FIXME: Delete this method when everything is converted to f-strings
     def ftext(self, s: str) -> Text:
         """Format a text string."""
-        return Text(self, "").__imod__(s)  # pylint: disable=unnecessary-dunder-call
+        return Text(self, "").__imod__(s)
 
     def get_valid_type_infos(self, typename: str, items=None) -> TypeInfos:
         """Get valid type infos from a typename.
@@ -191,7 +191,6 @@ def generate_file_content(node: NodeProtocol, headerfile: str, pointers_dict=Non
     """
 
     # FIXME: Too many camelCase vars in here
-    # pylint: disable=invalid-name
 
     # Setup the main context to store the data
     ctx = CFileContext()

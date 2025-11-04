@@ -71,3 +71,14 @@ filterwarnings = "ignore::DeprecationWarning"
 
 [tool.ruff]
 line-length = 120
+exclude = [
+    "tests/od/**",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = [
+    "S101",  # Allow use of assert statements in tests
+]
+"tests/test_imports.py" = [
+    "F401",  # Allow unused imports in this file
+]

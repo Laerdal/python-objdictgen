@@ -29,8 +29,7 @@ import objdictgen
 from objdictgen import maps
 from objdictgen.maps import OD
 from objdictgen.typing import TGetValues
-from objdictgen.ui.exception import (display_error_dialog,
-                                     display_exception_dialog)
+from objdictgen.ui.exception import display_error_dialog, display_exception_dialog
 
 log = logging.getLogger('objdictgen')
 
@@ -50,7 +49,6 @@ log = logging.getLogger('objdictgen')
 
 class CommunicationDialog(wx.Dialog):
     """Edit Communication Profile Dialog."""
-    # pylint: disable=attribute-defined-outside-init
 
     IndexDictionary: dict[int, tuple[str, bool]]
     CurrentList: list[int]
@@ -249,7 +247,6 @@ class CommunicationDialog(wx.Dialog):
 
 class MapVariableDialog(wx.Dialog):
     """Create Map Variable Dialog."""
-    # pylint: disable=attribute-defined-outside-init
 
     def _init_coll_flexGridSizer1_Items(self, parent):
         parent.Add(self.MainSizer, 0, border=20,
@@ -383,7 +380,7 @@ class MapVariableDialog(wx.Dialog):
     def SetIndex(self, index):
         self.Index.SetValue(f"0x{index:04X}")
 
-    def OnOK(self, event):  # pylint: disable=unused-argument
+    def OnOK(self, event):
         error = []
         try:
             int(self.Index.GetValue(), 16)
@@ -459,7 +456,6 @@ class MapVariableDialog(wx.Dialog):
 
 class UserTypeDialog(wx.Dialog):
     """Create User Type Dialog."""
-    # pylint: disable=attribute-defined-outside-init
 
     # Helpers for typing
     RightBoxSizer: wx.StaticBoxSizer
@@ -592,7 +588,7 @@ class UserTypeDialog(wx.Dialog):
 
         self.TypeDictionary: dict[str, tuple[int, int]] = {}
 
-    def OnOK(self, event):  # pylint: disable=unused-argument
+    def OnOK(self, event):
         error = []
         message = None
         name = self.Type.GetStringSelection()
@@ -711,7 +707,6 @@ NODE_TYPES_DICT = {node_type: node_type for node_type in NODE_TYPES}
 
 class NodeInfosDialog(wx.Dialog):
     """Dialog for editing node infos."""
-    # pylint: disable=attribute-defined-outside-init
 
     def _init_coll_flexGridSizer1_Items(self, parent):
         parent.Add(self.MainSizer, 0, border=20,
@@ -821,7 +816,7 @@ class NodeInfosDialog(wx.Dialog):
         for node_type in NODE_TYPES:
             self.Type.Append(node_type)
 
-    def OnOK(self, event):  # pylint: disable=unused-argument
+    def OnOK(self, event):
         name = self.NodeName.GetValue()
         message = ""
         if name:
@@ -883,7 +878,7 @@ class NodeInfosDialog(wx.Dialog):
 
 class CreateNodeDialog(wx.Dialog):
     """Dialog for creating new node."""
-    # pylint: disable=attribute-defined-outside-init
+
 
     def _init_coll_flexGridSizer1_Items(self, parent):
         parent.Add(self.MainSizer, 0, border=20,
@@ -1123,7 +1118,7 @@ class CreateNodeDialog(wx.Dialog):
         self.Profile.SetStringSelection("None")
         self.NodeName.SetFocus()
 
-    def OnOK(self, event):  # pylint: disable=unused-argument
+    def OnOK(self, event):
         name = self.NodeName.GetValue()
         message = ""
         if name:
@@ -1217,7 +1212,6 @@ class CreateNodeDialog(wx.Dialog):
 
 class AddSlaveDialog(wx.Dialog):
     """UI for adding a slave to the nodelist."""
-    # pylint: disable=attribute-defined-outside-init
 
     def _init_coll_flexGridSizer1_Items(self, parent):
         parent.Add(self.MainSizer, 0, border=20,
@@ -1314,7 +1308,7 @@ class AddSlaveDialog(wx.Dialog):
 
         self.SlaveNodeID.SetValue("0x00")
 
-    def OnOK(self, event):  # pylint: disable=unused-argument
+    def OnOK(self, event):
         error = []
         if not self.SlaveName.GetValue():
             error.append("Slave Name")
@@ -1369,7 +1363,7 @@ class AddSlaveDialog(wx.Dialog):
                     if dialog.ShowModal() == wx.ID_YES:
                         try:
                             self.NodeList.ImportEDSFile(filepath)
-                        except Exception:  # pylint: disable=broad-except
+                        except Exception:
                             display_exception_dialog(self)
 
         self.RefreshEDSFile()
@@ -1407,7 +1401,6 @@ DCF_ENTRY_TABLE_COLNAMES = ["Index", "Subindex", "Size", "Value"]
 
 
 class DCFEntryValuesTable(wx.grid.GridTableBase):
-    # pylint: disable=attribute-defined-outside-init
 
     """
     A custom wxGrid Table using user supplied data
@@ -1531,7 +1524,6 @@ class DCFEntryValuesTable(wx.grid.GridTableBase):
 
 class DCFEntryValuesDialog(wx.Dialog):
     """Dialog to edit DCF Entry values."""
-    # pylint: disable=attribute-defined-outside-init
 
     def _init_coll_MainSizer_Items(self, parent):
         parent.Add(self.staticText1, 0, border=20,

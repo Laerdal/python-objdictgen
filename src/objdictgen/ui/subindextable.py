@@ -143,12 +143,12 @@ class SubindexTable(wx.grid.GridTableBase):
     def GetNumberRows(self):
         return len(self.data)
 
-    def GetColLabelValue(self, col, translate=True):  # pylint: disable=unused-argument
+    def GetColLabelValue(self, col, translate=True):
         if col < len(self.colnames):
             return self.colnames[col]
         return None
 
-    def GetValue(self, row, col, translate=True) -> str:  # pylint: disable=unused-argument
+    def GetValue(self, row, col, translate=True) -> str:
         if row < self.GetNumberRows():
             colname = self.GetColLabelValue(col, False)
             value = str(self.data[row].get(colname, ""))
@@ -340,7 +340,6 @@ class SubindexTable(wx.grid.GridTableBase):
 
 class EditingPanel(wx.SplitterWindow):
     """UI for the Object Dictionary Editor."""
-    # pylint: disable=attribute-defined-outside-init
 
     # Typing definitions
     Manager: NodeManager
@@ -732,7 +731,7 @@ class EditingPanel(wx.SplitterWindow):
                         value = dialog.GetValues()
                         try:
                             self.Manager.SetCurrentEntry(index, row, value, "value", "dcf")
-                        except Exception as e:  # pylint: disable=broad-except
+                        except Exception as e:
                             display_error_dialog(self, f"Failed to set value: {e}", "Failed to set value")
                         self.ParentWindow.RefreshBufferState()
                         wx.CallAfter(self.RefreshTable)
@@ -747,7 +746,7 @@ class EditingPanel(wx.SplitterWindow):
             editor = self.Table.GetEditor(subindex, col)
             try:
                 self.Manager.SetCurrentEntry(index, subindex, value, name, editor)
-            except Exception as e:  # pylint: disable=broad-except
+            except Exception as e:
                 display_error_dialog(self, f"Failed to set value: {e}", "Failed to set value")
             self.ParentWindow.RefreshBufferState()
             wx.CallAfter(self.RefreshTable)
@@ -836,7 +835,7 @@ class EditingPanel(wx.SplitterWindow):
                         self.PopupMenu(self.SubindexGridMenu)
         event.Skip()
 
-    def OnAddToDCFSubindexMenu(self, event):  # pylint: disable=unused-argument
+    def OnAddToDCFSubindexMenu(self, event):
         if not self.Editable:
             selected = self.IndexList.GetSelection()
             if selected != wx.NOT_FOUND:
@@ -875,7 +874,7 @@ class EditingPanel(wx.SplitterWindow):
         self.SubindexGrid.SetGridCursor(node_id, 3)
         self.ShowDCFEntryDialog(node_id, 3)
 
-    def OnRenameIndexMenu(self, event):  # pylint: disable=unused-argument
+    def OnRenameIndexMenu(self, event):
         if self.Editable:
             selected = self.IndexList.GetSelection()
             if selected != wx.NOT_FOUND:
@@ -891,7 +890,7 @@ class EditingPanel(wx.SplitterWindow):
                             self.ParentWindow.RefreshBufferState()
                             self.RefreshIndexList()
 
-    def OnModifyIndexMenu(self, event):  # pylint: disable=unused-argument
+    def OnModifyIndexMenu(self, event):
         if self.Editable:
             selected = self.IndexList.GetSelection()
             if selected != wx.NOT_FOUND:
@@ -910,7 +909,7 @@ class EditingPanel(wx.SplitterWindow):
                         self.ParentWindow.RefreshBufferState()
                         self.RefreshIndexList()
 
-    def OnDeleteIndexMenu(self, event):  # pylint: disable=unused-argument
+    def OnDeleteIndexMenu(self, event):
         if self.Editable:
             selected = self.IndexList.GetSelection()
             if selected != wx.NOT_FOUND:
@@ -920,7 +919,7 @@ class EditingPanel(wx.SplitterWindow):
                     self.ParentWindow.RefreshBufferState()
                     self.RefreshIndexList()
 
-    def OnAddSubindexMenu(self, event):  # pylint: disable=unused-argument
+    def OnAddSubindexMenu(self, event):
         if self.Editable:
             selected = self.IndexList.GetSelection()
             if selected != wx.NOT_FOUND:
@@ -939,7 +938,7 @@ class EditingPanel(wx.SplitterWindow):
                             except ValueError:
                                 display_error_dialog(self, "An integer is required!")
 
-    def OnDeleteSubindexMenu(self, event):  # pylint: disable=unused-argument
+    def OnDeleteSubindexMenu(self, event):
         if self.Editable:
             selected = self.IndexList.GetSelection()
             if selected != wx.NOT_FOUND:
@@ -958,7 +957,7 @@ class EditingPanel(wx.SplitterWindow):
                             except ValueError:
                                 display_error_dialog(self, "An integer is required!")
 
-    def OnDefaultValueSubindexMenu(self, event):  # pylint: disable=unused-argument
+    def OnDefaultValueSubindexMenu(self, event):
         if self.Editable:
             selected = self.IndexList.GetSelection()
             if selected != wx.NOT_FOUND:

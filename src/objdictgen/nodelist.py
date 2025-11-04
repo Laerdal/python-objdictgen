@@ -151,7 +151,7 @@ class NodeList:
             masterpath = self.Root / "master.od"
         try:
             self.Manager.SaveCurrentInFile(masterpath)
-        except Exception as exc:  # pylint: disable=broad-except
+        except Exception as exc:
             raise ValueError(f"Fail to save master node in '{masterpath}'") from exc
 
     def LoadSlaveNodes(self, netname: str = ""):
@@ -174,7 +174,7 @@ class NodeList:
                             self.LoadEDS(node["DCFName"])
                             self.AddSlaveNode(node["Name"], nodeid, node["DCFName"])
                 self.Changed = False
-            except Exception as exc:  # pylint: disable=broad-except
+            except Exception as exc:
                 raise ValueError(f"Unable to load CPJ file '{cpjpath}'") from exc
 
     def SaveNodeList(self, netname: str = ""):
@@ -188,7 +188,7 @@ class NodeList:
             with open(cpjpath, mode=mode, encoding="utf-8") as f:
                 f.write(content)
             self.Changed = False
-        except Exception as exc:  # pylint: disable=broad-except
+        except Exception as exc:
             raise ValueError(f"Fail to save node list in '{cpjpath}'") from exc
 
     def GetOrderNumber(self, nodeid: int) -> int:

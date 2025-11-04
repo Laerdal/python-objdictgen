@@ -1,8 +1,6 @@
-import pytest
-
-from objdictgen.nodemanager import NodeManager
-from objdictgen.nodelist import NodeList, main
 from objdictgen.node import Node
+from objdictgen.nodelist import NodeList, main
+from objdictgen.nodemanager import NodeManager
 
 
 def test_nodelist_main(wd):

@@ -92,8 +92,6 @@ TIndexEntry = TypedDict('TIndexEntry', {
 class NodeProtocol(Protocol):
     """Protocol for the Node class."""
 
-    # pylint: disable=unnecessary-ellipsis
-
     Name: str
     """Name of the node."""
 

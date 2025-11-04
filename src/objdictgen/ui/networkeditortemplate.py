@@ -35,7 +35,6 @@ from objdictgen.ui.subindextable import EditingPanel, EditingPanelNotebook
 
 class NetworkEditorTemplate(NodeEditorTemplate):
     """Network Editor Template."""
-    # pylint: disable=attribute-defined-outside-init
 
     def _init_ctrls(self, parent):
         # FIXME: This cast is to define right type hints of attributes for this specific instance
@@ -112,7 +111,7 @@ class NetworkEditorTemplate(NodeEditorTemplate):
     #                         Slave Nodes Management
     # --------------------------------------------------------------------------
 
-    def OnAddSlaveMenu(self, event):  # pylint: disable=unused-argument
+    def OnAddSlaveMenu(self, event):
         with AddSlaveDialog(self.Frame) as dialog:
             dialog.SetNodeList(self.NodeList)
             if dialog.ShowModal() != wx.ID_OK:
@@ -131,10 +130,10 @@ class NetworkEditorTemplate(NodeEditorTemplate):
             self.NodeList.CurrentSelected = idx
             self.NetworkNodes.SetSelection(idx)
             self.RefreshBufferState()
-        except Exception:  # pylint: disable=broad-except
+        except Exception:
             display_exception_dialog(self.Frame)
 
-    def OnRemoveSlaveMenu(self, event):  # pylint: disable=unused-argument
+    def OnRemoveSlaveMenu(self, event):
         slavenames = self.NodeList.GetSlaveNames()
         slaveids = self.NodeList.GetSlaveIDs()
         with wx.SingleChoiceDialog(
@@ -155,7 +154,7 @@ class NetworkEditorTemplate(NodeEditorTemplate):
                 if new_selection > 0:
                     self.NodeList.CurrentSelected = slaveids[new_selection - 1]
             self.RefreshBufferState()
-        except Exception:  # pylint: disable=broad-except
+        except Exception:
             display_exception_dialog(self.Frame)
 
     def OpenMasterDCFDialog(self, node_id: int):

@@ -60,9 +60,9 @@ ACCESS_TRANSLATE = {
 }
 
 # Function for verifying data values
-is_integer = lambda x: isinstance(x, int)  # pylint: disable=unnecessary-lambda-assignment
-is_string = lambda x: isinstance(x, str)  # pylint: disable=unnecessary-lambda-assignment
-is_boolean = lambda x: x in (0, 1)  # pylint: disable=unnecessary-lambda-assignment
+is_integer = lambda x: isinstance(x, int)  # noqa: E731
+is_string = lambda x: isinstance(x, str)  # noqa: E731
+is_boolean = lambda x: x in (0, 1)  # noqa: E731
 
 # Define checking of value for each attribute
 ENTRY_ATTRIBUTES: dict[str, Callable[[Any], bool]] = {
@@ -505,7 +505,6 @@ def generate_eds_content(node: Node, filepath: TPath):
     entries = list(node)
 
     # FIXME: Too many camelCase vars in here
-    # pylint: disable=invalid-name
 
     try:
         value = node.GetEntry(0x1018)

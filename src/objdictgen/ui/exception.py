@@ -90,8 +90,7 @@ IGNORED_EXCEPTIONS = []
 def handle_exception(e_type, e_value, e_traceback, parent=None):
 
     # Import here to prevent circular import
-    from objdictgen import \
-        __version__  # pylint: disable=import-outside-toplevel
+    from objdictgen import __version__
 
     # this is very helpful when there's an exception in the rest of this func
     traceback.print_exception(e_type, e_value, e_traceback)

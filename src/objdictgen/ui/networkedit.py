@@ -66,7 +66,6 @@ def usage():
 
 class NetworkEdit(NetworkEditorTemplate):
     """Network Editor UI."""
-    # pylint: disable=attribute-defined-outside-init
 
     # Type helpers
     NodeList: nl.NodeList
@@ -256,14 +255,14 @@ class NetworkEdit(NetworkEditorTemplate):
         self.Closing = True
         event.Skip()
 
-    def OnQuitMenu(self, event):  # pylint: disable=unused-argument
+    def OnQuitMenu(self, event):
         self.Close()
 
     # --------------------------------------------------------------------------
     #                     Load and Save Funtions
     # --------------------------------------------------------------------------
 
-    def OnNewProjectMenu(self, event):  # pylint: disable=unused-argument
+    def OnNewProjectMenu(self, event):
         if self.NodeList:
             defaultpath = os.path.dirname(self.NodeList.Root)
         else:
@@ -291,10 +290,10 @@ class NetworkEdit(NetworkEditorTemplate):
                 self.RefreshTitle()
                 self.RefreshProfileMenu()
                 self.RefreshMainMenu()
-            except Exception:  # pylint: disable=broad-except
+            except Exception:
                 display_exception_dialog(self)
 
-    def OnOpenProjectMenu(self, event):  # pylint: disable=unused-argument
+    def OnOpenProjectMenu(self, event):
         if self.NodeList:
             defaultpath = os.path.dirname(self.NodeList.Root)
         else:
@@ -321,16 +320,16 @@ class NetworkEdit(NetworkEditorTemplate):
                 self.RefreshTitle()
                 self.RefreshProfileMenu()
                 self.RefreshMainMenu()
-            except Exception:  # pylint: disable=broad-except
+            except Exception:
                 display_exception_dialog(self)
 
-    def OnSaveProjectMenu(self, event):  # pylint: disable=unused-argument
+    def OnSaveProjectMenu(self, event):
         try:
             self.NodeList.SaveProject()
-        except Exception:  # pylint: disable=broad-except
+        except Exception:
             display_exception_dialog(self)
 
-    def OnCloseProjectMenu(self, event):  # pylint: disable=unused-argument
+    def OnCloseProjectMenu(self, event):
         if self.NodeList:
             if self.NodeList.HasChanged():
                 with wx.MessageDialog(
@@ -342,7 +341,7 @@ class NetworkEdit(NetworkEditorTemplate):
                 if answer == wx.ID_YES:
                     try:
                         self.NodeList.SaveProject()
-                    except Exception:  # pylint: disable=broad-except
+                    except Exception:
                         display_exception_dialog(self)
                 elif answer == wx.ID_NO:
                     self.NodeList.Changed = False

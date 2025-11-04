@@ -255,7 +255,7 @@ def xmldump(filehandle: io.TextIOWrapper|None, py_obj: object,
     omit = omit or ()
 
     # Store the ref id to the pickling object (if not deepcopying)
-    global VISITED  # pylint: disable=global-statement
+    global VISITED
     objid = id(py_obj)
     VISITED = {
         objid: py_obj
@@ -316,7 +316,7 @@ def xmlload(filehandle: SupportsRead[str|bytes]|bytes|str) -> Any:
     elif isinstance(filehandle, bytes):
         fh = io.BytesIO(filehandle)
 
-    global VISITED  # pylint: disable=global-statement
+    global VISITED
     VISITED = {}  # Reset the visited collection
 
     return _thing_from_dom(minidom.parse(fh), None)
@@ -511,7 +511,7 @@ def _thing_from_dom(dom_node: minidom.Element|minidom.Document, container: Any =
             # a value= attribute. ie. pickler can place it in either
             # place (based on user preference) and unpickler doesn't care
             node_valuetext = ""
-            if 'value' in node._attrs:  # type: ignore[attr-defined]  # pylint: disable=protected-access
+            if 'value' in node._attrs:
                 # text in tag
                 ttext = node.getAttribute('value')
                 node_valuetext = unsafe_string(ttext, isattr=True)
@@ -557,7 +557,6 @@ def _thing_from_dom(dom_node: minidom.Element|minidom.Document, container: Any =
             # clearer to show all cases being handled (easier to see the pattern
             # when doing later maintenance).
 
-            # pylint: disable=self-assigning-variable
             if node_type == 'None':
                 node_val = None
             elif node_type == 'numeric':
