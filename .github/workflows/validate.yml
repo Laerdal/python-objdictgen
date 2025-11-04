@@ -33,6 +33,11 @@ jobs:
         run: |
           pytest --cov=objdictgen --cov-report=xml --cov-branch -p no:logging --tb=no
 
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarqube-scan-action@v6.0.0
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
 
   mypy:
     name: Static type analysis
@@ -69,16 +74,3 @@ jobs:
         with:
           args: check --exit-zero
           src: "."
-
-
-  sonar:
-    name: Code analysis
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout the repository
-        uses: actions/checkout@v5
-
-      - name: SonarCloud Scan
-        uses: SonarSource/sonarqube-scan-action@v6.0.0
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
