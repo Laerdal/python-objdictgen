@@ -18,7 +18,7 @@ def test_filereplacer(basepath, wd, setenvvar):
 
     tests = [
         (1, "Test data", "Test data"),
-        (2, "@@{name}", "objdictgen"),
+        (2, "@@{Name}", "objdictgen"),
         (3, "@@{TEST}", "foobar"),  # Read from the mocked environment variable
         (4, "@@{nonexisting}", "non-existing"),
     ]

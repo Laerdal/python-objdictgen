@@ -1,12 +1,11 @@
 
+import importlib.metadata
 import os
 import re
-import warnings
-import objdictgen
-from setuptools import SetuptoolsDeprecationWarning
-from setuptools.config import read_configuration
+from pprint import pprint
+from typing import Any
 
-warnings.filterwarnings("ignore", category=SetuptoolsDeprecationWarning)
+import objdictgen
 
 
 def convert(infile, outfile):
@@ -14,11 +13,20 @@ def convert(infile, outfile):
 
     pat = re.compile(r'^(.*?)@@{(.[^}]+)}(.*)$', re.S)
 
-    config = read_configuration('setup.cfg')["metadata"]
+    config: dict[str, Any] = dict(importlib.metadata.metadata("objdictgen"))
 
-    # Some hacks
-    config['version_tuple'] = objdictgen.__version_tuple__
-    config['copyright'] = objdictgen.__copyright__
+    # Generate a 4-tuple version number
+    version = objdictgen.__version__
+    version_tuple = tuple(int(x) for x in version.split('.') if x.isdigit())
+    version_tuple = version_tuple + (0,) * (4 - len(version_tuple))
+
+    config['_version_tuple'] = version_tuple
+    config['_copyright'] = objdictgen.__copyright__
+
+    # Shorten description for file description field and print it
+    pr_config = config.copy()
+    pr_config["Description"] = pr_config["Description"][0:60] + "..."
+    pprint(pr_config)
 
     with open(infile, "r", encoding="utf-8") as fin:
         out = ''
@@ -44,6 +52,8 @@ def convert(infile, outfile):
 
     with open(outfile, 'w', encoding="utf-8") as fout:
         fout.write(out)
+
+    print(f"Converted {infile} -> {outfile}\n{out}")
 
 
 if __name__ == '__main__':
