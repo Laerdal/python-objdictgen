@@ -18,6 +18,8 @@ jobs:
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v5
+        with:
+          fetch-depth: 0  # To ensure non-shallow git clones for sonar
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v6
