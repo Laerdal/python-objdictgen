@@ -44,7 +44,7 @@ CURRENTID = 0
 
 # Returns a new id
 def get_new_id():
-    global CURRENTID  # pylint: disable=global-statement
+    global CURRENTID
     CURRENTID += 1
     return CURRENTID
 

@@ -31,15 +31,25 @@ import deepdiff.model  # type: ignore[import]  # Due to missing typing stubs for
 import jsonschema
 
 import objdictgen
+
 # Accessed by node.py, so we need to import node as module to avoid circular references
 from objdictgen import maps
 from objdictgen import node as nodelib
 from objdictgen.maps import OD, ODMapping, ODMappingList
-from objdictgen.typing import (TDiffNodes, TIndexEntry, TODJson, TODObj,
-                               TODObjJson, TODSubObj, TODSubObjJson, TODValue,
-                               TParamEntry, TPath, TProfileMenu)
-from objdictgen.utils import (copy_in_order, exc_amend, maybe_number,
-                              str_to_int, strip_brackets)
+from objdictgen.typing import (
+    TDiffNodes,
+    TIndexEntry,
+    TODJson,
+    TODObj,
+    TODObjJson,
+    TODSubObj,
+    TODSubObjJson,
+    TODValue,
+    TParamEntry,
+    TPath,
+    TProfileMenu,
+)
+from objdictgen.utils import copy_in_order, exc_amend, maybe_number, str_to_int, strip_brackets
 
 T = TypeVar('T')
 M = TypeVar('M', bound=Mapping)
@@ -352,10 +362,10 @@ def generate_jsonc(node: Node, compact=False, sort=False, internal=False,
 
     if jsonc:
         # In jsonc the field is converted to "<field>,  // <comment>"
-        repl = lambda m: m[1].replace('\\"', '"') + m[3] + m[2]
+        repl = lambda m: m[1].replace('\\"', '"') + m[3] + m[2]  # noqa: E731
     else:
         # In json the field is converted to "<field>,"
-        repl = lambda m: m[1].replace('\\"', '"') + m[3]
+        repl = lambda m: m[1].replace('\\"', '"') + m[3]  # noqa: E731
 
     # Convert the special @@ fields to jsonc comments
     # Syntax:  "@@<field>,  // <comment>@@"
@@ -396,7 +406,7 @@ def generate_node(contents: str|TODJson, validate: bool = True) -> Node:
     #        validate_fromdict() is better at giving useful errors
     #        than the json validator. However the type checking of the json
     #        validator is better.
-    global SCHEMA  # pylint: disable=global-statement
+    global SCHEMA
     if not SCHEMA:
         with open(objdictgen.JSON_SCHEMA, 'r', encoding="utf-8") as f:
             SCHEMA = json.loads(remove_jsonc(f.read()))

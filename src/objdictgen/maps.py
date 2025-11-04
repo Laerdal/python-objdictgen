@@ -30,8 +30,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable, Generator, TypeVar
 
 import objdictgen
-from objdictgen.typing import (TODObj, TODSubObj, TODValue, TParamEntry, TPath,
-                               TProfileMenu)
+from objdictgen.typing import TODObj, TODSubObj, TODValue, TParamEntry, TPath, TProfileMenu
 
 T = TypeVar('T')
 
@@ -327,15 +326,14 @@ def import_profile(profilename: TPath) -> tuple["ODMapping", TProfileMenu]:
 
     # Mapping and AddMenuEntries are expected to be defined by the execfile
     # The profiles requires some vars to be set
-    # pylint: disable=unused-variable
     try:
         with open(profilepath, "r", encoding="utf-8") as f:
             log.debug("EXECFILE %s", profilepath)
             code = compile(f.read(), profilepath, 'exec')
             exec(code, globals(), locals())  # FIXME: Using exec is unsafe
-            # pylint: disable=undefined-variable
-            return Mapping, AddMenuEntries  # type: ignore[name-defined]  # due to the exec() magic
-    except Exception as exc:  # pylint: disable=broad-except
+            # NOTE: These seem missing due to the exec() magic
+            return Mapping, AddMenuEntries  # type: ignore[name-defined]  # noqa: F821
+    except Exception as exc:
         log.debug("EXECFILE FAILED: %s", exc)
         log.debug(traceback.format_exc())
         raise ValueError(f"Loading profile '{profilepath}' failed: {exc}") from exc

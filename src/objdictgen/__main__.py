@@ -63,7 +63,7 @@ def debug_wrapper() -> Callable[[Callable[..., T]], Callable[..., T]]:
             opts = DebugOpts()
             try:
                 return fn(opts, *args, **kw)
-            except Exception as exc:  # pylint: disable=broad-except
+            except Exception as exc:
                 if opts.show_debug:
                     raise
                 print(f"{ODG_PROGRAM}: {exc.__class__.__name__}: {exc}")
@@ -212,8 +212,8 @@ def main(debugopts: DebugOpts, args: Sequence[str]|None = None):
     if opts.command == "help":
         if opts.subcommand:
             for subparsers_action in (
-                    a for a in parser._actions  # pylint: disable=protected-access
-                    if isinstance(a, argparse._SubParsersAction)  # pylint: disable=protected-access
+                    a for a in parser._actions
+                    if isinstance(a, argparse._SubParsersAction)
             ):
                 for choice, subparser in subparsers_action.choices.items():
                     if choice != opts.subcommand:
@@ -294,8 +294,7 @@ def main(debugopts: DebugOpts, args: Sequence[str]|None = None):
     elif opts.command == "edit":
 
         # Import here to prevent including optional UI components for cmd-line use
-        from .ui.objdictedit import \
-            uimain  # pylint: disable=import-outside-toplevel
+        from .ui.objdictedit import uimain
         uimain(opts.od)
 
 
@@ -322,8 +321,7 @@ def main(debugopts: DebugOpts, args: Sequence[str]|None = None):
     elif opts.command == "network":
 
         # Import here to prevent including optional UI components for cmd-line use
-        from .ui.networkedit import \
-            uimain  # pylint: disable=import-outside-toplevel
+        from .ui.networkedit import uimain
         uimain(opts.dir)
 
 
@@ -331,8 +329,7 @@ def main(debugopts: DebugOpts, args: Sequence[str]|None = None):
     elif opts.command == "nodelist":
 
         # Import here to prevent including optional UI components for cmd-line use
-        from .nodelist import \
-            main as _main  # pylint: disable=import-outside-toplevel
+        from .nodelist import main as _main
         _main(opts.dir)
 
 
@@ -342,5 +339,4 @@ def main(debugopts: DebugOpts, args: Sequence[str]|None = None):
 
 # To support -m objdictgen
 if __name__ == '__main__':
-    # pylint: disable=no-value-for-parameter
     main()

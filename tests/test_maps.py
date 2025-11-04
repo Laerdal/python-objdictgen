@@ -59,7 +59,7 @@ def test_maps_evaluate_expression():
     assert dut("4+3-2") == 5
 
     # Compare
-    assert dut("1<2") == True
+    assert dut("1<2") is True
     with pytest.raises(SyntaxError):
         dut("1<2<3")
     with pytest.raises(SyntaxError):

@@ -31,8 +31,7 @@ import objdictgen
 from objdictgen.nodemanager import NodeManager
 from objdictgen.typing import TPath
 from objdictgen.ui.commondialogs import CreateNodeDialog
-from objdictgen.ui.exception import (add_except_hook, display_error_dialog,
-                                     display_exception_dialog)
+from objdictgen.ui.exception import add_except_hook, display_error_dialog, display_exception_dialog
 from objdictgen.ui.nodeeditortemplate import NodeEditorTemplate
 from objdictgen.ui.subindextable import EditingPanel, EditingPanelNotebook
 
@@ -71,7 +70,6 @@ def usage():
 
 class ObjdictEdit(NodeEditorTemplate):
     """Main frame for the object dictionary editor."""
-    # pylint: disable=attribute-defined-outside-init
 
     EDITMENU_ID = ID_OBJDICTEDITEDITMENUOTHERPROFILE
 
@@ -290,7 +288,7 @@ class ObjdictEdit(NodeEditorTemplate):
                     self.RefreshProfileMenu()
         event.Skip()
 
-    def OnQuitMenu(self, event):  # pylint: disable=unused-argument
+    def OnQuitMenu(self, event):
         self.Close()
 
     def OnCloseFrame(self, event):
@@ -390,7 +388,7 @@ class ObjdictEdit(NodeEditorTemplate):
     #                     Load and Save Funtions
     # --------------------------------------------------------------------------
 
-    def OnNewMenu(self, event):  # pylint: disable=unused-argument
+    def OnNewMenu(self, event):
         # self.FilePath = ""
         with CreateNodeDialog(self) as dialog:
             if dialog.ShowModal() != wx.ID_OK:
@@ -415,10 +413,10 @@ class ObjdictEdit(NodeEditorTemplate):
             self.RefreshBufferState()
             self.RefreshProfileMenu()
             self.RefreshMainMenu()
-        except Exception:  # pylint: disable=broad-except
+        except Exception:
             display_exception_dialog(self)
 
-    def OnOpenMenu(self, event):  # pylint: disable=unused-argument
+    def OnOpenMenu(self, event):
         filepath = self.Manager.GetCurrentFilePath()
         if filepath:
             directory = os.path.dirname(filepath)
@@ -449,13 +447,13 @@ class ObjdictEdit(NodeEditorTemplate):
                 self.RefreshBufferState()
                 self.RefreshProfileMenu()
                 self.RefreshMainMenu()
-            except Exception:  # pylint: disable=broad-except
+            except Exception:
                 display_exception_dialog(self)
 
-    def OnSaveMenu(self, event):  # pylint: disable=unused-argument
+    def OnSaveMenu(self, event):
         self.Save()
 
-    def OnSaveAsMenu(self, event):  # pylint: disable=unused-argument
+    def OnSaveAsMenu(self, event):
         self.SaveAs()
 
     def Save(self):
@@ -466,7 +464,7 @@ class ObjdictEdit(NodeEditorTemplate):
                 self.SaveAs()
             else:
                 self.RefreshBufferState()
-        except Exception:  # pylint: disable=broad-except
+        except Exception:
             display_exception_dialog(self)
 
     def SaveAs(self):
@@ -496,7 +494,7 @@ class ObjdictEdit(NodeEditorTemplate):
                 if self.Manager.SaveCurrentInFile(filepath, sort=True):
                     self.Manager.SetCurrentFilePath(filepath)
                 self.RefreshBufferState()
-            except Exception:  # pylint: disable=broad-except
+            except Exception:
                 display_exception_dialog(self)
 
     def OnCloseMenu(self, event):
@@ -529,7 +527,7 @@ class ObjdictEdit(NodeEditorTemplate):
     #                     Import and Export Functions
     # --------------------------------------------------------------------------
 
-    def OnImportEDSMenu(self, event):  # pylint: disable=unused-argument
+    def OnImportEDSMenu(self, event):
         with wx.FileDialog(
             self, "Choose a file", os.getcwd(), "", "EDS files (*.eds)|*.eds|All files|*.*",
             style=wx.FD_OPEN | wx.FD_CHANGE_DIR,
@@ -553,12 +551,12 @@ class ObjdictEdit(NodeEditorTemplate):
                     self, "Import successful", "Information", wx.OK | wx.ICON_INFORMATION,
                 ) as message:
                     message.ShowModal()
-            except Exception:  # pylint: disable=broad-except
+            except Exception:
                 display_exception_dialog(self)
         else:
             display_error_dialog(self, f"'{filepath}' is not a valid file!")
 
-    def OnExportEDSMenu(self, event):  # pylint: disable=unused-argument
+    def OnExportEDSMenu(self, event):
         with wx.FileDialog(
             self, "Choose a file", os.getcwd(), self.Manager.GetCurrentNodeInfos()[0],
             "EDS files (*.eds)|*.eds|All files|*.*",
@@ -581,10 +579,10 @@ class ObjdictEdit(NodeEditorTemplate):
                     wx.OK | wx.ICON_INFORMATION,
                 ) as message:
                     message.ShowModal()
-            except Exception:  # pylint: disable=broad-except
+            except Exception:
                 display_exception_dialog(self)
 
-    def OnExportCMenu(self, event):  # pylint: disable=unused-argument
+    def OnExportCMenu(self, event):
         with wx.FileDialog(
             self, "Choose a file", os.getcwd(), self.Manager.GetCurrentNodeInfos()[0],
             "CANFestival C files (*.c)|*.c|All files|*.*",
@@ -606,7 +604,7 @@ class ObjdictEdit(NodeEditorTemplate):
                     self, "Export successful", "Information", wx.OK | wx.ICON_INFORMATION,
                 ) as message:
                     message.ShowModal()
-            except Exception:  # pylint: disable=broad-except
+            except Exception:
                 display_exception_dialog(self)
 
 
