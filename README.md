@@ -24,18 +24,27 @@ and `.eds` files. It can generate c code for use with the canfestival library.
 
 ## Install
 
-To install into a virtual environment `venv`. Check out this repo and go to
-the top in a command-prompt (here assuming Windows and git bash):
+To use this package Python3 must be installed. Use the package manager of
+choice to install the package in a virtual manager. We recommend
+the [uv package manager](https://docs.astral.sh/uv/).
+
+Using uv (one of many methods)
+
+    $ uv venv
+    $ uv pip install objdictgen[ui]  # [ui] will install GUI tools
+    $ uv run odg
+
+Using pip (for Windows)
 
     $ py -3 -mvenv venv
-    $ venv/Scripts/python -mpip install --upgrade pip setuptools   # Optional
-    $ venv/Scripts/pip install objdictgen[ui]    # [ui] will install GUI tools
+    $ venv/Scripts/pip install objdictgen[ui]
 
-After this `venv/Scripts/odg.exe` (on Windows) will exist and can be called
-from anywhere to run it.
+After this `venv/Scripts/odg.exe` (on Windows) or `venv\bin\odg` executable
+exists and can be called directly to run the command.
 
-The `[ui]` suffix to `pip install` will install the wx dependency needed
-for the UI `odg edit`. If no UI is needed, this suffix can be omitted.
+The `objdictgen[ui]` suffix will install the wx dependency needed for the UI
+`odg edit`. If no UI is needed, this suffix can be omitted.
+
 
 ## `odg` command-line tool
 
@@ -133,4 +142,4 @@ original work from CanFestival is:
 
 The Python 3 port and tool improvements have been implemented under
 
-    Copyright (C) 2022-2024 Svein Seldal, Laerdal Medical AS
+    Copyright (C) 2022-2025 Svein Seldal, Laerdal Medical AS

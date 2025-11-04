@@ -1,0 +1,42 @@
+name: Publish
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  pypi-publish:
+    name: Upload release to PyPi
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://test.pypi.org/p/objdictgen
+    permissions:
+      id-token: write
+    strategy:
+      matrix:
+        python-version: ["3.13"]
+
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v5
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Build package
+        run: uv build
+
+      - name: Publish package
+        uses: pypa/gh-action-pypi-publish@release/v1
+
+      # - name: Publish package to TestPyPI
+      #   uses: pypa/gh-action-pypi-publish@release/v1
+      #   with:
+      #     password: ${{ secrets.TEST_PYPI_API_TOKEN }}
+      #     repository_url: https://test.pypi.org/legacy/

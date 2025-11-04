@@ -1,6 +1,6 @@
 """Object Dictionary tool for Canfestival, a CanOpen stack."""
 #
-# Copyright (C) 2022-2024  Svein Seldal, Laerdal Medical AS
+# Copyright (C) 2022-2025  Svein Seldal, Laerdal Medical AS
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -17,6 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 # USA
 
+import importlib.metadata
 import os
 import sys
 from pathlib import Path
@@ -24,9 +25,8 @@ from pathlib import Path
 from objdictgen.node import Node
 from objdictgen.nodemanager import NodeManager
 
-__version__ = "3.5.3a1"
-__version_tuple__ = (3, 5, 3, 1)
-__copyright__ = "(c) 2024 Svein Seldal, Laerdal Medical AS, and several. Licensed under GPLv2.1."
+__version__ = importlib.metadata.version("objdictgen")
+__copyright__ = "(c) 2025 Svein Seldal, Laerdal Medical AS, and several. Licensed under GPLv2.1."
 
 # Shortcuts
 LoadFile = Node.LoadFile
