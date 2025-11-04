@@ -141,6 +141,7 @@ def main(debugopts: DebugOpts, args: Sequence[str]|None = None):
                         help="Store in internal format (json only)")
     subp.add_argument('--no-sort', action="store_true",
                         help="Don't order of parameters in output OD")
+    subp.add_argument('--generate-with', type=str, help="Pass a .py file for custom code generation")
 
     # -- DIFF --
     subp = subparser.add_parser('diff', parents=[common_opts], help="""
@@ -263,7 +264,7 @@ def main(debugopts: DebugOpts, args: Sequence[str]|None = None):
         od.DumpFile(opts.out,
             filetype=opts.type,
             # These additional options are only used for JSON output
-            sort=not opts.no_sort, internal=opts.internal, validate=not opts.novalidate
+            sort=not opts.no_sort, internal=opts.internal, validate=not opts.novalidate, custom_genfile=opts.generate_with
         )
 
 
