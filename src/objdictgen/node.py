@@ -931,13 +931,13 @@ class Node(NodeProtocol):
 
     def RemoveLine(self, index: int, maxval: int, incr: int = 1):
         """ Remove the given index and shift all the following indexes """
-        # FIXME: This function is called from NodeManager.RemoveCurrentVariable()
-        # but uncertain on how it is used.
         i = index
         while i < maxval and self.IsEntry(i + incr):
+            # FIXME: Not sure what this does
             self.Dictionary[i] = self.Dictionary[i + incr]
             i += incr
         self.Dictionary.pop(i)
+        self.ParamsDictionary.pop(i, None)
 
     def RemoveIndex(self, index: int|Iterable[int]) -> None:
         """ Remove the given index or indexes """
