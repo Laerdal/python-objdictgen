@@ -4,7 +4,7 @@ build-backend = "uv_build"
 
 [project]
 name = "objdictgen"
-version = "3.5.6"
+version = "3.5.4"
 authors = [
     {name = "Svein Seldal", email = "sveinse@laerdal.com"},
 ]
