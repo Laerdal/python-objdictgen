@@ -216,7 +216,7 @@ def unsafe_string(s: str, isattr: bool = True) -> str:
         tree = ast.parse("'" + s + "'", mode='eval')
         if not isinstance(tree.body, ast.Constant):
             raise ValueError(f"Invalid string '{s}' passed to unsafe_string()")
-        return tree.body.s
+        return tree.body.value  # type: ignore[return-value]
 
     return s
 
@@ -247,10 +247,12 @@ def xmldump(filehandle: io.TextIOWrapper|None, py_obj: object,
     """Create the XML representation as a string."""
 
     fh: io.TextIOWrapper
+    sio: io.StringIO|None
     if filehandle is None:
-        fh = sio = io.StringIO()
+        fh = sio = io.StringIO()  # type: ignore[assignment]
     else:
         fh = filehandle
+        sio = None
 
     omit = omit or ()
 
@@ -301,7 +303,7 @@ def xmldump(filehandle: io.TextIOWrapper|None, py_obj: object,
 
     fh.write('</PyObject>\n')
 
-    if filehandle is None:
+    if sio is not None:
         sio.flush()
         return sio.getvalue()
     return None
@@ -454,7 +456,7 @@ def _tag_completer(start_tag: str, orig_thing, close_tag: str, level: int) -> st
 def _thing_from_dom(dom_node: minidom.Element|minidom.Document, container: Any = None) -> Any:
     """Converts an [xml_pickle] DOM tree to a 'native' Python object"""
     node: minidom.Element
-    for node in dom_node.childNodes:
+    for node in dom_node.childNodes:  # type: ignore[assignment]
         if not hasattr(node, '_attrs') or not node.nodeName != '#text':
             continue
 
@@ -511,7 +513,7 @@ def _thing_from_dom(dom_node: minidom.Element|minidom.Document, container: Any =
             # a value= attribute. ie. pickler can place it in either
             # place (based on user preference) and unpickler doesn't care
             node_valuetext = ""
-            if 'value' in node._attrs:
+            if 'value' in node._attrs:  # type: ignore[attr-defined]
                 # text in tag
                 ttext = node.getAttribute('value')
                 node_valuetext = unsafe_string(ttext, isattr=True)
@@ -519,7 +521,7 @@ def _thing_from_dom(dom_node: minidom.Element|minidom.Document, container: Any =
                 # text in body
                 node.normalize()
                 if node.childNodes:
-                    node_valuetext = unsafe_string(node.childNodes[0].nodeValue, isattr=False)
+                    node_valuetext = unsafe_string(node.childNodes[0].nodeValue, isattr=False)  # type: ignore[arg-type]
 
             # step 1 - set node_val to basic thing
             node_val: Any
