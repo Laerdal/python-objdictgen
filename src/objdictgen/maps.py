@@ -505,6 +505,8 @@ class ODMapping(UserDict[int, TODObj]):
         It yields tuple of (index, subindex, size, name)
         """
         for index, entry in self.items():
+            if entry.get("need") is False:
+                continue
             values = entry["values"]
             for subindex, subvalue in enumerate(values):
                 if not subvalue["pdo"]:
