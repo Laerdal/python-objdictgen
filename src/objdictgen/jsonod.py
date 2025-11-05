@@ -730,7 +730,8 @@ def rearrage_for_json(obj: TODObjJson, node: Node, objtypes_i2s: dict[int, str],
                     name = pdo["name"]
                 except ValueError:
                     name = '???'
-                sub["value"] = f'@@{value}  // 0x{value_h[0:4]}_{value_h[4:6]}_{value_h[6:]}  {name}@@'
+                if value:
+                    sub["value"] = f'@@{value}  // 0x{value_h[0:4]}_{value_h[4:6]}_{value_h[6:]}  {name}@@'
 
     if 'each' in obj:
         each = obj["each"]
