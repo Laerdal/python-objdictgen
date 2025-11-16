@@ -27,4 +27,5 @@ _tmp*
 tests/od/extra-compare*
 *.od
 *.json
+!/src/objdictgen/schema/*.json
 *.jsonc
