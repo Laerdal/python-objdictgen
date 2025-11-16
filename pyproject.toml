@@ -36,6 +36,8 @@ dependencies = [
 ui = [
     "wxPython",
 ]
+
+[dependency-groups]
 dev = [
     "ruff",
     "mypy",
