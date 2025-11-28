@@ -33,7 +33,7 @@ jobs:
 
       - name: Run pytest
         run: |
-          pytest --cov --cov-report=xml --tb=line
+          pytest --cov --cov-report=xml --cov-report=term --tb=line
 
       - name: Sonar scan
         uses: SonarSource/sonarqube-scan-action@v6.0.0
