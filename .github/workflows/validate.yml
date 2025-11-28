@@ -21,7 +21,7 @@ jobs:
         with:
           fetch-depth: 0  # To ensure non-shallow git clones for sonar
 
-      - name: Set up Python ${{ matrix.python-version }}
+      - name: Set up python ${{ matrix.python-version }}
         uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
@@ -29,13 +29,13 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install .[dev]
+          pip install -e .[dev]
 
       - name: Run pytest
         run: |
-          pytest --cov=objdictgen --cov-report=xml --cov-branch -p no:logging --tb=no
+          pytest --cov --cov-report=xml --tb=line
 
-      - name: SonarCloud Scan
+      - name: Sonar scan
         uses: SonarSource/sonarqube-scan-action@v6.0.0
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -60,7 +60,7 @@ jobs:
 
       - name: Run mypy
         run: |
-          mypy src/objdictgen
+          mypy src
         continue-on-error: true
 
 
