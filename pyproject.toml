@@ -69,6 +69,14 @@ testpaths = [
 ]
 filterwarnings = "ignore::DeprecationWarning"
 
+# Configuration for coverage.py which is used by pytest-cov and SonarQube
+[tool.coverage.run]
+relative_files = true
+branch = true
+source = [
+    "src/objdictgen",
+]
+
 [tool.ruff]
 line-length = 120
 exclude = [
