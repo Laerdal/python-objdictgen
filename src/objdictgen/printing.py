@@ -267,6 +267,11 @@ def format_od_object(
             except ValueError:
                 suffix = '   ???' if value else ''
                 t_value = f"0x{value:x}{suffix}"
+        elif index_range and index_range.name in ('rpdop', 'tpdop'):
+            assert isinstance(value, int)
+            t_value = f"0x{value:x}" if 'COB ID' in info["name"] else str(value)
+            if i == 1 and value & 0x80000000:
+                t_value += f"  {Fore.LIGHTYELLOW_EX}DISABLED{Style.RESET_ALL}"
         elif i and value and (index in (4120, ) or 'COB ID' in info["name"]):
             t_value = f"0x{value:x}"
         else:
