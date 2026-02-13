@@ -18,7 +18,7 @@ def test_printing_format_node(odpath, file):
     od.ID = 1
 
     opts = FormatNodeOpts(
-        compact=False, short=False, unused=True, all=True, raw=False
+        verbose=True, short=False, unused=True, raw=False
     )
 
     lines = format_node(od, file, opts=opts)
@@ -27,7 +27,7 @@ def test_printing_format_node(odpath, file):
         assert isinstance(line, str)
 
     opts = FormatNodeOpts(
-        compact=False, short=False, unused=True, all=True, raw=False
+        verbose=True, short=False, unused=True, raw=False
     )
 
     lines = format_node(od, file, index=[0x1000], opts=opts)
@@ -36,7 +36,7 @@ def test_printing_format_node(odpath, file):
         assert isinstance(line, str)
 
     opts = FormatNodeOpts(
-        compact=False, short=False, unused=True, all=True, raw=False
+        verbose=True, short=False, unused=True, raw=False
     )
 
     with pytest.raises(ValueError) as exc:
