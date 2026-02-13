@@ -201,6 +201,7 @@ def format_od_header(
 def format_od_object(
         node: Node, index: int, *, short=False, compact=False,
         unused=False, verbose=False, raw=False,
+        widths: dict[str, int]|None = None
 ) -> Generator[str, None, None]:
     """Return the print formatting for an object dictionary entry."""
 
@@ -209,12 +210,12 @@ def format_od_object(
     obj = param["object"]
 
     # Get the header for the entry and output it unless it is empty
-    line, fmt = format_od_header(
+    line, fields = format_od_header(
         node, index, unused=unused, compact=compact, entry=param, raw=raw
     )
     if not line:
         return
-    yield line.format(**fmt)
+    yield line.format(**fields)
 
     # Get the index range title
     index_range = maps.INDEX_RANGES.get_index_range(index)
@@ -293,7 +294,7 @@ def format_od_object(
             'type': f"{Fore.LIGHTBLUE_EX}{typename}{Style.RESET_ALL}",
             'value': t_value,
             'comment': t_comment,
-            'pre': fmt['pre'],
+            'pre': fields['pre'],
         })
 
     # Must skip the next step if list is empty, as the first element is
@@ -302,14 +303,18 @@ def format_od_object(
         return
 
     # Calculate the max width for each of the columns
-    w = {
-        col: max(len(str(row[col])) for row in infos) or ''
-        for col in infos[0]
+    if widths is None:
+        widths = {}
+    colwidths = {
+        col: max(max(len(str(row[col])) for row in infos), widths.get(col, 0))
+        for col in list(infos[0]) + list(widths.keys())
     }
+    widths.update(colwidths)
 
     # Generate a format string based on the calculcated column widths
     # Legitimate use of % as this is making a string containing format specifiers
-    fmt = "{pre}    {i:%ss}  {access:%ss}  {pdo:%ss}  {name:%ss}  {type:%ss}  {value:%ss}  {comment}" % (
+    w = {k: v or '' for k, v in colwidths.items()}
+    fmt = "{pre}    {i:%ss}  {access:%ss}  {pdo:%ss}  {name:%ss}  {type:%ss}  {value:%ss}  {comment}" % (  # type: ignore
         w["i"],  w["access"],  w["pdo"],  w["name"],  w["type"],  w["value"]
     )
 
@@ -411,11 +416,19 @@ def text_diff(od1: Node, od2: Node, data_mode: bool=False) -> TDiffNodes:
         text1 = text2 = []
         entry1: TIndexEntry = {}
         entry2: TIndexEntry = {}
+
+        # Run through the formatting to get the width for the columns
+        widths: dict[str, int] = {}
         if index in keys1:
-            text1 = list(format_od_object(od1, index, unused=True))
+            list(format_od_object(od1, index, unused=True, widths=widths))
+        if index in keys2:
+            list(format_od_object(od2, index, unused=True, widths=widths))
+
+        if index in keys1:
+            text1 = list(format_od_object(od1, index, unused=True, widths=widths))
             entry1 = od1.GetIndexEntry(index)
         if index in keys2:
-            text2 = list(format_od_object(od2, index, unused=True))
+            text2 = list(format_od_object(od2, index, unused=True, widths=widths))
             entry2 = od2.GetIndexEntry(index)
 
         if data_mode:
