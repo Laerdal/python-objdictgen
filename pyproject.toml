@@ -1,14 +1,14 @@
 [build-system]
-requires = ["uv_build>=0.9.5,<0.10.0"]
-build-backend = "uv_build"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [project]
 name = "objdictgen"
-version = "3.5.4"
-authors = [
-    {name = "Svein Seldal", email = "sveinse@laerdal.com"},
-]
+version = "3.5.5"
 description = "CanFestival Object Dictionary tool"
+authors = [
+    {name = "Svein Seldal", email = "svein.seldal@laerdal.com"},
+]
 readme = "README.md"
 license = "LGPL-2.1-or-later"
 requires-python = ">=3.10,<4"
@@ -56,9 +56,17 @@ Repository = "https://github.com/Laerdal/python-objdictgen"
 [project.scripts]
 odg = "objdictgen.__main__:main"
 
-[tool.uv.build-backend]
-source-include = [
-    "tests/**",
+[tool.hatch.build.targets.wheel]
+packages = ["src/objdictgen"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/packaging",
+    "/src/objdictgen",
+    "/tests",
+]
+exclude = [
+    "/tests/od/extra-compare",
 ]
 
 [tool.pytest.ini_options]
