@@ -227,9 +227,11 @@ def format_od_object(
     # Fetch the dictionary values and the parameters, if present
     if index in node.Dictionary:
         values = node.GetEntry(index, aslist=True, compute=not raw)
+        raw_values = node.GetEntry(index, aslist=True, compute=False)
     else:
         # Fill the values with N/A if the entry is not present
         values = ['__N/A__'] * len(obj["values"])
+        raw_values = values
 
     if index in node.ParamsDictionary:
         # FIXME: Is there a risk that this return less than the length of
@@ -239,15 +241,21 @@ def format_od_object(
         params = [maps.DEFAULT_PARAMS] * len(values)
 
     # For mypy to ensure that values and entries are lists
-    assert isinstance(values, list) and isinstance(params, list)
+    assert isinstance(values, list) and isinstance(raw_values, list) and isinstance(params, list)
 
     infos = []
     # The strict=True will capture if the values and params are not the same
-    for i, (value, param) in enumerate(zip(values, params, strict=True)):
+    for i, (value, raw_value, param) in enumerate(zip(values, raw_values, params, strict=True)):
 
         # Prepare data for printing
         info = node.GetSubentryInfos(index, i)
         typename = node.GetTypeName(info['type'])
+
+        # Adding +NODEID text?
+        if 'COB ID' in info["name"] and isinstance(raw_value, str) and "$NODEID" in raw_value and not node.ID:
+            t_node = f"{Fore.GREEN}+NODEID{Style.RESET_ALL}"
+        else:
+            t_node = ''
 
         # Type specific formatting of the value
         if value == "__N/A__":
@@ -268,8 +276,13 @@ def format_od_object(
             except ValueError:
                 suffix = '   ???' if value else ''
                 t_value = f"0x{value:x}{suffix}"
+        elif index_range and index_range.name in ('rpdop', 'tpdop'):
+            assert isinstance(value, int)
+            t_value = f"0x{value:x}{t_node}" if 'COB ID' in info["name"] else f"{value}{t_node}"
+            if i == 1 and value & 0x80000000:
+                t_value += f"  {Fore.LIGHTYELLOW_EX}<DISABLED>{Style.RESET_ALL}"
         elif i and value and (index in (4120, ) or 'COB ID' in info["name"]):
-            t_value = f"0x{value:x}"
+            t_value = f"0x{value:x}{t_node}"
         else:
             t_value = str(value)
 

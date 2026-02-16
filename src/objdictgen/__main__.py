@@ -174,6 +174,7 @@ def main(debugopts: DebugOpts, args: Sequence[str]|None = None):
     subp.add_argument('--unused', action="store_true", help="Include unused profile parameters")
     subp.add_argument('--internal', action="store_true", help="Show internal data")
     subp.add_argument('--minus', help="Show only parameters that are not in this OD")
+    subp.add_argument('-n', '--nodeid', type=int, help="Set the $NODEID to this value")
 
     # -- NETWORK --
     subp = subparser.add_parser('network', parents=[common_opts], help="""
@@ -313,6 +314,10 @@ def main(debugopts: DebugOpts, args: Sequence[str]|None = None):
                 print(Fore.LIGHTBLUE_EX + name + '\n' + "=" * len(name) + Style.RESET_ALL)
 
             od = open_od(name, validate=not opts.novalidate)
+
+            if opts.nodeid:
+                od.ID = opts.nodeid
+
             for line in format_node(od, name, index=opts.index, minus=minus, opts=opts):
                 print(line)
 
