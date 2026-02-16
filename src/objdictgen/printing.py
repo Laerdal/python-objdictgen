@@ -206,6 +206,7 @@ def format_od_header(
 def format_od_object(
         node: Node, index: int, *, short=False,
         unused=False, verbose: int=0, raw=False,
+        widths: dict[str, int]|None = None
 ) -> Generator[str, None, None]:
     """Return the print formatting for an object dictionary entry."""
 
@@ -214,12 +215,12 @@ def format_od_object(
     obj = param["object"]
 
     # Get the header for the entry and output it unless it is empty
-    line, fmt = format_od_header(
+    line, fields = format_od_header(
         node, index, unused=unused, verbose=verbose, entry=param, raw=raw
     )
     if not line:
         return
-    yield line.format(**fmt)
+    yield line.format(**fields)
 
     # Get the index range title
     index_range = maps.INDEX_RANGES.get_index_range(index)
@@ -231,9 +232,11 @@ def format_od_object(
     # Fetch the dictionary values and the parameters, if present
     if index in node.Dictionary:
         values = node.GetEntry(index, aslist=True, compute=not raw)
+        raw_values = node.GetEntry(index, aslist=True, compute=False)
     else:
         # Fill the values with N/A if the entry is not present
         values = ['__N/A__'] * len(obj["values"])
+        raw_values = values
 
     if index in node.ParamsDictionary:
         # FIXME: Is there a risk that this return less than the length of
@@ -243,15 +246,21 @@ def format_od_object(
         params = [maps.DEFAULT_PARAMS] * len(values)
 
     # For mypy to ensure that values and entries are lists
-    assert isinstance(values, list) and isinstance(params, list)
+    assert isinstance(values, list) and isinstance(raw_values, list) and isinstance(params, list)
 
     infos = []
     # The strict=True will capture if the values and params are not the same
-    for i, (value, param) in enumerate(zip(values, params, strict=True)):
+    for i, (value, raw_value, param) in enumerate(zip(values, raw_values, params, strict=True)):
 
         # Prepare data for printing
         info = node.GetSubentryInfos(index, i)
         typename = node.GetTypeName(info['type'])
+
+        # Adding +NODEID text?
+        if 'COB ID' in info["name"] and isinstance(raw_value, str) and "$NODEID" in raw_value and not node.ID:
+            t_node = f"{Fore.GREEN}+NODEID{Style.RESET_ALL}"
+        else:
+            t_node = ''
 
         # Type specific formatting of the value
         if value == "__N/A__":
@@ -272,8 +281,13 @@ def format_od_object(
             except ValueError:
                 suffix = '   ???' if value else ''
                 t_value = f"0x{value:x}{suffix}"
+        elif index_range and index_range.name in ('rpdop', 'tpdop'):
+            assert isinstance(value, int)
+            t_value = f"0x{value:x}{t_node}" if 'COB ID' in info["name"] else f"{value}{t_node}"
+            if i == 1 and value & 0x80000000:
+                t_value += f"  {Fore.LIGHTYELLOW_EX}<DISABLED>{Style.RESET_ALL}"
         elif i and value and (index in (4120, ) or 'COB ID' in info["name"]):
-            t_value = f"0x{value:x}"
+            t_value = f"0x{value:x}{t_node}"
         else:
             t_value = str(value)
 
@@ -298,7 +312,7 @@ def format_od_object(
             'type': f"{Fore.LIGHTBLUE_EX}{typename}{Style.RESET_ALL}",
             'value': t_value,
             'comment': t_comment,
-            'pre': fmt['pre'],
+            'pre': fields['pre'],
         })
 
     # Must skip the next step if list is empty, as the first element is
@@ -307,14 +321,18 @@ def format_od_object(
         return
 
     # Calculate the max width for each of the columns
-    w = {
-        col: max(len(str(row[col])) for row in infos) or ''
-        for col in infos[0]
+    if widths is None:
+        widths = {}
+    colwidths = {
+        col: max(max(len(str(row[col])) for row in infos), widths.get(col, 0))
+        for col in list(infos[0]) + list(widths.keys())
     }
+    widths.update(colwidths)
 
     # Generate a format string based on the calculcated column widths
     # Legitimate use of % as this is making a string containing format specifiers
-    fmt = "{pre}    {i:%ss}  {access:%ss}  {pdo:%ss}  {name:%ss}  {type:%ss}  {value:%ss}  {comment}" % (
+    w = {k: v or '' for k, v in colwidths.items()}
+    fmt = "{pre}    {i:%ss}  {access:%ss}  {pdo:%ss}  {name:%ss}  {type:%ss}  {value:%ss}  {comment}" % (  # type: ignore
         w["i"],  w["access"],  w["pdo"],  w["name"],  w["type"],  w["value"]
     )
 
@@ -416,11 +434,19 @@ def text_diff(od1: Node, od2: Node, data_mode: bool=False, verbose: int=0) -> TD
         text1 = text2 = []
         entry1: TIndexEntry = {}
         entry2: TIndexEntry = {}
+
+        # Run through the formatting to get the width for the columns
+        widths: dict[str, int] = {}
         if index in keys1:
-            text1 = list(format_od_object(od1, index, unused=True, verbose=verbose))
+            list(format_od_object(od1, index, unused=True, verbose=verbose, widths=widths))
+        if index in keys2:
+            list(format_od_object(od2, index, unused=True, verbose=verbose, widths=widths))
+
+        if index in keys1:
+            text1 = list(format_od_object(od1, index, unused=True, verbose=verbose, widths=widths))
             entry1 = od1.GetIndexEntry(index)
         if index in keys2:
-            text2 = list(format_od_object(od2, index, unused=True, verbose=verbose))
+            text2 = list(format_od_object(od2, index, unused=True, verbose=verbose, widths=widths))
             entry2 = od2.GetIndexEntry(index)
 
         if data_mode:
