@@ -18,10 +18,9 @@ from objdictgen.utils import (TERM_COLS, diff_colored_lines, highlight_changes,
 @dataclass
 class FormatNodeOpts:
     """ Options for formatting the node """
-    compact: bool = False
+    verbose: int = 0
     short: bool = False
     unused: bool = False
-    all: bool = False
     raw: bool = False
     internal: bool = False
 
@@ -78,17 +77,18 @@ def format_node(
             extra = f"{pname} (not loaded)"
         profiles.append(extra)
 
-    if not kwargs.get("compact"):
-        yield f"{Fore.CYAN}File:{Style.RESET_ALL}      {name}"
-        yield f"{Fore.CYAN}Name:{Style.RESET_ALL}      {node.Name}  [{node.Type.upper()}]  {node.Description}"
+    yield f"{Fore.CYAN}File:{Style.RESET_ALL}      {name}"
+    yield f"{Fore.CYAN}Name:{Style.RESET_ALL}      {node.Name}  [{node.Type.upper()}]  {node.Description}"
+    if opts.verbose:
         tp = ", ".join(profiles) or None
         yield f"{Fore.CYAN}Profiles:{Style.RESET_ALL}  {tp}"
-        if node.ID:
-            yield f"{Fore.CYAN}ID:{Style.RESET_ALL}        {node.ID}"
-        yield ""
+    if node.ID:
+        yield f"{Fore.CYAN}ID:{Style.RESET_ALL}        {node.ID}"
+    yield ""
 
     index_range = None
     header = ''
+    last_is_equal = False
 
     for k in keys:
 
@@ -96,7 +96,7 @@ def format_node(
         ir = maps.INDEX_RANGES.get_index_range(k)
         if index_range != ir:
             index_range = ir
-            if not opts.compact:
+            if opts.verbose:
                 header = Fore.YELLOW + ir.description + Style.RESET_ALL
 
         obj = node.GetIndexEntry(k)
@@ -107,14 +107,19 @@ def format_node(
             if obj == minusobj:
                 linegen = format_od_object(node, k, short=True)
                 lines = [remove_color(line) for line in linegen]
-                lines[0] = Fore.LIGHTBLACK_EX + lines[0] + f"   {Fore.LIGHTRED_EX}<EQUAL>{Style.RESET_ALL}"
+                pre = "    " if opts.verbose else ''
+                lines[0] = f"{pre}{Fore.LIGHTBLACK_EX}{lines[0]}   {Fore.GREEN}<EQUAL>{Style.RESET_ALL}"
                 yield from lines
+                last_is_equal = True
                 continue
+
+        if last_is_equal and opts.verbose:
+            yield ""
 
         # Yield the text for the index
         lines = list(format_od_object(
-            node, k, short=opts.short, compact=opts.compact, unused=opts.unused,
-            verbose=opts.all, raw=opts.raw
+            node, k, short=opts.short, verbose=opts.verbose, unused=opts.unused,
+            raw=opts.raw
         ))
 
         if opts.internal and lines[-1] == "":
@@ -133,12 +138,12 @@ def format_node(
             obj = node.GetIndexEntry(k)
             lines = pformat(obj, width=TERM_COLS).splitlines()
             yield from lines
-            if not opts.compact:
+            if opts.verbose:
                 yield ""
 
 
 def format_od_header(
-        node: Node, index: int, *, unused=False, compact=False, raw=False,
+        node: Node, index: int, *, unused=False, verbose=False, raw=False,
         entry: TIndexEntry|None = None
 ) -> tuple[str, dict[str, str]]:
     """Get the print output for a dictionary entry header"""
@@ -194,13 +199,13 @@ def format_od_header(
         'name': f"{Fore.LIGHTWHITE_EX}{t_name}{Style.RESET_ALL}",
         'struct': f"{Fore.LIGHTYELLOW_EX}[{t_string.upper()}]{Style.RESET_ALL}",
         'flags': f"  {Fore.MAGENTA}{t_flags}{Style.RESET_ALL}" if flags else '',
-        'pre': '    ' if not compact else '',
+        'pre': '    ' if verbose else '',
     }
 
 
 def format_od_object(
-        node: Node, index: int, *, short=False, compact=False,
-        unused=False, verbose=False, raw=False,
+        node: Node, index: int, *, short=False,
+        unused=False, verbose: int=0, raw=False,
         widths: dict[str, int]|None = None
 ) -> Generator[str, None, None]:
     """Return the print formatting for an object dictionary entry."""
@@ -211,7 +216,7 @@ def format_od_object(
 
     # Get the header for the entry and output it unless it is empty
     line, fields = format_od_header(
-        node, index, unused=unused, compact=compact, entry=param, raw=raw
+        node, index, unused=unused, verbose=verbose, entry=param, raw=raw
     )
     if not line:
         return
@@ -292,7 +297,7 @@ def format_od_object(
             t_comment = f"{Fore.LIGHTBLACK_EX}/* {t_comment} */{Style.RESET_ALL}"
 
         # Omit printing the first element unless specifically requested
-        if (not verbose and i == 0
+        if (verbose < 2 and i == 0
             and obj['struct'] & OD.MultipleSubindexes
             and not t_comment
         ):
@@ -335,12 +340,12 @@ def format_od_object(
     for infoentry in infos:
         yield fmt.format(**infoentry)
 
-    if not compact and infos:
+    if verbose and infos:
         yield ""
 
 
 def format_diff_nodes(
-        od1: Node, od2: Node, *, data=False, raw=False,
+        od1: Node, od2: Node, *, data=False, raw=False, verbose: int=0,
         internal=False, show=False
 ) -> Generator[str, None, None]:
     """ Compare two object dictionaries and return the formatted differences. """
@@ -348,7 +353,7 @@ def format_diff_nodes(
     if internal or data:
         diffs = jsonod.diff(od1, od2, internal=internal)
     else:
-        diffs = text_diff(od1, od2, data_mode=raw)
+        diffs = text_diff(od1, od2, data_mode=raw, verbose=verbose)
 
     rst = Style.RESET_ALL
 
@@ -413,7 +418,7 @@ def format_diff_nodes(
                 yield f"{Fore.RED}{chtype} {ppath} {change}{rst}"
 
 
-def text_diff(od1: Node, od2: Node, data_mode: bool=False) -> TDiffNodes:
+def text_diff(od1: Node, od2: Node, data_mode: bool=False, verbose: int=0) -> TDiffNodes:
     """ Compare two object dictionaries as text and return the differences. """
 
     # Get all indices for the nodes
@@ -433,15 +438,15 @@ def text_diff(od1: Node, od2: Node, data_mode: bool=False) -> TDiffNodes:
         # Run through the formatting to get the width for the columns
         widths: dict[str, int] = {}
         if index in keys1:
-            list(format_od_object(od1, index, unused=True, widths=widths))
+            list(format_od_object(od1, index, unused=True, verbose=verbose, widths=widths))
         if index in keys2:
-            list(format_od_object(od2, index, unused=True, widths=widths))
+            list(format_od_object(od2, index, unused=True, verbose=verbose, widths=widths))
 
         if index in keys1:
-            text1 = list(format_od_object(od1, index, unused=True, widths=widths))
+            text1 = list(format_od_object(od1, index, unused=True, verbose=verbose, widths=widths))
             entry1 = od1.GetIndexEntry(index)
         if index in keys2:
-            text2 = list(format_od_object(od2, index, unused=True, widths=widths))
+            text2 = list(format_od_object(od2, index, unused=True, verbose=verbose, widths=widths))
             entry2 = od2.GetIndexEntry(index)
 
         if data_mode:

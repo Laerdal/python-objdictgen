@@ -149,6 +149,7 @@ def main(debugopts: DebugOpts, args: Sequence[str]|None = None):
     """, aliases=['compare'])
     subp.add_argument('od1', help="Object dictionary")
     subp.add_argument('od2', help="Object dictionary")
+    subp.add_argument('-v', '--verbose', action="count", default=0, help="Verbose output (can be used multiple times)")
     subp.add_argument('--show', action="store_true", help="Show difference data")
     subp.add_argument('--internal', action="store_true", help="Diff internal object")
     subp.add_argument('--data', action="store_true", help="Show difference as data")
@@ -166,9 +167,7 @@ def main(debugopts: DebugOpts, args: Sequence[str]|None = None):
     """, aliases=['cat'])
     subp.add_argument('od', nargs="+", help="Object dictionary")
     subp.add_argument('-i', '--index', action="append", help="Specify parameter index to show")
-    subp.add_argument('--all', action="store_true",
-                        help="Show all subindexes, including subindex 0")
-    subp.add_argument('--compact', action="store_true", help="Compact listing")
+    subp.add_argument('-v', '--verbose', action="count", default=0, help="Verbose output (can be used multiple times)")
     subp.add_argument('--raw', action="store_true", help="Show raw parameter values")
     subp.add_argument('--short', action="store_true", help="Do not list sub-index")
     subp.add_argument('--unused', action="store_true", help="Include unused profile parameters")
@@ -276,7 +275,7 @@ def main(debugopts: DebugOpts, args: Sequence[str]|None = None):
         od2 = open_od(opts.od2, validate=not opts.novalidate)
 
         lines = list(format_diff_nodes(od1, od2, data=opts.data, raw=opts.raw,
-                             internal=opts.internal, show=opts.show))
+                             internal=opts.internal, show=opts.show, verbose=opts.verbose))
 
         for line in lines:
             print(line)
