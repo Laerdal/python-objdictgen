@@ -935,6 +935,7 @@ class Node(NodeProtocol):
         while i < maxval and self.IsEntry(i + incr):
             # FIXME: Not sure what this does
             self.Dictionary[i] = self.Dictionary[i + incr]
+            self.ParamsDictionary[i] = self.ParamsDictionary.get(i + incr, {})
             i += incr
         self.Dictionary.pop(i)
         self.ParamsDictionary.pop(i, None)
