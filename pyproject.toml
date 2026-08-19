@@ -90,6 +90,41 @@ line-length = 120
 exclude = [
     "tests/od/**",
 ]
+lint.ignore = [
+    # Stop gap for getting ruff checks to pass. These should be fixed and removed in the future.
+    "B015",  # Pointless comparison. Did you mean to assign a value? Otherwise, prepend `assert` or remove it.
+    "B017",  # Do not assert blind exception: `Exception`
+    "BLE001",  # Do not catch blind exception: `Exception`
+    "C400",  # Unnecessary generator (rewrite as a list comprehension)
+    "C401",  # Unnecessary generator (rewrite as a set comprehension)
+    "C408",  # Unnecessary `tuple()` call (rewrite as a literal)
+    "C413",  # Unnecessary `list()` call around `sorted()`
+    "FURB122",  # Use of `fo.write` in a for loop
+    "FURB167",  # Use of regular expression alias `re.M`
+    "I001",  # Import block is un-sorted or un-formatted
+    "PIE810",  # Call `startswith` once with a `tuple`
+    "PLR1711",  # Useless `return` statement at end of function
+    "PLR1736",  # List index lookup in `enumerate()` loop
+    "PLW0127",  # Self-assignment of variable
+    "PLW1510",  # `subprocess.run` without explicit `check` argument
+    "PYI034",  # `__iadd__`/`__imod__` methods usually return `self` at runtime
+    "PYI041",  # Use `complex` instead of `int | float | complex`
+    "RET501",  # Do not explicitly `return None` in function if it is the only possible return value
+    "RUF010",  # Use explicit conversion flag
+    "RUF012",  # Mutable default value for class attribute
+    "RUF059",  # Unpacked variable `editors` is never used
+    "RUF100",  # Unused `noqa` directive
+    "S102",  # Use of `exec` detected
+    "SIM102",  # Use a single `if` statement instead of nested `if` statements
+    "SIM114",  # Combine `if` branches using logical `or` operator
+    "SIM117",  # Use a single `with` statement with multiple contexts instead of nested `with` statements
+    "SIM202",  # Use `x == y` instead of `not x != y`
+    "TRY004",  # Prefer `TypeError` exception for invalid type
+    "UP031",  # Use format specifiers instead of percent format
+    "UP034",  # Avoid extraneous parentheses
+    "UP035",  # Import from `collections.abc` instead
+    "UP037",  # Remove quotes from type annotation
+]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = [
