@@ -1,0 +1,229 @@
+{
+  "$id": "od data",
+  "$version": "1",
+  "$description": "Canfestival object dictionary data",
+  "$schema": "https://raw.githubusercontent.com/Laerdal/python-objdictgen/main/src/objdictgen/schema/od.schema.json",
+  "$tool": "odg 3.5.5",
+  "$date": "2026-08-19T16:04:25.134652+02:00",
+  "name": "odtest",
+  "description": "OD for testing object types with repeated subindexes and repeated objects.",
+  "type": "master",
+  "id": 0,
+  "profile": "odtest",
+  "dictionary": [
+    {
+      "index": "0x1002",  // 4098
+      "name": "Manufacturer Status Register",
+      "struct": "var",
+      "group": "built-in",
+      "mandatory": false,
+      "sub": [
+        {
+          "name": "Manufacturer Status Register",
+          "type": "UNSIGNED32",  // 7
+          "access": "ro",
+          "pdo": true,
+          "value": "{True:\"$NODEID+0x%X00\"%(base+2),False:0x80000000}[base<4]",
+          "comment": "Tests the python expression in the value field."
+        }
+      ]
+    },
+    {
+      "index": "0x1003",  // 4099
+      "name": "Pre-defined Error Field",
+      "struct": "array",
+      "group": "built-in",
+      "mandatory": false,
+      "profile_callback": true,
+      "each": {
+        "name": "Standard Error Field",
+        "type": "UNSIGNED32",  // 7
+        "access": "ro",
+        "pdo": false,
+        "nbmin": 1,
+        "nbmax": 254
+      },
+      "sub": [
+        {
+          "name": "Number of Errors",
+          "type": "UNSIGNED8",  // 5
+          "access": "rw",
+          "pdo": false,
+          "comment": "Tests the repeated subobject in ARRAY via each."
+        },
+        {
+          // "name": "Standard Error Field"
+          // "type": "UNSIGNED32"  // 7
+          "value": 1
+        },
+        {
+          // "name": "Standard Error Field"
+          // "type": "UNSIGNED32"  // 7
+          "value": 2
+        },
+        {
+          // "name": "Standard Error Field"
+          // "type": "UNSIGNED32"  // 7
+          "value": 3
+        }
+      ]
+    },
+    {
+      "index": "0x2000",  // 8192
+      "name": "Example record",
+      "struct": "record",
+      "group": "profile",
+      "mandatory": false,
+      "each": {
+        "name": "Restore Manufacturer Defined Default Parameters %d[(sub - 3)]",
+        "type": "UNSIGNED32",  // 7
+        "access": "rw",
+        "pdo": false,
+        "nbmin": 0,
+        "nbmax": 124,
+        "start_index": 3
+      },
+      "sub": [
+        {
+          "name": "Number of Entries",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false,
+          "comment": "Tests repeated subobjects in a RECORD where only the two last items are repeated. The first two items are not repeated and should be copied to the repeated subobjects."
+        },
+        {
+          "name": "Restore Communication Default Parameters",
+          "type": "UNSIGNED32",  // 7
+          "access": "rw",
+          "pdo": false,
+          "value": 0
+        },
+        {
+          "name": "Restore Application Default Parameters",
+          "type": "UNSIGNED32",  // 7
+          "access": "rw",
+          "pdo": false,
+          "value": 0
+        },
+        {
+          // "name": "Restore Manufacturer Defined Default Parameters 0"
+          // "type": "UNSIGNED32"  // 7
+          "value": 1
+        },
+        {
+          // "name": "Restore Manufacturer Defined Default Parameters 1"
+          // "type": "UNSIGNED32"  // 7
+          "value": 2
+        }
+      ]
+    },
+    {
+      "index": "0x2001",  // 8193
+      "name": "Example array",
+      "struct": "array",
+      "group": "profile",
+      "mandatory": false,
+      "each": {
+        "name": "Consumer Heartbeat Time",
+        "type": "UNSIGNED32",  // 7
+        "access": "rw",
+        "pdo": false,
+        "nbmin": 0,
+        "nbmax": 127
+      },
+      "sub": [
+        {
+          "name": "Number of Entries",
+          "type": "UNSIGNED8",  // 5
+          "access": "ro",
+          "pdo": false,
+          "comment": "Test of an empty ARRAY where each is used."
+        }
+      ]
+    },
+    {
+      "index": "0x2010",  // 8208
+      "name": "Mymap %d [(idx)]",
+      "struct": "narray",
+      "group": "profile",
+      "mandatory": false,
+      "incr": 1,
+      "nbmax": 512,
+      "each": {
+        "name": "Mymap %d entry %d[(idx,sub)]",
+        "type": "UNSIGNED32",  // 7
+        "access": "rw",
+        "pdo": false,
+        "nbmin": 0,
+        "nbmax": 64
+      },
+      "sub": [
+        {
+          "name": "Number of Entries",
+          "type": "UNSIGNED8",  // 5
+          "access": "rw",
+          "pdo": false,
+          "comment": "Base object with repeated subobjects and with comments that should not be copied to the next"
+        },
+        {
+          // "name": "Mymap 1 entry 1"
+          // "type": "UNSIGNED32"  // 7
+          "comment": "Item 1",
+          "value": 100
+        },
+        {
+          // "name": "Mymap 1 entry 2"
+          // "type": "UNSIGNED32"  // 7
+          "comment": "Item 2",
+          "value": 101
+        },
+        {
+          // "name": "Mymap 1 entry 3"
+          // "type": "UNSIGNED32"  // 7
+          "value": 102
+        }
+      ]
+    },
+    {
+      "index": "0x2011",  // 8209
+      // "name": "Mymap 2 "
+      "repeat": true,
+      "struct": "narray",
+      "sub": [
+        {
+          // "name": "Number of Entries"
+          // "type": "UNSIGNED8"  // 5
+          "comment": "Repeated object with repeated subobject and with more items than the base. The next object is also repeated, but with no contents."
+        },
+        {
+          // "name": "Mymap 2 entry 1"
+          // "type": "UNSIGNED32"  // 7
+          "value": 32
+        },
+        {
+          // "name": "Mymap 2 entry 2"
+          // "type": "UNSIGNED32"  // 7
+          "comment": "My item 2",
+          "value": 33
+        },
+        {
+          // "name": "Mymap 2 entry 3"
+          // "type": "UNSIGNED32"  // 7
+          "value": 34
+        },
+        {
+          // "name": "Mymap 2 entry 4"
+          // "type": "UNSIGNED32"  // 7
+          "value": 35
+        }
+      ]
+    },
+    {
+      "index": "0x2012",  // 8210
+      // "name": "Mymap 3 "
+      "repeat": true,
+      "struct": "narray",
+      "sub": []
+    }
+  ]
+}

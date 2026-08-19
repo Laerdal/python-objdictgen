@@ -198,6 +198,7 @@ TODEachJson = TypedDict('TODEachJson', {
     "pdo": bool,
     "nbmin": int,
     "nbmax": int,
+    "start_index": int,
     "default": TODValue,
 })
 """JSON object dictionary "each" type definition."""

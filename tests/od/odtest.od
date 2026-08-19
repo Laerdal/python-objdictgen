@@ -1,0 +1,417 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE PyObject SYSTEM "PyObjects.dtd">
+<PyObject module="node" class="Node" id="4447401168">
+<attr name="Name" type="string" value="odtest" />
+<attr name="Type" type="string" value="master" />
+<attr name="ID" type="numeric" value="0" />
+<attr name="Description" type="string" value="OD for testing object types with repeated subindexes and repeated objects." />
+<attr name="ProfileName" type="string" value="odtest" />
+<attr name="Profile" type="dict" id="4447696400">
+  <entry>
+    <key type="numeric" value="8192" />
+    <val type="dict" id="4448230784">
+      <entry>
+        <key type="string" value="name" />
+        <val type="string" value="Example record" />
+      </entry>
+      <entry>
+        <key type="string" value="need" />
+        <val type="False" value="" />
+      </entry>
+      <entry>
+        <key type="string" value="struct" />
+        <val type="numeric" value="3" />
+      </entry>
+      <entry>
+        <key type="string" value="values" />
+        <val type="list" id="4448224960">
+          <item type="dict" id="4447276736">
+            <entry>
+              <key type="string" value="name" />
+              <val type="string" value="Number of Entries" />
+            </entry>
+            <entry>
+              <key type="string" value="type" />
+              <val type="numeric" value="5" />
+            </entry>
+            <entry>
+              <key type="string" value="access" />
+              <val type="string" value="ro" />
+            </entry>
+            <entry>
+              <key type="string" value="pdo" />
+              <val type="False" value="" />
+            </entry>
+          </item>
+          <item type="dict" id="4442263296">
+            <entry>
+              <key type="string" value="name" />
+              <val type="string" value="Restore Communication Default Parameters" />
+            </entry>
+            <entry>
+              <key type="string" value="type" />
+              <val type="numeric" value="7" />
+            </entry>
+            <entry>
+              <key type="string" value="access" />
+              <val type="string" value="rw" />
+            </entry>
+            <entry>
+              <key type="string" value="pdo" />
+              <val type="False" value="" />
+            </entry>
+          </item>
+          <item type="dict" id="4448170176">
+            <entry>
+              <key type="string" value="name" />
+              <val type="string" value="Restore Application Default Parameters" />
+            </entry>
+            <entry>
+              <key type="string" value="type" />
+              <val type="numeric" value="7" />
+            </entry>
+            <entry>
+              <key type="string" value="access" />
+              <val type="string" value="rw" />
+            </entry>
+            <entry>
+              <key type="string" value="pdo" />
+              <val type="False" value="" />
+            </entry>
+          </item>
+          <item type="dict" id="4446151744">
+            <entry>
+              <key type="string" value="name" />
+              <val type="string" value="Restore Manufacturer Defined Default Parameters %d[(sub - 3)]" />
+            </entry>
+            <entry>
+              <key type="string" value="type" />
+              <val type="numeric" value="7" />
+            </entry>
+            <entry>
+              <key type="string" value="access" />
+              <val type="string" value="rw" />
+            </entry>
+            <entry>
+              <key type="string" value="pdo" />
+              <val type="False" value="" />
+            </entry>
+            <entry>
+              <key type="string" value="nbmin" />
+              <val type="numeric" value="0" />
+            </entry>
+            <entry>
+              <key type="string" value="nbmax" />
+              <val type="numeric" value="124" />
+            </entry>
+          </item>
+        </val>
+      </entry>
+    </val>
+  </entry>
+  <entry>
+    <key type="numeric" value="8193" />
+    <val type="dict" id="4448229120">
+      <entry>
+        <key type="string" value="name" />
+        <val type="string" value="Example array" />
+      </entry>
+      <entry>
+        <key type="string" value="need" />
+        <val type="False" value="" />
+      </entry>
+      <entry>
+        <key type="string" value="struct" />
+        <val type="numeric" value="7" />
+      </entry>
+      <entry>
+        <key type="string" value="values" />
+        <val type="list" id="4448225088">
+          <item type="dict" id="4448230016">
+            <entry>
+              <key type="string" value="name" />
+              <val type="string" value="Number of Entries" />
+            </entry>
+            <entry>
+              <key type="string" value="type" />
+              <val type="numeric" value="5" />
+            </entry>
+            <entry>
+              <key type="string" value="access" />
+              <val type="string" value="ro" />
+            </entry>
+            <entry>
+              <key type="string" value="pdo" />
+              <val type="False" value="" />
+            </entry>
+          </item>
+          <item type="dict" id="4446263232">
+            <entry>
+              <key type="string" value="name" />
+              <val type="string" value="Consumer Heartbeat Time" />
+            </entry>
+            <entry>
+              <key type="string" value="type" />
+              <val type="numeric" value="7" />
+            </entry>
+            <entry>
+              <key type="string" value="access" />
+              <val type="string" value="rw" />
+            </entry>
+            <entry>
+              <key type="string" value="pdo" />
+              <val type="False" value="" />
+            </entry>
+            <entry>
+              <key type="string" value="nbmin" />
+              <val type="numeric" value="0" />
+            </entry>
+            <entry>
+              <key type="string" value="nbmax" />
+              <val type="numeric" value="127" />
+            </entry>
+          </item>
+        </val>
+      </entry>
+    </val>
+  </entry>
+  <entry>
+    <key type="numeric" value="8208" />
+    <val type="dict" id="4446267648">
+      <entry>
+        <key type="string" value="name" />
+        <val type="string" value="Mymap %d [(idx)]" />
+      </entry>
+      <entry>
+        <key type="string" value="nbmax" />
+        <val type="numeric" value="512" />
+      </entry>
+      <entry>
+        <key type="string" value="need" />
+        <val type="False" value="" />
+      </entry>
+      <entry>
+        <key type="string" value="struct" />
+        <val type="numeric" value="15" />
+      </entry>
+      <entry>
+        <key type="string" value="incr" />
+        <val type="numeric" value="1" />
+      </entry>
+      <entry>
+        <key type="string" value="values" />
+        <val type="list" id="4448225344">
+          <item type="dict" id="4448119936">
+            <entry>
+              <key type="string" value="name" />
+              <val type="string" value="Number of Entries" />
+            </entry>
+            <entry>
+              <key type="string" value="type" />
+              <val type="numeric" value="5" />
+            </entry>
+            <entry>
+              <key type="string" value="access" />
+              <val type="string" value="rw" />
+            </entry>
+            <entry>
+              <key type="string" value="pdo" />
+              <val type="False" value="" />
+            </entry>
+          </item>
+          <item type="dict" id="4448231936">
+            <entry>
+              <key type="string" value="name" />
+              <val type="string" value="Mymap %d entry %d[(idx,sub)]" />
+            </entry>
+            <entry>
+              <key type="string" value="type" />
+              <val type="numeric" value="7" />
+            </entry>
+            <entry>
+              <key type="string" value="access" />
+              <val type="string" value="rw" />
+            </entry>
+            <entry>
+              <key type="string" value="pdo" />
+              <val type="False" value="" />
+            </entry>
+            <entry>
+              <key type="string" value="nbmin" />
+              <val type="numeric" value="0" />
+            </entry>
+            <entry>
+              <key type="string" value="nbmax" />
+              <val type="numeric" value="64" />
+            </entry>
+          </item>
+        </val>
+      </entry>
+    </val>
+  </entry>
+</attr>
+<attr name="SpecificMenu" type="list" id="4443306304">
+</attr>
+<attr name="Dictionary" type="dict" id="4448172864">
+  <entry>
+    <key type="numeric" value="4098" />
+    <val type="string" value="{True:&quot;$NODEID+0x%X00&quot;%(base+2),False:0x80000000}[base&lt;4]" />
+  </entry>
+  <entry>
+    <key type="numeric" value="4099" />
+    <val type="list" id="4448056256">
+      <item type="numeric" value="1" />
+      <item type="numeric" value="2" />
+      <item type="numeric" value="3" />
+    </val>
+  </entry>
+  <entry>
+    <key type="numeric" value="8192" />
+    <val type="list" id="4448172160">
+      <item type="numeric" value="0" />
+      <item type="numeric" value="0" />
+      <item type="numeric" value="1" />
+      <item type="numeric" value="2" />
+    </val>
+  </entry>
+  <entry>
+    <key type="numeric" value="8193" />
+    <val type="list" id="4448228032">
+    </val>
+  </entry>
+  <entry>
+    <key type="numeric" value="8208" />
+    <val type="list" id="4446268160">
+      <item type="numeric" value="100" />
+      <item type="numeric" value="101" />
+      <item type="numeric" value="102" />
+    </val>
+  </entry>
+  <entry>
+    <key type="numeric" value="8209" />
+    <val type="list" id="4448223296">
+      <item type="numeric" value="32" />
+      <item type="numeric" value="33" />
+      <item type="numeric" value="34" />
+      <item type="numeric" value="35" />
+    </val>
+  </entry>
+  <entry>
+    <key type="numeric" value="8210" />
+    <val type="list" id="4448223616">
+    </val>
+  </entry>
+</attr>
+<attr name="ParamsDictionary" type="dict" id="4448169728">
+  <entry>
+    <key type="numeric" value="4098" />
+    <val type="dict" id="4448053248">
+      <entry>
+        <key type="string" value="comment" />
+        <val type="string" value="Tests the python expression in the value field." />
+      </entry>
+    </val>
+  </entry>
+  <entry>
+    <key type="numeric" value="4099" />
+    <val type="dict" id="4448113472">
+      <entry>
+        <key type="numeric" value="0" />
+        <val type="dict" id="4448230272">
+          <entry>
+            <key type="string" value="comment" />
+            <val type="string" value="Tests the repeated subobject in ARRAY via each." />
+          </entry>
+        </val>
+      </entry>
+    </val>
+  </entry>
+  <entry>
+    <key type="numeric" value="8192" />
+    <val type="dict" id="4448169920">
+      <entry>
+        <key type="numeric" value="0" />
+        <val type="dict" id="4446271424">
+          <entry>
+            <key type="string" value="comment" />
+            <val type="string" value="Tests repeated subobjects in a RECORD where only the two last items are repeated. The first two items are not repeated and should be copied to the repeated subobjects." />
+          </entry>
+        </val>
+      </entry>
+    </val>
+  </entry>
+  <entry>
+    <key type="numeric" value="8193" />
+    <val type="dict" id="4448170304">
+      <entry>
+        <key type="numeric" value="0" />
+        <val type="dict" id="4448224256">
+          <entry>
+            <key type="string" value="comment" />
+            <val type="string" value="Test of an empty ARRAY where each is used." />
+          </entry>
+        </val>
+      </entry>
+    </val>
+  </entry>
+  <entry>
+    <key type="numeric" value="8208" />
+    <val type="dict" id="4448225472">
+      <entry>
+        <key type="numeric" value="0" />
+        <val type="dict" id="4448170112">
+          <entry>
+            <key type="string" value="comment" />
+            <val type="string" value="Base object with repeated subobjects and with comments that should not be copied to the next" />
+          </entry>
+        </val>
+      </entry>
+      <entry>
+        <key type="numeric" value="1" />
+        <val type="dict" id="4448231104">
+          <entry>
+            <key type="string" value="comment" />
+            <val type="string" value="Item 1" />
+          </entry>
+        </val>
+      </entry>
+      <entry>
+        <key type="numeric" value="2" />
+        <val type="dict" id="4448231232">
+          <entry>
+            <key type="string" value="comment" />
+            <val type="string" value="Item 2" />
+          </entry>
+        </val>
+      </entry>
+    </val>
+  </entry>
+  <entry>
+    <key type="numeric" value="8209" />
+    <val type="dict" id="4448231168">
+      <entry>
+        <key type="numeric" value="0" />
+        <val type="dict" id="4448232384">
+          <entry>
+            <key type="string" value="comment" />
+            <val type="string" value="Repeated object with repeated subobject and with more items than the base. The next object is also repeated, but with no contents." />
+          </entry>
+        </val>
+      </entry>
+      <entry>
+        <key type="numeric" value="2" />
+        <val type="dict" id="4448238144">
+          <entry>
+            <key type="string" value="comment" />
+            <val type="string" value="My item 2" />
+          </entry>
+        </val>
+      </entry>
+    </val>
+  </entry>
+</attr>
+<attr name="DS302" type="dict" id="4447696720">
+</attr>
+<attr name="UserMapping" type="dict" id="4447888064">
+</attr>
+</PyObject>

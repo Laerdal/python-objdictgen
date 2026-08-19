@@ -187,6 +187,7 @@
                 "pdo": { "$ref": "#pdo" },
                 "nbmin": { "$ref": "#nbmin" },
                 "nbmax": { "$ref": "#nbmax" },
+                "start_index": { "$ref": "#index" },
                 "default": { "$ref": "#value" }
             },
             "additionalProperties": false,
@@ -302,6 +303,11 @@
 
         "nbmin": {
             "$id": "#nbmin",
+            "type": "integer"
+        },
+
+        "start_index": {
+            "$id": "#start_index",
             "type": "integer"
         },
 
