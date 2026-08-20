@@ -1,0 +1,19 @@
+global Mapping, AddMenuEntries
+
+Mapping = {
+    0x2000: {"name": "Example record", "struct": OD.RECORD, "need": False, "values": [
+        {"name": "Number of Entries", "type": 0x05, "access": 'ro', "pdo": False},
+        {"name": "Restore Communication Default Parameters", "type": 0x07, "access": 'rw', "pdo": False},
+        {"name": "Restore Application Default Parameters", "type": 0x07, "access": 'rw', "pdo": False},
+        {"name": "Restore Manufacturer Defined Default Parameters %d[(sub - 3)]", "type": 0x07, "access": 'rw', "pdo": False, "nbmin": 0, "nbmax": 0x7C}]},
+
+    0x2001: {"name": "Example array", "struct": OD.ARRAY, "need": False, "values": [
+        {"name": "Number of Entries", "type": 0x05, "access": 'ro', "pdo": False},
+        {"name": "Consumer Heartbeat Time", "type": 0x07, "access": 'rw', "pdo": False, "nbmin": 0, "nbmax": 0x7F}]},
+
+    0x2010: {"name": "Mymap %d [(idx)]", "struct": OD.NARRAY, "incr": 1, "nbmax": 0x200, "need": False, "values": [
+        {"name": "Number of Entries", "type": 0x05, "access": 'rw', "pdo": False},
+        {"name": "Mymap %d entry %d[(idx,sub)]", "type": 0x07, "access": 'rw', "pdo": False, "nbmin": 0, "nbmax": 0x40}]},
+}
+
+AddMenuEntries = []

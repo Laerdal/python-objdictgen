@@ -100,7 +100,7 @@ class Fn:
     def diff(a, b, predicate=None, postprocess=None, **kw):
         """ Diff two files """
         if predicate is None:
-            predicate = lambda x: True  # noqa: E731
+            predicate = lambda x: True
         with open(a, 'r', encoding="utf-8") as f:
             da = [n.rstrip() for n in f if predicate(n)]
         with open(b, 'r', encoding="utf-8") as f:

@@ -120,6 +120,7 @@ FIELDS_MAPVALS_OPT = {'nbmin', 'nbmax', 'default'}
 # node.ParamDictionary[index] = { N: { ..dict..}, ..dict.. }
 FIELDS_PARAMS = {'comment', 'save', 'buffer_size'}
 FIELDS_PARAMS_PROMOTE = {'callback'}
+FIELDS_PARAMS_EACH = {"start_index"}
 
 # Fields representing the dictionary value
 FIELDS_VALUE = {'value'}
@@ -421,7 +422,7 @@ def generate_node(contents: str|TODJson, validate: bool = True) -> Node:
     if validate:
         validate_fromdict(jd, objtypes_i2s, objtypes_s2i)
 
-    return node_fromdict(jd, objtypes_s2i)
+    return node_fromdict(jd, objtypes_s2i, validate=validate)
 
 
 def node_todict(node: Node, sort=False, rich=True, internal=False, validate=True) -> TODJson:
@@ -484,7 +485,6 @@ def node_todict(node: Node, sort=False, rich=True, internal=False, validate=True
         finally:
             # Add in a fancyer index (do it here after index is finished being used)
             if rich:
-                index = obj["index"]
                 obj["index"] = f'@@"0x{index:04X}"  // {index}@@'
 
             dictionary.append(obj)
@@ -598,9 +598,12 @@ def indexentry_to_jsondict(ientry: TIndexEntry) -> TODObjJson:
     obj['struct'] = struct
     obj['sub'] = obj.pop('values', [])  # type: ignore[typeddict-item]  # values is about to be renamed
 
-    # Move subindex[1] to 'each' on objecs that contain 'nbmax'
-    if len(obj['sub']) > 1 and 'nbmax' in obj['sub'][1]:
-        obj['each'] = obj['sub'].pop(1)  # type: ignore[typeddict-item]
+    # Move subindex[-1] to 'each' on objecs that contain 'nbmax'
+    if len(obj['sub']) > 1 and 'nbmax' in obj['sub'][-1]:
+        obj['each'] = obj['sub'].pop(-1)  # type: ignore[typeddict-item]
+        start_index = len(obj["sub"])
+        if start_index > 1:
+            obj["each"]["start_index"] = start_index
 
     # Baseobj should have been emptied
     if odobj != {}:
@@ -892,20 +895,18 @@ def validate_indexentry(ientry: TIndexEntry):
             nbmaxok = True
 
     elif struct in (OD.ARRAY, OD.NARRAY):
-        if len(nbmax) == 2:
+        if len(nbmax) == 2:  # Array only have length + repeat
             lenok = True
-        if sum(nbmax) == 1 and nbmax[1]:
+        if sum(nbmax) == 1 and nbmax[-1]:
             nbmaxok = True
 
     elif struct in (OD.RECORD, OD.NRECORD):
-        if sum(nbmax) and len(nbmax) > 1 and nbmax[1]:
+        if len(nbmax) >= 2:  # Record can have more than one item before repeat
+            lenok = True
+        if sum(nbmax) == 1 and nbmax[-1]:
             nbmaxok = True
-            if len(nbmax) == 2:
-                lenok = True
-        elif sum(nbmax) == 0:
+        if sum(nbmax) == 0:
             nbmaxok = True
-            if len(nbmax) > 1:
-                lenok = True
     else:
         raise ValidationError(f"Unknown struct '{struct}'")
 
@@ -915,7 +916,7 @@ def validate_indexentry(ientry: TIndexEntry):
         raise ValidationError(f"Unexpexted count of subindexes in mapping object, found {len(nbmax)}")
 
 
-def node_fromdict(jd: TODJson, objtypes_s2i: dict[str, int]) -> Node:
+def node_fromdict(jd: TODJson, objtypes_s2i: dict[str, int], validate: bool = True) -> Node:
     """ Convert a dict jd into a Node """
 
     # Create the node and fill the most basic data
@@ -983,15 +984,16 @@ def node_fromdict(jd: TODJson, objtypes_s2i: dict[str, int]) -> Node:
         elif 'built-in' in groups:
             refobj = maps.MAPPING_DICTIONARY.get(index)
 
-            diff = deepdiff.DeepDiff(refobj, ientry['object'], view='tree')
-            if diff:
-                log.debug("Index 0x%04x (%s) Difference between built-in object and imported:", index, index)
-                for line in diff.pretty().splitlines():
-                    log.debug('  %s', line)
-                raise ValidationError(
-                    f"Built-in object index 0x{index:04x} ({index}) "
-                    "does not match against system parameters"
-                )
+            if validate:
+                diff = deepdiff.DeepDiff(refobj, ientry['object'], view='tree')
+                if diff:
+                    log.debug("Index 0x%04x (%s) Difference between built-in object and imported:", index, index)
+                    for line in diff.pretty().splitlines():
+                        log.debug('  %s', line)
+                    raise ValidationError(
+                        f"Built-in object index 0x{index:04x} ({index}) "
+                        "does not match against system parameters"
+                    )
 
     return node
 
@@ -1093,7 +1095,9 @@ def rearrange_for_node(obj: TODObjJson, objtypes_s2i: dict[str, int]) -> TIndexE
 
     # Move back the each object
     if 'each' in obj:
-        subitems.append(obj.pop('each'))  # type: ignore[arg-type]
+        each = obj.pop('each')
+        each.pop("start_index", None)  # Remove the start_index if present
+        subitems.append(each)  # type: ignore[arg-type]
 
     # Check if the object is a repeat object
     repeat = obj.pop('repeat', False)
@@ -1173,7 +1177,7 @@ def validate_fromdict(jsonobj: TODJson, objtypes_i2s: dict[int, str], objtypes_s
     # Verify that we have the expected members
     member_compare(jsonobj.keys(), must=FIELDS_DATA_MUST, optional=FIELDS_DATA_OPT)
 
-    def _validate_sub(obj, idx=0, is_var=False, is_repeat=False, is_each=False):
+    def _validate_sub(obj, idx=0, is_var=False, is_repeat=False, is_each=False, is_index_each=False):
 
         # Validated: (See FIELDS_MAPVAPS_*, FIELDS_PARAMS and FIELDS_VALUE)
         # ----------
@@ -1209,7 +1213,7 @@ def validate_fromdict(jsonobj: TODJson, objtypes_i2s: dict[int, str], objtypes_s
 
         # Set what parameters should be present, optional or not present
         if idx == -1:  # Checking "each" section. No object or value
-            params = 'no'
+            params = "each"
 
         elif is_repeat:  # Object repeat = defined elsewhere. No definition needed.
             defs = 'no'
@@ -1219,10 +1223,9 @@ def validate_fromdict(jsonobj: TODJson, objtypes_i2s: dict[int, str], objtypes_s
         elif is_var:  # VAR type, guaranteed idx==0 here
             value = 'opt'
 
-        elif is_each:  # Param have "each". Should never have any defs in idx > 0
-            if idx > 0:
-                defs = 'no'
-                value = 'must'
+        elif is_each and idx >= is_index_each:  # Param have "each" and the index is in the "each" items
+            defs = 'no'
+            value = 'must'
 
         else:  # All other (not each, not repeat, not VAR)
             if idx > 0:
@@ -1240,6 +1243,8 @@ def validate_fromdict(jsonobj: TODJson, objtypes_i2s: dict[int, str], objtypes_s
         #     must |= FIELDS_PARAMS
         if params == 'opt':
             opts |= FIELDS_PARAMS
+        if params == 'each':
+            opts |= FIELDS_PARAMS_EACH
         if value == 'must':
             must |= FIELDS_VALUE
         if value == 'opt':
@@ -1335,7 +1340,10 @@ def validate_fromdict(jsonobj: TODJson, objtypes_i2s: dict[int, str], objtypes_s
         for idx, sub in enumerate(subitems):
             try:
                 is_var = struct in (OD.VAR, OD.NVAR)
-                _validate_sub(sub, idx, is_var=is_var, is_repeat=is_repeat, is_each='each' in obj)
+                _validate_sub(
+                    sub, idx, is_var=is_var, is_repeat=is_repeat, is_each="each" in obj,
+                    is_index_each=obj.get("each", {}).get("start_index", 1),
+                )
             except Exception as exc:
                 exc_amend(exc, f"sub[{idx}]: ")
                 raise
@@ -1347,9 +1355,11 @@ def validate_fromdict(jsonobj: TODJson, objtypes_i2s: dict[int, str], objtypes_s
             if struct in (OD.VAR, OD.NVAR):
                 raise ValidationError("Unexpected 'each' use in VAR/NVAR object")
 
-            # Having 'each' requires use of only one sub item with 'name' in it
-            if not (sum(has_name) == 1 and has_name[0]):
-                raise ValidationError("Unexpected subitems. Subitem 0 must contain name")
+            # When each is present, the other items must have a name field in them
+            if sum(has_name) != sub.get("start_index", 1):
+                raise ValidationError(
+                    f"Unexpected subitems. Subitems 0..{sub['start_index'] - 1} must contain name"
+                )
 
             try:
                 _validate_sub(sub, idx=-1)
