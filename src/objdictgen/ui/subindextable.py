@@ -189,6 +189,8 @@ class SubindexTable(wx.grid.GridTableBase):
         (wx.grid.Grid) -> Reset the grid view.   Call this to
         update the grid if rows and columns have been added or deleted
         """
+        if grid.IsCellEditControlEnabled():
+            grid.DisableCellEditControl()
         grid.BeginBatch()
         for current, new, delmsg, addmsg in [
             (

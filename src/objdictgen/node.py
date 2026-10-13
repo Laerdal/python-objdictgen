@@ -541,6 +541,8 @@ class Node(NodeProtocol):
             try:
                 params: TParamEntry = self.ParamsDictionary[index][subindex]  # type: ignore[literal-required]
                 bs = params["buffer_size"]
+                if isinstance(bs, str):
+                    bs = int(bs)
                 if bs <= 8:
                     return (index << 16) + (subindex << 8) + size * bs
                 raise ValueError(f"String size of '{name}' too big to fit in a PDO")
@@ -552,13 +554,9 @@ class Node(NodeProtocol):
         varlist = self.GetMapVariableList()
         for index, subindex, size, name in varlist:
             if mapname == self.GenerateMapName(name, index, subindex):
-                # array type, only look at subindex 1 in UserMapping
-                if self.UserMapping[index]["struct"] == OD.ARRAY:
-                    if self.IsStringType(self.UserMapping[index]["values"][1]["type"]):
-                        return _get_buffer_size(index, subindex, size, mapname)
-                else:
-                    if self.IsStringType(self.UserMapping[index]["values"][subindex]["type"]):
-                        return _get_buffer_size(index, subindex, size, mapname)
+                subentry_infos = self.GetSubentryInfos(index, subindex)
+                if self.IsStringType(subentry_infos["type"]):
+                    return _get_buffer_size(index, subindex, size, mapname)
                 return (index << 16) + (subindex << 8) + size
 
         raise ValueError(f"Mapping '{mapname}' not found")

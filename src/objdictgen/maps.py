@@ -505,7 +505,7 @@ class ODMapping(UserDict[int, TODObj]):
         It yields tuple of (index, subindex, size, name)
         """
         for index, entry in self.items():
-            if entry.get("need") is False:
+            if not node.IsEntry(index):
                 continue
             values = entry["values"]
             for subindex, subvalue in enumerate(values):
